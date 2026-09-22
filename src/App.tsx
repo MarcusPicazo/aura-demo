@@ -1,0 +1,60 @@
+import { lazy, Suspense } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { AuraLayout } from './views/AuraLayout';
+import { Selector3D } from './views/Selector3D';
+
+// CLAUDE.md: carga diferida del panel de admin y de la vista de fachada — un prospecto
+// que solo ve la torre (SPEC §2, momento 1) nunca descarga ninguno de los dos.
+const FacadeView = lazy(() => import('./views/FacadeView').then((m) => ({ default: m.FacadeView })));
+const AdminPage = lazy(() => import('./admin/AdminPage'));
+const UnitsTable = lazy(() => import('./admin/UnitsTable').then((m) => ({ default: m.UnitsTable })));
+const FacadeEditor = lazy(() => import('./admin/FacadeEditor').then((m) => ({ default: m.FacadeEditor })));
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/aura" replace />} />
+
+      <Route path="/aura" element={<AuraLayout />}>
+        <Route index element={<Selector3D />} />
+        <Route path="unidad/:code" element={<Selector3D />} />
+        <Route
+          path="fachada"
+          element={
+            <Suspense fallback={null}>
+              <FacadeView />
+            </Suspense>
+          }
+        />
+      </Route>
+
+      <Route
+        path="/admin"
+        element={
+          <Suspense fallback={null}>
+            <AdminPage />
+          </Suspense>
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={null}>
+              <UnitsTable />
+            </Suspense>
+          }
+        />
+        <Route
+          path="facade"
+          element={
+            <Suspense fallback={null}>
+              <FacadeEditor />
+            </Suspense>
+          }
+        />
+      </Route>
+    </Routes>
+  );
+}
+
+export default App;

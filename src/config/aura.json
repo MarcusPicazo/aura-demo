@@ -1,0 +1,336 @@
+{
+  "slug": "aura",
+  "name": "Torre Aura Del Valle",
+  "tagline": "Vivir en la luz de Del Valle",
+  "whatsapp": "5215500000000",
+  "brand": { "primary": "#2B2B2B", "accent": "#C8A27A", "background": "#F4EFE8" },
+  "geometry": {
+    "floorHeight": 3.2,
+    "slabThickness": 0.3,
+    "groundFloorHeight": 4.5,
+    "levels": 12,
+    "plate": [
+      { "type": "A", "polygon": [[0, 0], [11, 0], [11, 8], [0, 8]] },
+      { "type": "B", "polygon": [[13, 0], [24, 0], [24, 8], [13, 8]] },
+      {
+        "type": "C",
+        "polygon": [[0, 10], [11, 10], [11, 18], [6, 18], [6, 14], [0, 14]]
+      },
+      { "type": "D", "polygon": [[13, 10], [24, 10], [24, 18], [13, 18]] }
+    ],
+    "penthousePlate": [
+      { "type": "PH", "code": "1201", "polygon": [[0, 0], [11, 0], [11, 18], [0, 18]] },
+      { "type": "PH", "code": "1202", "polygon": [[13, 0], [24, 0], [24, 18], [13, 18]] }
+    ],
+    "core": [[11, 6], [13, 6], [13, 12], [11, 12]]
+  },
+  "unitTypes": {
+    "A": { "bedrooms": 2, "bathrooms": 2, "m2": 85, "priceBase": 5600000, "orientation": "Norponiente" },
+    "B": { "bedrooms": 1, "bathrooms": 1, "m2": 62, "priceBase": 4300000, "orientation": "Nororiente" },
+    "C": { "bedrooms": 3, "bathrooms": 2.5, "m2": 120, "priceBase": 7600000, "orientation": "Surponiente" },
+    "D": { "bedrooms": 2, "bathrooms": 2, "m2": 92, "priceBase": 6000000, "orientation": "Suroriente" }
+  },
+  "penthouseUnitTypes": {
+    "1201": { "bedrooms": 3, "bathrooms": 3.5, "m2": 165, "priceBase": 9400000, "orientation": "Doble orientación" },
+    "1202": { "bedrooms": 3, "bathrooms": 3.5, "m2": 180, "priceBase": 9800000, "orientation": "Doble orientación" }
+  },
+  "floorPlans": {
+    "A": {
+      "kind": "drawn",
+      "wallThickness": 0.15,
+      "walls": [
+        { "from": [0, 0], "to": [11, 0] },
+        { "from": [11, 0], "to": [11, 8] },
+        { "from": [11, 8], "to": [0, 8] },
+        { "from": [0, 8], "to": [0, 0] },
+        { "from": [0, 3.4], "to": [11, 3.4] },
+        { "from": [3.2, 3.4], "to": [3.2, 8] },
+        { "from": [7.0, 3.4], "to": [7.0, 8] },
+        { "from": [8.6, 3.4], "to": [8.6, 8] },
+        { "from": [7.0, 5.7], "to": [8.6, 5.7] }
+      ],
+      "doors": [
+        { "hinge": [1.6, 3.4], "angle": 0, "width": 0.9, "swing": 1 },
+        { "hinge": [5.1, 3.4], "angle": 0, "width": 0.9, "swing": 1 },
+        { "hinge": [7.0, 4.5], "angle": 90, "width": 0.8, "swing": -1 },
+        { "hinge": [8.6, 6.8], "angle": 90, "width": 0.8, "swing": 1 },
+        { "hinge": [9.8, 3.4], "angle": 0, "width": 0.9, "swing": 1 }
+      ],
+      "windows": [
+        { "from": [2, 0], "to": [4, 0] },
+        { "from": [7, 0], "to": [9, 0] }
+      ],
+      "rooms": [
+        { "label": "Sala-comedor", "polygon": [[0, 0], [11, 0], [11, 3.4], [0, 3.4]] },
+        { "label": "Cocina", "polygon": [[0, 3.4], [3.2, 3.4], [3.2, 8], [0, 8]] },
+        { "label": "Recámara principal", "polygon": [[3.2, 3.4], [7.0, 3.4], [7.0, 8], [3.2, 8]] },
+        { "label": "Baño principal", "polygon": [[7.0, 3.4], [8.6, 3.4], [8.6, 5.7], [7.0, 5.7]] },
+        { "label": "Baño 2", "polygon": [[7.0, 5.7], [8.6, 5.7], [8.6, 8], [7.0, 8]] },
+        { "label": "Recámara 2", "polygon": [[8.6, 3.4], [11, 3.4], [11, 8], [8.6, 8]] }
+      ],
+      "furniture": [
+        { "type": "sofa", "position": [5.5, 1.4] },
+        { "type": "dining_table", "position": [2, 2.3] },
+        { "type": "kitchen", "position": [1.6, 5.5] },
+        { "type": "bed_double", "position": [5.1, 5.7] },
+        { "type": "toilet", "position": [7.4, 3.9] },
+        { "type": "sink", "position": [8.3, 3.9] },
+        { "type": "shower", "position": [7.7, 5.2] },
+        { "type": "toilet", "position": [7.4, 6.2] },
+        { "type": "sink", "position": [8.3, 6.2] },
+        { "type": "bed_single", "position": [9.8, 5.7] }
+      ]
+    },
+    "D": {
+      "kind": "drawn",
+      "wallThickness": 0.15,
+      "walls": [
+        { "from": [0, 0], "to": [11, 0] },
+        { "from": [11, 0], "to": [11, 8] },
+        { "from": [11, 8], "to": [0, 8] },
+        { "from": [0, 8], "to": [0, 0] },
+        { "from": [0, 3.4], "to": [11, 3.4] },
+        { "from": [7.8, 3.4], "to": [7.8, 8] },
+        { "from": [4.0, 3.4], "to": [4.0, 8] },
+        { "from": [2.4, 3.4], "to": [2.4, 8] },
+        { "from": [4.0, 5.7], "to": [2.4, 5.7] }
+      ],
+      "doors": [
+        { "hinge": [9.4, 3.4], "angle": 180, "width": 0.9, "swing": -1 },
+        { "hinge": [5.9, 3.4], "angle": 180, "width": 0.9, "swing": -1 },
+        { "hinge": [4.0, 4.5], "angle": 90, "width": 0.8, "swing": 1 },
+        { "hinge": [2.4, 6.8], "angle": 90, "width": 0.8, "swing": -1 },
+        { "hinge": [1.2, 3.4], "angle": 180, "width": 0.9, "swing": -1 }
+      ],
+      "windows": [
+        { "from": [2, 0], "to": [4, 0] },
+        { "from": [7, 0], "to": [9, 0] }
+      ],
+      "rooms": [
+        { "label": "Sala-comedor", "polygon": [[0, 0], [11, 0], [11, 3.4], [0, 3.4]] },
+        { "label": "Cocina", "polygon": [[7.8, 3.4], [11, 3.4], [11, 8], [7.8, 8]] },
+        { "label": "Recámara principal", "polygon": [[4.0, 3.4], [7.8, 3.4], [7.8, 8], [4.0, 8]] },
+        { "label": "Baño principal", "polygon": [[2.4, 3.4], [4.0, 3.4], [4.0, 5.7], [2.4, 5.7]] },
+        { "label": "Baño 2", "polygon": [[2.4, 5.7], [4.0, 5.7], [4.0, 8], [2.4, 8]] },
+        { "label": "Recámara 2", "polygon": [[0, 3.4], [2.4, 3.4], [2.4, 8], [0, 8]] }
+      ],
+      "furniture": [
+        { "type": "sofa", "position": [5.5, 1.4] },
+        { "type": "dining_table", "position": [9, 2.3] },
+        { "type": "kitchen", "position": [9.4, 5.5] },
+        { "type": "bed_double", "position": [5.9, 5.7] },
+        { "type": "toilet", "position": [3.6, 3.9] },
+        { "type": "sink", "position": [2.7, 3.9] },
+        { "type": "shower", "position": [3.3, 5.2] },
+        { "type": "toilet", "position": [3.6, 6.2] },
+        { "type": "sink", "position": [2.7, 6.2] },
+        { "type": "bed_single", "position": [1.2, 5.7] }
+      ]
+    },
+    "B": {
+      "kind": "drawn",
+      "wallThickness": 0.15,
+      "walls": [
+        { "from": [0, 0], "to": [11, 0] },
+        { "from": [11, 0], "to": [11, 8] },
+        { "from": [11, 8], "to": [0, 8] },
+        { "from": [0, 8], "to": [0, 0] },
+        { "from": [0, 4.5], "to": [11, 4.5] },
+        { "from": [7.5, 4.5], "to": [7.5, 8] }
+      ],
+      "doors": [
+        { "hinge": [3, 4.5], "angle": 0, "width": 0.9, "swing": 1 },
+        { "hinge": [7.5, 6], "angle": 90, "width": 0.8, "swing": -1 }
+      ],
+      "windows": [{ "from": [2, 0], "to": [9, 0] }],
+      "rooms": [
+        { "label": "Sala-comedor", "polygon": [[0, 0], [7, 0], [7, 4.5], [0, 4.5]] },
+        { "label": "Cocina", "polygon": [[7, 0], [11, 0], [11, 4.5], [7, 4.5]] },
+        { "label": "Recámara", "polygon": [[0, 4.5], [7.5, 4.5], [7.5, 8], [0, 8]] },
+        { "label": "Baño", "polygon": [[7.5, 4.5], [11, 4.5], [11, 8], [7.5, 8]] }
+      ],
+      "furniture": [
+        { "type": "sofa", "position": [3.5, 2] },
+        { "type": "dining_table", "position": [3.5, 3.5] },
+        { "type": "kitchen", "position": [9, 0.7] },
+        { "type": "bed_double", "position": [3.5, 6.2] },
+        { "type": "toilet", "position": [8.3, 5.2] },
+        { "type": "sink", "position": [9.5, 5.2] },
+        { "type": "shower", "position": [9.7, 6.8] }
+      ]
+    },
+    "C": {
+      "kind": "drawn",
+      "wallThickness": 0.15,
+      "walls": [
+        { "from": [0, 0], "to": [11, 0] },
+        { "from": [11, 0], "to": [11, 4] },
+        { "from": [11, 4], "to": [6, 4] },
+        { "from": [6, 4], "to": [6, 8] },
+        { "from": [6, 8], "to": [0, 8] },
+        { "from": [0, 8], "to": [0, 0] },
+        { "from": [6, 0], "to": [6, 4] },
+        { "from": [8.5, 0], "to": [8.5, 4] },
+        { "from": [8.5, 1], "to": [11, 1] },
+        { "from": [0, 4], "to": [6, 4] },
+        { "from": [3, 4], "to": [3, 8] },
+        { "from": [4.2, 4], "to": [4.2, 8] },
+        { "from": [3, 6], "to": [4.2, 6] }
+      ],
+      "doors": [
+        { "hinge": [6, 1.2], "angle": 90, "width": 0.9, "swing": -1 },
+        { "hinge": [8.5, 2], "angle": 90, "width": 0.9, "swing": -1 },
+        { "hinge": [9.5, 1], "angle": 0, "width": 0.8, "swing": -1 },
+        { "hinge": [1.5, 4], "angle": 0, "width": 0.9, "swing": 1 },
+        { "hinge": [5, 4], "angle": 0, "width": 0.9, "swing": 1 },
+        { "hinge": [3, 5], "angle": 90, "width": 0.8, "swing": -1 },
+        { "hinge": [4.2, 7], "angle": 90, "width": 0.8, "swing": 1 }
+      ],
+      "windows": [
+        { "from": [1, 0], "to": [3, 0] },
+        { "from": [8.5, 0], "to": [10.5, 0] }
+      ],
+      "rooms": [
+        { "label": "Sala-comedor", "polygon": [[0, 0], [6, 0], [6, 4], [0, 4]] },
+        { "label": "Cocina", "polygon": [[6, 0], [8.5, 0], [8.5, 4], [6, 4]] },
+        { "label": "Medio baño", "polygon": [[8.5, 0], [11, 0], [11, 1], [8.5, 1]] },
+        { "label": "Recámara 3", "polygon": [[8.5, 1], [11, 1], [11, 4], [8.5, 4]] },
+        { "label": "Recámara principal", "polygon": [[0, 4], [3, 4], [3, 8], [0, 8]] },
+        { "label": "Baño principal", "polygon": [[3, 4], [4.2, 4], [4.2, 6], [3, 6]] },
+        { "label": "Recámara 2", "polygon": [[4.2, 4], [6, 4], [6, 8], [4.2, 8]] },
+        { "label": "Baño 2", "polygon": [[3, 6], [4.2, 6], [4.2, 8], [3, 8]] }
+      ],
+      "furniture": [
+        { "type": "sofa", "position": [3, 1.6] },
+        { "type": "dining_table", "position": [1.4, 2.6] },
+        { "type": "kitchen", "position": [7.25, 3.3] },
+        { "type": "toilet", "position": [9.7, 0.5] },
+        { "type": "bed_single", "position": [9.75, 2.5] },
+        { "type": "bed_double", "position": [1.5, 6] },
+        { "type": "toilet", "position": [3.6, 4.5] },
+        { "type": "sink", "position": [3.6, 5.5] },
+        { "type": "bed_single", "position": [5.1, 6] },
+        { "type": "toilet", "position": [3.6, 6.5] },
+        { "type": "sink", "position": [3.6, 7.5] }
+      ]
+    },
+    "1201": {
+      "kind": "drawn",
+      "wallThickness": 0.15,
+      "walls": [
+        { "from": [0, 0], "to": [11, 0] },
+        { "from": [11, 0], "to": [11, 18] },
+        { "from": [11, 18], "to": [0, 18] },
+        { "from": [0, 18], "to": [0, 0] },
+        { "from": [0, 6], "to": [11, 6] },
+        { "from": [0, 9], "to": [11, 9] },
+        { "from": [3.8, 9], "to": [3.8, 18] },
+        { "from": [7.3, 9], "to": [7.3, 18] },
+        { "from": [0, 15], "to": [11, 15] }
+      ],
+      "doors": [
+        { "hinge": [5.5, 6], "angle": 0, "width": 1.0, "swing": 1 },
+        { "hinge": [1.9, 9], "angle": 0, "width": 0.9, "swing": 1 },
+        { "hinge": [5.5, 9], "angle": 0, "width": 0.9, "swing": 1 },
+        { "hinge": [9.1, 9], "angle": 0, "width": 0.9, "swing": 1 },
+        { "hinge": [1.9, 15], "angle": 0, "width": 0.8, "swing": 1 },
+        { "hinge": [5.5, 15], "angle": 0, "width": 0.8, "swing": 1 },
+        { "hinge": [9.1, 15], "angle": 0, "width": 0.8, "swing": 1 }
+      ],
+      "windows": [
+        { "from": [2, 0], "to": [4, 0] },
+        { "from": [7, 0], "to": [9, 0] },
+        { "from": [0, 1], "to": [0, 4] }
+      ],
+      "rooms": [
+        { "label": "Sala-comedor", "polygon": [[0, 0], [11, 0], [11, 6], [0, 6]] },
+        { "label": "Cocina", "polygon": [[0, 6], [11, 6], [11, 9], [0, 9]] },
+        { "label": "Recámara principal", "polygon": [[0, 9], [3.8, 9], [3.8, 15], [0, 15]] },
+        { "label": "Recámara 2", "polygon": [[3.8, 9], [7.3, 9], [7.3, 15], [3.8, 15]] },
+        { "label": "Recámara 3", "polygon": [[7.3, 9], [11, 9], [11, 15], [7.3, 15]] },
+        { "label": "Baño principal", "polygon": [[0, 15], [3.8, 15], [3.8, 18], [0, 18]] },
+        { "label": "Baño 2", "polygon": [[3.8, 15], [7.3, 15], [7.3, 18], [3.8, 18]] },
+        { "label": "Medio baño", "polygon": [[7.3, 15], [11, 15], [11, 18], [7.3, 18]] }
+      ],
+      "furniture": [
+        { "type": "sofa", "position": [4, 2] },
+        { "type": "dining_table", "position": [8, 3] },
+        { "type": "kitchen", "position": [5.5, 7.5] },
+        { "type": "bed_double", "position": [1.9, 12] },
+        { "type": "bed_double", "position": [5.5, 12] },
+        { "type": "bed_single", "position": [9.1, 12] },
+        { "type": "toilet", "position": [1, 16] },
+        { "type": "sink", "position": [2.8, 16] },
+        { "type": "shower", "position": [1.9, 17.2] },
+        { "type": "toilet", "position": [4.6, 16] },
+        { "type": "sink", "position": [6.4, 16] },
+        { "type": "toilet", "position": [8.2, 16] },
+        { "type": "sink", "position": [9.9, 16] }
+      ]
+    },
+    "1202": {
+      "kind": "drawn",
+      "wallThickness": 0.15,
+      "walls": [
+        { "from": [0, 0], "to": [11, 0] },
+        { "from": [11, 0], "to": [11, 18] },
+        { "from": [11, 18], "to": [0, 18] },
+        { "from": [0, 18], "to": [0, 0] },
+        { "from": [0, 6], "to": [11, 6] },
+        { "from": [0, 9], "to": [11, 9] },
+        { "from": [7.2, 9], "to": [7.2, 18] },
+        { "from": [3.7, 9], "to": [3.7, 18] },
+        { "from": [0, 15], "to": [11, 15] }
+      ],
+      "doors": [
+        { "hinge": [5.5, 6], "angle": 180, "width": 1.0, "swing": -1 },
+        { "hinge": [9.1, 9], "angle": 180, "width": 0.9, "swing": -1 },
+        { "hinge": [5.5, 9], "angle": 180, "width": 0.9, "swing": -1 },
+        { "hinge": [1.9, 9], "angle": 180, "width": 0.9, "swing": -1 },
+        { "hinge": [9.1, 15], "angle": 180, "width": 0.8, "swing": -1 },
+        { "hinge": [5.5, 15], "angle": 180, "width": 0.8, "swing": -1 },
+        { "hinge": [1.9, 15], "angle": 180, "width": 0.8, "swing": -1 }
+      ],
+      "windows": [
+        { "from": [2, 0], "to": [4, 0] },
+        { "from": [7, 0], "to": [9, 0] },
+        { "from": [11, 1], "to": [11, 4] }
+      ],
+      "rooms": [
+        { "label": "Sala-comedor", "polygon": [[0, 0], [11, 0], [11, 6], [0, 6]] },
+        { "label": "Cocina", "polygon": [[0, 6], [11, 6], [11, 9], [0, 9]] },
+        { "label": "Recámara principal", "polygon": [[7.2, 9], [11, 9], [11, 15], [7.2, 15]] },
+        { "label": "Recámara 2", "polygon": [[3.7, 9], [7.2, 9], [7.2, 15], [3.7, 15]] },
+        { "label": "Recámara 3", "polygon": [[0, 9], [3.7, 9], [3.7, 15], [0, 15]] },
+        { "label": "Baño principal", "polygon": [[7.2, 15], [11, 15], [11, 18], [7.2, 18]] },
+        { "label": "Baño 2", "polygon": [[3.7, 15], [7.2, 15], [7.2, 18], [3.7, 18]] },
+        { "label": "Medio baño", "polygon": [[0, 15], [3.7, 15], [3.7, 18], [0, 18]] }
+      ],
+      "furniture": [
+        { "type": "sofa", "position": [7, 2] },
+        { "type": "dining_table", "position": [3, 3] },
+        { "type": "kitchen", "position": [5.5, 7.5] },
+        { "type": "bed_double", "position": [9.1, 12] },
+        { "type": "bed_double", "position": [5.5, 12] },
+        { "type": "bed_single", "position": [1.9, 12] },
+        { "type": "toilet", "position": [10, 16] },
+        { "type": "sink", "position": [8.2, 16] },
+        { "type": "shower", "position": [9.1, 17.2] },
+        { "type": "toilet", "position": [6.4, 16] },
+        { "type": "sink", "position": [4.6, 16] },
+        { "type": "toilet", "position": [2.8, 16] },
+        { "type": "sink", "position": [1.1, 16] }
+      ]
+    }
+  },
+  "interiors": {
+    "A": ["/clients/aura/interiors/a/sala.jpg", "/clients/aura/interiors/a/recamara.jpg"],
+    "B": ["/clients/aura/interiors/b/sala.jpg", "/clients/aura/interiors/b/recamara.jpg"],
+    "C": ["/clients/aura/interiors/c/sala.jpg", "/clients/aura/interiors/c/recamara.jpg"],
+    "D": ["/clients/aura/interiors/d/sala.jpg", "/clients/aura/interiors/d/cocina.jpg"],
+    "1201": ["/clients/aura/interiors/ph/sala.jpg", "/clients/aura/interiors/ph/terraza.jpg"],
+    "1202": ["/clients/aura/interiors/ph/sala.jpg", "/clients/aura/interiors/ph/terraza.jpg"]
+  },
+  "camera": { "intro": [60, 45, 60], "target": [12, 20, 9] },
+  "facade": { "image": "/clients/aura/facade.jpg", "floors": [] }
+}
