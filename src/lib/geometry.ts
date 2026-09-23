@@ -109,6 +109,139 @@ export function buildTowerLayout(geometry: TowerGeometryConfig): TowerLayout {
   };
 }
 
+export interface CameraFraming {
+  intro: [number, number, number];
+  target: [number, number, number];
+  maxDistance: number;
+}
+
+interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+function vecSub(a: Vec3, b: Vec3): Vec3 {
+  return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
+}
+
+function vecDot(a: Vec3, b: Vec3): number {
+  return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+function vecCross(a: Vec3, b: Vec3): Vec3 {
+  return { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x };
+}
+
+function vecNormalize(a: Vec3): Vec3 {
+  const length = Math.sqrt(vecDot(a, a)) || 1;
+  return { x: a.x / length, y: a.y / length, z: a.z / length };
+}
+
+/** Ángulo de tres cuartos (ni de frente, ni a 45° exactos de una esquina): deja ver dos
+ *  caras de la torre sin aplanarla. Constante de motor (decisión de encuadre genérica),
+ *  no de config — ninguna torre de cliente futuro necesita ajustarla. */
+const CAMERA_AZIMUTH_DEG = 38;
+/** "Media altura": la cámara y el punto al que mira quedan cerca de la mitad de la altura
+ *  de la torre (no sobre la azotea) — mirar desde arriba escorza la fachada y la hace ver
+ *  más baja de lo que es. La cámara queda apenas un poco arriba del centro, no exacto. */
+const CAMERA_HEIGHT_FRACTION = 0.55;
+const TARGET_HEIGHT_FRACTION = 0.5;
+/** Fracción del alto/ancho de pantalla que debe ocupar la torre en el encuadre final. */
+const HEIGHT_COVERAGE = 0.7;
+const WIDTH_COVERAGE = 0.62;
+/** Cuánto más se puede alejar el usuario respecto a la distancia de encuadre inicial. */
+const MAX_DISTANCE_FACTOR = 1.45;
+
+/** Para cada esquina de la caja, qué tan grande es su ángulo respecto al eje de la cámara
+ *  en relación al medio-FOV vertical/horizontal — 1.0 significa "justo en el borde de la
+ *  pantalla". El máximo de las 8 esquinas es lo que realmente limita el encuadre (una caja
+ *  vista de tres cuartos no es simétrica respecto al punto al que mira la cámara: la
+ *  esquina más cercana sobresale más de lo que sugeriría solo su altura o ancho). */
+function maxCornerRatios(corners: Vec3[], cameraPos: Vec3, forward: Vec3, halfVFov: number, halfHFov: number): { height: number; width: number } {
+  const worldUp: Vec3 = { x: 0, y: 1, z: 0 };
+  const right = vecNormalize(vecCross(forward, worldUp));
+  const up = vecCross(right, forward);
+
+  let height = 0;
+  let width = 0;
+  for (const corner of corners) {
+    const relative = vecSub(corner, cameraPos);
+    const depth = vecDot(relative, forward);
+    // Esquina detrás (o casi encima) de la cámara: no cabe en ningún encuadre razonable a
+    // esta distancia, así que fuerza a buscar más lejos en vez de ignorarla.
+    if (depth <= 0.001) return { height: Infinity, width: Infinity };
+    height = Math.max(height, Math.abs(Math.atan2(vecDot(relative, up), depth)) / halfVFov);
+    width = Math.max(width, Math.abs(Math.atan2(vecDot(relative, right), depth)) / halfHFov);
+  }
+  return { height, width };
+}
+
+/**
+ * Encuadre de cámara (posición de entrada, punto al que mira, y qué tan lejos se puede
+ * alejar el usuario) derivado de las dimensiones reales de la torre — no de vectores fijos
+ * a mano. Así cualquier torre de cliente futuro (más alta, más ancha, otra huella) entra
+ * bien encuadrada sin retocar nada: cambia el JSON, no el motor.
+ *
+ * La distancia se resuelve por búsqueda binaria (no hay fórmula cerrada simple: la cámara
+ * mira al centro de la huella, no a la cara visible, así que la esquina más cercana a la
+ * cámara sobresale del centro y hay que proyectar las 8 esquinas de la caja envolvente de
+ * verdad para no terminar más cerca de lo debido) sobre el criterio más exigente entre alto
+ * y ancho de pantalla: en una pantalla ancha (escritorio) el alto de la torre suele ser lo
+ * limitante; en una angosta (celular vertical) el campo de visión horizontal se cierra
+ * mucho y es el ancho el que obliga a alejarse más — el mismo cálculo cubre los dos casos
+ * sin necesitar una rama aparte para "móvil".
+ */
+export function computeCameraFraming(footprint: PolygonBounds, totalHeight: number, aspect: number, fovDegrees: number): CameraFraming {
+  const centerX = (footprint.minX + footprint.maxX) / 2;
+  const centerZ = (footprint.minZ + footprint.maxZ) / 2;
+
+  const corners: Vec3[] = [];
+  for (const x of [footprint.minX, footprint.maxX]) {
+    for (const y of [0, totalHeight]) {
+      for (const z of [footprint.minZ, footprint.maxZ]) {
+        corners.push({ x, y, z });
+      }
+    }
+  }
+
+  const cameraY = totalHeight * CAMERA_HEIGHT_FRACTION;
+  const targetY = totalHeight * TARGET_HEIGHT_FRACTION;
+  const target: Vec3 = { x: centerX, y: targetY, z: centerZ };
+  const azimuthRad = (CAMERA_AZIMUTH_DEG * Math.PI) / 180;
+
+  const halfVFov = (fovDegrees * Math.PI) / 360;
+  const halfHFov = Math.atan(Math.tan(halfVFov) * aspect);
+
+  function ratiosAtRadius(radius: number) {
+    const cameraPos: Vec3 = { x: centerX + radius * Math.cos(azimuthRad), y: cameraY, z: centerZ + radius * Math.sin(azimuthRad) };
+    const forward = vecNormalize(vecSub(target, cameraPos));
+    return maxCornerRatios(corners, cameraPos, forward, halfVFov, halfHFov);
+  }
+
+  // Monótono: a mayor radio, ambas proporciones bajan — basta acotar entre un radio
+  // claramente insuficiente y uno claramente de sobra, y bisectar hasta el borde exacto.
+  let low = 1;
+  let high = (footprint.maxX - footprint.minX + (footprint.maxZ - footprint.minZ) + totalHeight) * 20;
+  for (let i = 0; i < 40; i += 1) {
+    const mid = (low + high) / 2;
+    const ratios = ratiosAtRadius(mid);
+    const fits = ratios.height <= HEIGHT_COVERAGE && ratios.width <= WIDTH_COVERAGE;
+    if (fits) high = mid;
+    else low = mid;
+  }
+
+  const radius = high;
+  const intro: [number, number, number] = [centerX + radius * Math.cos(azimuthRad), cameraY, centerZ + radius * Math.sin(azimuthRad)];
+  const distance = Math.hypot(radius, cameraY - targetY);
+
+  return {
+    intro,
+    target: [centerX, targetY, centerZ],
+    maxDistance: distance * MAX_DISTANCE_FACTOR,
+  };
+}
+
 /**
  * Código de unidad regular por piso, SPEC §3: `{piso}{nn}` → 101,102,103,104…1101…1104.
  * `orderInFloor` es la posición dentro de `geometry.plate` (0=A, 1=B, 2=C, 3=D). Vive aquí

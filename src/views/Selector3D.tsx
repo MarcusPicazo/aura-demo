@@ -13,7 +13,7 @@ import { Legend } from './Legend';
 import { AvailabilityToggle } from './AvailabilityToggle';
 import { LoadingScreen } from './LoadingScreen';
 import type { AuraOutletContext } from './AuraLayout';
-import { buildTowerLayout, findUnitPolygon, floorPlanKey } from '../lib/geometry';
+import { buildTowerLayout, computeCameraFraming, findUnitPolygon, floorPlanKey } from '../lib/geometry';
 import { hasActiveFilters } from '../lib/filters';
 import { usePresence } from '../lib/usePresence';
 import { useSelectionStore } from '../store/selectionStore';
@@ -42,8 +42,12 @@ const SHADOW_MAP_SIZE: [number, number] = [1024, 1024];
 
 const TONE_MAPPING_EXPOSURE = 1.05;
 
+/** FOV vertical de la cámara — una sola constante, la usan tanto el `Canvas` como el
+ *  cálculo de encuadre (`computeCameraFraming`), para que nunca queden desincronizados. */
+const CAMERA_FOV = 50;
+
 export function Selector3D() {
-  const { camera, geometry, brand, name: developmentName, whatsapp } = auraConfig;
+  const { geometry, brand, name: developmentName, whatsapp } = auraConfig;
   const [introDone, setIntroDone] = useState(false);
   const { units, developmentId, loadError } = useOutletContext<AuraOutletContext>();
 
@@ -95,6 +99,15 @@ export function Selector3D() {
   const footprintSpan = Math.max(
     layout.footprint.maxX - layout.footprint.minX,
     layout.footprint.maxZ - layout.footprint.minZ,
+  );
+
+  // Aspecto de la ventana al montar: basta con esto (no reactivo a resize) para distinguir
+  // celular vertical de escritorio — el encuadre de entrada solo se calcula una vez, igual
+  // que antes cuando `camera.intro` era un vector fijo.
+  const aspect = useMemo(() => (typeof window === 'undefined' ? 16 / 9 : window.innerWidth / window.innerHeight), []);
+  const framing = useMemo(
+    () => computeCameraFraming(layout.footprint, layout.totalHeight, aspect, CAMERA_FOV),
+    [layout.footprint, layout.totalHeight, aspect],
   );
 
   const selectedUnit = units.find((unit) => unit.code === selectedUnitCode) ?? null;
@@ -160,7 +173,7 @@ export function Selector3D() {
         // lo que tiene detrás (mullions, forro interior) compiten por el mismo valor de
         // profundidad y el más cercano "gana" de forma inestable. 1 sigue siendo mucho más
         // cerca de lo que la cámara puede llegar (`minDistance` en OrbitControls, abajo).
-        camera={{ position: camera.intro, fov: 50, near: 1, far: 500 }}
+        camera={{ position: framing.intro, fov: CAMERA_FOV, near: 1, far: 500 }}
         onPointerMissed={() => handleSelectUnit(null)}
         dpr={DPR_RANGE}
         gl={{ toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: TONE_MAPPING_EXPOSURE }}
@@ -226,13 +239,13 @@ export function Selector3D() {
           frames={1}
         />
 
-        <CameraRig intro={camera.intro} target={camera.target} onComplete={() => setIntroDone(true)} />
+        <CameraRig intro={framing.intro} target={framing.target} onComplete={() => setIntroDone(true)} />
 
         <OrbitControls
           enabled={introDone}
-          target={camera.target}
+          target={framing.target}
           minDistance={20}
-          maxDistance={160}
+          maxDistance={framing.maxDistance}
           maxPolarAngle={Math.PI / 2 - 0.02}
         />
 

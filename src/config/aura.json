@@ -449,7 +449,6 @@
     "1201": ["/clients/aura/interiors/ph/sala.jpg", "/clients/aura/interiors/ph/terraza.jpg"],
     "1202": ["/clients/aura/interiors/ph/sala.jpg", "/clients/aura/interiors/ph/terraza.jpg"]
   },
-  "camera": { "intro": [60, 45, 60], "target": [12, 20, 9] },
   "facade": { "image": "/clients/aura/facade.jpg", "floors": [] },
   "project": {
     "description": "Torre Aura Del Valle combina arquitectura contemporánea con la vida de barrio de una de las colonias más consolidadas de la Ciudad de México: calles arboladas, comercio de cercanía y conexión inmediata con Insurgentes y el resto de la ciudad.",

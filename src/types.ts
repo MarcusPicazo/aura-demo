@@ -22,11 +22,6 @@ export interface TowerGeometryConfig {
   core: Point[];
 }
 
-export interface CameraConfig {
-  intro: [number, number, number];
-  target: [number, number, number];
-}
-
 export interface BrandConfig {
   primary: string;
   accent: string;
@@ -397,7 +392,6 @@ export interface DevelopmentConfig {
   floorPlans: Record<string, FloorPlanConfig>;
   /** Rutas de renders interiores por tipo/código, en `public/clients/<slug>/interiors/<clave>/`. */
   interiors: Record<string, string[]>;
-  camera: CameraConfig;
   facade: FacadeConfig;
   project: ProjectInfoConfig;
   legal: LegalConfig;

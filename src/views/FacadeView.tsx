@@ -43,9 +43,13 @@ export function FacadeView() {
   useEscapeKey(() => setActiveFloor(null), activeFloor !== null);
 
   return (
-    <div className="flex h-dvh w-screen items-start justify-center overflow-y-auto bg-neutral-900 pt-20 pb-8">
+    <div className="flex h-dvh w-screen items-start justify-center overflow-y-auto bg-[var(--brand-background)] pt-20 pb-8">
       <div className="relative w-full max-w-2xl px-4">
-        <div className="relative overflow-hidden rounded-2xl bg-neutral-800 shadow-2xl">
+        {/* Antes: fondo casi negro (`bg-neutral-900`/`bg-neutral-800`) alrededor de la
+            imagen — como la foto casi nunca comparte el aspect ratio del viewport, ese
+            fondo se veía como barras negras a los lados o arriba/abajo. Con el color de
+            marca en vez de negro, esas mismas barras se sienten intencionales. */}
+        <div className="relative overflow-hidden rounded-2xl bg-[var(--brand-background)] shadow-2xl">
           {!imageFailed ? (
             <img
               src={image}
@@ -54,10 +58,10 @@ export function FacadeView() {
               onError={() => setImageFailed(true)}
             />
           ) : (
-            <div className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 border-2 border-dashed border-neutral-600 p-6 text-center">
-              <p className="text-sm font-medium text-neutral-300">Todavía no hay imagen de fachada</p>
+            <div className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 border-2 border-dashed border-neutral-300 p-6 text-center">
+              <p className="text-sm font-medium text-neutral-600">Todavía no hay imagen de fachada</p>
               <p className="text-xs text-neutral-500">
-                Agrega tu archivo en <code className="text-neutral-400">public{image}</code>
+                Agrega tu archivo en <code className="text-neutral-600">public{image}</code>
               </p>
             </div>
           )}
