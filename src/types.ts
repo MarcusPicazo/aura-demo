@@ -221,6 +221,25 @@ export interface ProjectInfoConfig {
   pointsOfInterest: PointOfInterestConfig[];
 }
 
+/** Ficha comercial del asesor de ventas: accesible desde la interfaz principal y desde la
+ *  ficha de unidad. Cada desarrolladora tiene su propio equipo — nada de esto puede vivir
+ *  fijo en el código, todo sale de la config del cliente. */
+export interface AdvisorConfig {
+  name: string;
+  role: string;
+  /** Ruta en `public/clients/<slug>/`. Opcional: sin ella, la ficha muestra un avatar con
+   *  las iniciales del nombre en vez de romperse (mismo patrón que `AmenityConfig.image`). */
+  photo?: string;
+  /** E.164 sin "+" (ej. 5215500000000) — se usa para el enlace `tel:` y como número de
+   *  WhatsApp del asesor. */
+  phone: string;
+  email: string;
+  hours: string;
+  salesOffice: ProjectLocationConfig;
+  /** Ruta del PDF del brochure en `public/clients/<slug>/`. */
+  brochureUrl: string;
+}
+
 /** Lado de la huella (bounding box) de la torre: hacia dónde da la calle o la marquesina. */
 export type FootprintSide = 'minX' | 'maxX' | 'minZ' | 'maxZ';
 
@@ -395,6 +414,7 @@ export interface DevelopmentConfig {
   facade: FacadeConfig;
   project: ProjectInfoConfig;
   legal: LegalConfig;
+  advisor: AdvisorConfig;
 }
 
 /** Datos del responsable para el aviso de privacidad (LFPDPPP) — de la config del

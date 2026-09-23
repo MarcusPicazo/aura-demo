@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { FloorPlanDetailed } from './FloorPlanDetailed';
 import { InteriorGallery } from './InteriorGallery';
 import { PaymentSchedule } from './PaymentSchedule';
@@ -7,16 +7,11 @@ import { buildInterestMessage, buildWhatsappLink } from '../lib/whatsapp';
 import { createLead } from '../lib/supabase';
 import { formatPrice } from '../lib/pricing';
 import { STATUS_LABELS } from '../lib/status';
+import { useDragToDismiss } from '../lib/useDragToDismiss';
 import { useEscapeKey } from '../lib/useEscapeKey';
 import type { FloorPlanConfig, PaymentPlanConfig, Point, Unit } from '../types';
 
 type LeadFormStatus = 'idle' | 'submitting' | 'success' | 'error';
-
-/** Debajo de esto, un arrastre en la pestaña móvil se trata como tap (cierra igual que el
- *  botón ×) en vez de como "no llegó a nada" (regresaría al panel abierto sin razón). */
-const HANDLE_TAP_MAX_PX = 6;
-/** Arriba de esto, soltar cierra el panel; en medio, regresa a abierto. */
-const HANDLE_CLOSE_THRESHOLD_PX = 80;
 
 interface UnitPanelProps {
   unit: Unit;
@@ -28,6 +23,10 @@ interface UnitPanelProps {
   developmentName: string;
   whatsappPhone: string;
   onClose: () => void;
+  /** Abre la ficha de contacto del asesor (vive en `AuraLayout`, se expone por contexto de
+   *  ruta) — así "hablar con un asesor" desde aquí y el botón de la interfaz principal
+   *  terminan en el mismo panel, sin duplicarlo. */
+  onOpenContact: () => void;
   /** Dispara la transición de entrada/salida (ver `usePresence` en el llamador) — arranca
    *  en `false` un frame después de montar, y vuelve a `false` antes de desmontar. */
   visible: boolean;
@@ -47,6 +46,7 @@ export function UnitPanel({
   developmentName,
   whatsappPhone,
   onClose,
+  onOpenContact,
   visible,
 }: UnitPanelProps) {
   const [name, setName] = useState('');
@@ -66,44 +66,7 @@ export function UnitPanel({
   }, [unit.code]);
 
   useEscapeKey(onClose, visible);
-
-  // Pestaña de arrastre (solo móvil, ver `sm:hidden` abajo): mientras `dragging` es true,
-  // esta posición reemplaza a mano la transform de las clases de Tailwind, para que el
-  // panel siga al dedo 1 a 1 en vez de animarse detrás de él.
-  const [dragY, setDragY] = useState(0);
-  const [dragging, setDragging] = useState(false);
-  const dragStartClientY = useRef(0);
-
-  // Si el panel se vuelve a abrir (misma unidad reseleccionada, u otra unidad sin cerrar
-  // antes) con un arrastre a medias pendiente de antes, no debe reaparecer ya empujado.
-  useEffect(() => {
-    if (visible) setDragY(0);
-  }, [visible]);
-
-  function handleHandlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
-    event.currentTarget.setPointerCapture(event.pointerId);
-    dragStartClientY.current = event.clientY;
-    setDragging(true);
-  }
-
-  function handleHandlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!dragging) return;
-    setDragY(Math.max(0, event.clientY - dragStartClientY.current));
-  }
-
-  function handleHandlePointerUp() {
-    if (dragY <= HANDLE_TAP_MAX_PX || dragY > HANDLE_CLOSE_THRESHOLD_PX) {
-      onClose();
-      // Suelta el control manual de la posición un instante después, no de inmediato: si
-      // se soltara ya, el panel brincaría un frame de vuelta a "abierto" (el `visible` del
-      // padre todavía no baja) antes de que la transición normal de cierre tomara el
-      // relevo — con este respiro, para cuando se suelta ya está cerrando de verdad.
-      window.setTimeout(() => setDragging(false), 50);
-    } else {
-      setDragging(false);
-      setDragY(0);
-    }
-  }
+  const { dragging, dragY, handlePointerDown, handlePointerMove, handlePointerUp } = useDragToDismiss(onClose, visible);
 
   function handleInterest() {
     // window.open debe llamarse de forma síncrona en el click, antes de cualquier
@@ -138,7 +101,10 @@ export function UnitPanel({
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-20 flex max-h-[65dvh] flex-col overflow-hidden rounded-t-2xl border-t-4 border-[var(--brand-accent)] bg-white shadow-2xl transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-96 sm:max-h-[75dvh] sm:rounded-2xl sm:border-t-0 sm:border-l-4 ${
+      // `select-none` (solo móvil, `sm:select-auto` lo revierte en escritorio donde no hay
+      // gesto de arrastre): un swipe que arranca sobre texto del panel en vez de la
+      // pestaña de arriba disparaba selección de texto nativa en lugar de mover el panel.
+      className={`fixed inset-x-0 bottom-0 z-20 flex max-h-[65dvh] select-none flex-col overflow-hidden rounded-t-2xl border-t-4 border-[var(--brand-accent)] bg-white shadow-2xl transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-96 sm:max-h-[75dvh] sm:select-auto sm:rounded-2xl sm:border-t-0 sm:border-l-4 ${
         visible ? 'translate-y-0 opacity-100 sm:translate-y-0' : 'translate-y-full opacity-0 sm:translate-y-4'
       }`}
       style={dragging ? { transform: `translateY(${dragY}px)`, transition: 'none' } : undefined}
@@ -148,10 +114,10 @@ export function UnitPanel({
           hacia abajo más de `HANDLE_CLOSE_THRESHOLD_PX` también cierra, menos regresa al
           panel abierto — así "cerrarlo" y "desexpandirlo deslizando" son el mismo gesto. */}
       <div
-        onPointerDown={handleHandlePointerDown}
-        onPointerMove={handleHandlePointerMove}
-        onPointerUp={handleHandlePointerUp}
-        onPointerCancel={handleHandlePointerUp}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
         className="flex shrink-0 touch-none cursor-grab justify-center pb-1 pt-2.5 active:cursor-grabbing sm:hidden"
       >
         <span className="h-1.5 w-10 rounded-full bg-neutral-300" aria-hidden="true" />
@@ -183,6 +149,14 @@ export function UnitPanel({
       <h2 className="font-serif text-2xl text-neutral-900">Tipo {unit.type}</h2>
       <p className="mt-1 text-lg font-semibold text-neutral-900">{formatPrice(unit.price)}</p>
       <p className="text-sm text-neutral-500">{STATUS_LABELS[unit.status]}</p>
+
+      <button
+        type="button"
+        onClick={onOpenContact}
+        className="mt-2 text-sm font-medium text-[var(--brand-primary)] underline underline-offset-2"
+      >
+        Hablar con un asesor
+      </button>
 
       {polygon && (
         <div className="mt-4">

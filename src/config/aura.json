@@ -9,6 +9,19 @@
     "privacyAddress": "Insurgentes Sur 1234, Col. Del Valle Centro, Benito Juárez, CDMX, C.P. 03100 (dirección ilustrativa)",
     "privacyContactEmail": "privacidad@torreauradelvalle.mx"
   },
+  "advisor": {
+    "name": "Andrea Martínez",
+    "role": "Asesora comercial",
+    "phone": "5215500000001",
+    "email": "andrea.martinez@torreauradelvalle.mx",
+    "hours": "Lunes a viernes 9:00–18:00 · Sábado 10:00–14:00",
+    "salesOffice": {
+      "lat": 19.3838,
+      "lng": -99.1677,
+      "address": "Insurgentes Sur 1234, Col. Del Valle Centro, Benito Juárez, CDMX (sala de ventas, dirección ilustrativa)"
+    },
+    "brochureUrl": "/clients/aura/brochure.pdf"
+  },
   "materials": {
     "concrete": "#D9D2C3",
     "glass": "#B7C7CE",

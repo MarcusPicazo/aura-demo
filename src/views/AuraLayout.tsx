@@ -2,6 +2,8 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { Outlet } from 'react-router-dom';
 import { fetchDevelopmentUnits, subscribeToUnitChanges } from '../lib/supabase';
 import { usePresence } from '../lib/usePresence';
+import { useSelectionStore } from '../store/selectionStore';
+import { ContactCard, ContactTriggerIcon } from './ContactCard';
 import { ViewTabs } from './ViewTabs';
 import { Logo } from './Logo';
 import auraConfigJson from '../config/aura.json';
@@ -14,6 +16,9 @@ export interface AuraOutletContext {
   developmentId: string | null;
   /** Mensaje listo para mostrar en la interfaz si falló la carga inicial; null si no hubo error. */
   loadError: string | null;
+  /** Abre la ficha de contacto del asesor — expuesta por contexto para que la ficha de
+   *  unidad (dentro del selector 3D) también pueda dispararla, sin duplicar el panel. */
+  openContact: () => void;
 }
 
 function loadErrorMessage(error: unknown): string {
@@ -66,7 +71,15 @@ export function AuraLayout() {
     });
   }, [developmentId]);
 
-  const context: AuraOutletContext = { units, developmentId, loadError };
+  // La ficha de contacto vive aquí (no en Selector3D) porque debe abrirse desde cualquier
+  // pestaña (Torre 3D, Fachada, Proyecto), no solo desde el selector 3D — `openContact` se
+  // expone por el contexto de ruta para que la ficha de unidad también la dispare.
+  const [contactOpen, setContactOpen] = useState(false);
+  const { rendered: presentContact, visible: contactVisible } = usePresence(contactOpen ? true : null, 300);
+  const selectedUnitCode = useSelectionStore((state) => state.selectedUnitCode);
+  const selectedUnit = units.find((unit) => unit.code === selectedUnitCode) ?? null;
+
+  const context: AuraOutletContext = { units, developmentId, loadError, openContact: () => setContactOpen(true) };
   const { rendered: presentLoadError, visible: errorBannerVisible } = usePresence(loadError, 300);
 
   // SPEC §3: paleta del cliente aplicada a botones, paneles y acentos. Se define una sola
@@ -89,6 +102,30 @@ export function AuraLayout() {
       </div>
       <ViewTabs />
       <Outlet context={context} />
+
+      {/* Único botón para "hablar con un asesor" en toda la interfaz principal, visible en
+          las tres pestañas — abajo a la izquierda: arriba a la izquierda ya está el logo,
+          arriba a la derecha lo usa Filtros en Torre 3D, y abajo a la derecha (o toda la
+          franja inferior en móvil) es donde anclan la ficha de unidad y esta misma ficha
+          de contacto al abrirse. */}
+      <button
+        type="button"
+        onClick={() => setContactOpen(true)}
+        aria-label="Hablar con un asesor"
+        className="pointer-events-auto fixed bottom-4 left-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--brand-primary)] text-white shadow-lg"
+      >
+        <ContactTriggerIcon className="h-5 w-5" />
+      </button>
+
+      {presentContact && (
+        <ContactCard
+          advisor={auraConfig.advisor}
+          developmentName={auraConfig.name}
+          selectedUnit={selectedUnit}
+          visible={contactVisible}
+          onClose={() => setContactOpen(false)}
+        />
+      )}
 
       {presentLoadError && (
         <div

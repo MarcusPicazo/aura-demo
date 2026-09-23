@@ -49,7 +49,7 @@ const CAMERA_FOV = 50;
 export function Selector3D() {
   const { geometry, brand, name: developmentName, whatsapp } = auraConfig;
   const [introDone, setIntroDone] = useState(false);
-  const { units, developmentId, loadError } = useOutletContext<AuraOutletContext>();
+  const { units, developmentId, loadError, openContact } = useOutletContext<AuraOutletContext>();
 
   const { code } = useParams<{ code?: string }>();
   const navigate = useNavigate();
@@ -244,9 +244,16 @@ export function Selector3D() {
 
         <CameraRig intro={framing.intro} target={framing.target} onComplete={() => setIntroDone(true)} />
 
+        {/* `enablePan={false}`: pan (clic derecho o dos dedos) desplaza `target`, y una vez
+            desplazado, la órbita ya no gira alrededor de la torre sino de donde haya
+            quedado ese nuevo punto — se sentía como "gira alrededor de donde toco", no
+            alrededor del edificio. Sin pan, `target` se queda fijo en el centro de la
+            torre siempre; solo quedan órbita (arrastrar) y zoom (rueda/pellizco), que es
+            lo único que pedía el SPEC. */}
         <OrbitControls
           enabled={introDone}
           target={framing.target}
+          enablePan={false}
           minDistance={20}
           maxDistance={framing.maxDistance}
           maxPolarAngle={Math.PI / 2 - 0.02}
@@ -282,6 +289,7 @@ export function Selector3D() {
           developmentName={developmentName}
           whatsappPhone={whatsapp}
           onClose={() => handleSelectUnit(null)}
+          onOpenContact={openContact}
           visible={unitPanelVisible}
         />
       )}
