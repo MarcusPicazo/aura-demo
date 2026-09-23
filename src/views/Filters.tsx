@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useFiltersStore } from '../store/filtersStore';
 import { hasActiveFilters } from '../lib/filters';
 import { formatPrice } from '../lib/pricing';
+import { usePresence } from '../lib/usePresence';
 import type { Unit } from '../types';
 
 interface FiltersProps {
@@ -32,6 +33,10 @@ export function Filters({ units }: FiltersProps) {
     return value === '' ? null : Number(value);
   }
 
+  // Duración corta (250 ms, en el extremo bajo del rango pedido) porque es un desplegable
+  // chico, no un panel de pantalla completa — una transición larga se sentiría lenta aquí.
+  const { rendered: expandedContent, visible: expandedVisible } = usePresence(expanded ? true : null, 250);
+
   return (
     <div
       className={`pointer-events-auto ml-auto rounded-xl bg-[var(--brand-background)]/95 p-3 text-sm shadow-lg backdrop-blur ${expanded ? 'w-60' : ''}`}
@@ -45,8 +50,12 @@ export function Filters({ units }: FiltersProps) {
         <span className="text-neutral-400">{expanded ? '−' : '+'}</span>
       </button>
 
-      {expanded && (
-        <div className="mt-3 space-y-3">
+      {expandedContent && (
+        <div
+          className={`mt-3 space-y-3 transition-[opacity,transform] duration-[250ms] ease-out motion-reduce:transition-none ${
+            expandedVisible ? 'translate-y-0 opacity-100' : '-translate-y-1 opacity-0'
+          }`}
+        >
           <div>
             <p className="mb-1 text-xs uppercase tracking-wide text-neutral-500">Recámaras</p>
             <div className="flex flex-wrap gap-1">

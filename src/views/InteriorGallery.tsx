@@ -60,7 +60,9 @@ export function InteriorGallery({ images }: InteriorGalleryProps) {
               type="button"
               aria-label={`Ver imagen ${index + 1}`}
               onClick={() => scrollToVisibleIndex(index)}
-              className={`h-1.5 w-1.5 rounded-full ${index === activeIndex ? 'bg-neutral-900' : 'bg-neutral-300'}`}
+              className={`h-1.5 w-1.5 rounded-full transition-colors duration-200 motion-reduce:transition-none ${
+                index === activeIndex ? 'bg-neutral-900' : 'bg-neutral-300'
+              }`}
             />
           ))}
         </div>

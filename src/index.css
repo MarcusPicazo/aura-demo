@@ -18,3 +18,28 @@ body,
 body {
   font-family: var(--font-sans);
 }
+
+/* Entrada para vistas de ruta completa (sección de Proyecto): no necesitan animación de
+   salida como los paneles/menús (React Router ya se encarga de desmontarlas), solo un
+   arranque suave. Aparte de `usePresence` (paneles con datos que sí cierran) porque acá
+   no hace falta nada de JS — con CSS puro alcanza. */
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-panel-enter {
+  animation: panel-enter 300ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-panel-enter {
+    animation: none;
+  }
+}

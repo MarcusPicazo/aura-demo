@@ -3,6 +3,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import type { AuraOutletContext } from './AuraLayout';
 import { polygonCentroid } from '../lib/geometry';
 import { formatPrice } from '../lib/pricing';
+import { usePresence } from '../lib/usePresence';
 import { useSelectionStore } from '../store/selectionStore';
 import auraConfigJson from '../config/aura.json';
 import type { DevelopmentConfig } from '../types';
@@ -33,7 +34,10 @@ export function FacadeView() {
     navigate('/aura');
   }
 
-  const activeUnits = activeFloor !== null ? units.filter((unit) => unit.floor === activeFloor) : [];
+  // Retiene el piso mostrado mientras la ficha se anima hacia afuera, en vez de vaciarse
+  // de golpe apenas se cierra (ver `usePresence`).
+  const { rendered: presentFloor, visible: floorCardVisible } = usePresence(activeFloor, 300);
+  const activeUnits = presentFloor !== null ? units.filter((unit) => unit.floor === presentFloor) : [];
   const activeAvailableUnits = activeUnits.filter((unit) => unit.status === 'available');
 
   return (
@@ -92,10 +96,14 @@ export function FacadeView() {
           </p>
         </div>
 
-        {activeFloor !== null && (
-          <div className="mt-4 rounded-xl bg-white p-4 shadow-lg">
+        {presentFloor !== null && (
+          <div
+            className={`mt-4 rounded-xl bg-white p-4 shadow-lg transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
+              floorCardVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            }`}
+          >
             <div className="flex items-center justify-between">
-              <p className="font-serif text-lg text-neutral-900">Piso {activeFloor}</p>
+              <p className="font-serif text-lg text-neutral-900">Piso {presentFloor}</p>
               <button
                 type="button"
                 onClick={() => setActiveFloor(null)}
@@ -121,7 +129,7 @@ export function FacadeView() {
 
             <button
               type="button"
-              onClick={() => handleViewInTower(activeFloor)}
+              onClick={() => handleViewInTower(presentFloor)}
               className="mt-3 w-full rounded-full bg-[var(--brand-primary)] py-2 text-sm font-medium text-white"
             >
               Ver piso en la torre 3D

@@ -15,10 +15,11 @@ import { LoadingScreen } from './LoadingScreen';
 import type { AuraOutletContext } from './AuraLayout';
 import { buildTowerLayout, findUnitPolygon, floorPlanKey } from '../lib/geometry';
 import { hasActiveFilters } from '../lib/filters';
+import { usePresence } from '../lib/usePresence';
 import { useSelectionStore } from '../store/selectionStore';
 import { useFiltersStore } from '../store/filtersStore';
 import auraConfigJson from '../config/aura.json';
-import type { DevelopmentConfig } from '../types';
+import type { DevelopmentConfig, FloorPlanConfig, Point, Unit } from '../types';
 
 const auraConfig = auraConfigJson as unknown as DevelopmentConfig;
 
@@ -101,6 +102,28 @@ export function Selector3D() {
   const selectedUnitPlanKey = selectedUnit ? floorPlanKey(selectedUnit, geometry.levels) : null;
   const selectedUnitFloorPlan = selectedUnitPlanKey ? auraConfig.floorPlans[selectedUnitPlanKey] : undefined;
   const selectedUnitInteriors = selectedUnitPlanKey ? (auraConfig.interiors[selectedUnitPlanKey] ?? []) : [];
+
+  // La ficha de unidad se anima al cerrar (usePresence retiene lo último no-nulo mientras
+  // juega la transición de salida) — se dispara con el código (string estable), no con el
+  // objeto `Unit` completo: ese objeto cambia de referencia en cada actualización de
+  // Realtime aunque sea la misma unidad, y reiniciaría la animación de entrada sin motivo.
+  const { rendered: presentUnitCode, visible: unitPanelVisible } = usePresence(selectedUnitCode, 300);
+  const [lastUnitPanelData, setLastUnitPanelData] = useState<{
+    unit: Unit;
+    polygon: Point[] | undefined;
+    floorPlan: FloorPlanConfig | undefined;
+    interiors: string[];
+  } | null>(null);
+  useEffect(() => {
+    if (selectedUnit) {
+      setLastUnitPanelData({
+        unit: selectedUnit,
+        polygon: selectedUnitPolygon,
+        floorPlan: selectedUnitFloorPlan,
+        interiors: selectedUnitInteriors,
+      });
+    }
+  }, [selectedUnit, selectedUnitPolygon, selectedUnitFloorPlan, selectedUnitInteriors]);
 
   // El sol apunta al centro de la torre (a media altura), no al origen del mundo — si no,
   // el frustum de su shadow camera queda descentrado y desperdicia resolución de sombra.
@@ -225,18 +248,19 @@ export function Selector3D() {
         <Filters units={units} />
       </div>
 
-      {selectedUnit && developmentId && (
+      {presentUnitCode && lastUnitPanelData && developmentId && (
         <UnitPanel
-          key={selectedUnit.code}
-          unit={selectedUnit}
-          polygon={selectedUnitPolygon}
-          floorPlan={selectedUnitFloorPlan}
-          interiorImages={selectedUnitInteriors}
+          key={presentUnitCode}
+          unit={lastUnitPanelData.unit}
+          polygon={lastUnitPanelData.polygon}
+          floorPlan={lastUnitPanelData.floorPlan}
+          interiorImages={lastUnitPanelData.interiors}
           paymentPlan={auraConfig.paymentPlan}
           developmentId={developmentId}
           developmentName={developmentName}
           whatsappPhone={whatsapp}
           onClose={() => handleSelectUnit(null)}
+          visible={unitPanelVisible}
         />
       )}
 

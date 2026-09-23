@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { Outlet } from 'react-router-dom';
 import { fetchDevelopmentUnits, subscribeToUnitChanges } from '../lib/supabase';
+import { usePresence } from '../lib/usePresence';
 import { ViewTabs } from './ViewTabs';
 import { Logo } from './Logo';
 import auraConfigJson from '../config/aura.json';
@@ -66,6 +67,7 @@ export function AuraLayout() {
   }, [developmentId]);
 
   const context: AuraOutletContext = { units, developmentId, loadError };
+  const { rendered: presentLoadError, visible: errorBannerVisible } = usePresence(loadError, 300);
 
   // SPEC §3: paleta del cliente aplicada a botones, paneles y acentos. Se define una sola
   // vez aquí, como variables CSS heredadas por todo el árbol del selector (Torre 3D,
@@ -88,9 +90,13 @@ export function AuraLayout() {
       <ViewTabs />
       <Outlet context={context} />
 
-      {loadError && (
-        <div className="pointer-events-auto fixed inset-x-4 bottom-4 z-30 rounded-xl bg-red-50 p-3 text-sm text-red-800 shadow-lg sm:inset-x-auto sm:right-4 sm:w-96">
-          <p>{loadError}</p>
+      {presentLoadError && (
+        <div
+          className={`pointer-events-auto fixed inset-x-4 bottom-4 z-30 rounded-xl bg-red-50 p-3 text-sm text-red-800 shadow-lg transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none sm:inset-x-auto sm:right-4 sm:w-96 ${
+            errorBannerVisible ? 'translate-y-0 opacity-100 sm:translate-y-0' : 'translate-y-full opacity-0 sm:translate-y-4'
+          }`}
+        >
+          <p>{presentLoadError}</p>
           <button
             type="button"
             onClick={() => setRetryToken((token) => token + 1)}

@@ -21,6 +21,9 @@ interface UnitPanelProps {
   developmentName: string;
   whatsappPhone: string;
   onClose: () => void;
+  /** Dispara la transición de entrada/salida (ver `usePresence` en el llamador) — arranca
+   *  en `false` un frame después de montar, y vuelve a `false` antes de desmontar. */
+  visible: boolean;
 }
 
 /**
@@ -37,6 +40,7 @@ export function UnitPanel({
   developmentName,
   whatsappPhone,
   onClose,
+  visible,
 }: UnitPanelProps) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -75,7 +79,11 @@ export function UnitPanel({
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-20 max-h-[75dvh] overflow-y-auto rounded-t-2xl border-t-4 border-[var(--brand-accent)] bg-white p-5 shadow-2xl sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-96 sm:rounded-2xl sm:border-t-0 sm:border-l-4">
+    <div
+      className={`fixed inset-x-0 bottom-0 z-20 max-h-[75dvh] overflow-y-auto rounded-t-2xl border-t-4 border-[var(--brand-accent)] bg-white p-5 shadow-2xl transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-96 sm:rounded-2xl sm:border-t-0 sm:border-l-4 ${
+        visible ? 'translate-y-0 opacity-100 sm:translate-y-0' : 'translate-y-full opacity-0 sm:translate-y-4'
+      }`}
+    >
       <button
         type="button"
         onClick={onClose}
