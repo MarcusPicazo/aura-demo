@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { FloorPlanDetailed } from './FloorPlanDetailed';
 import { InteriorGallery } from './InteriorGallery';
+import { PaymentSchedule } from './PaymentSchedule';
 import { buildInterestMessage, buildWhatsappLink } from '../lib/whatsapp';
 import { createLead } from '../lib/supabase';
 import { formatPrice } from '../lib/pricing';
 import { STATUS_LABELS } from '../lib/status';
-import type { FloorPlanConfig, Point, Unit } from '../types';
+import type { FloorPlanConfig, PaymentPlanConfig, Point, Unit } from '../types';
 
 type LeadFormStatus = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -14,6 +15,7 @@ interface UnitPanelProps {
   polygon: Point[] | undefined;
   floorPlan: FloorPlanConfig | undefined;
   interiorImages: string[];
+  paymentPlan: PaymentPlanConfig;
   developmentId: string;
   developmentName: string;
   whatsappPhone: string;
@@ -29,6 +31,7 @@ export function UnitPanel({
   polygon,
   floorPlan,
   interiorImages,
+  paymentPlan,
   developmentId,
   developmentName,
   whatsappPhone,
@@ -97,6 +100,8 @@ export function UnitPanel({
         <dt className="text-neutral-500">Orientación</dt>
         <dd className="text-right text-neutral-900">{unit.orientation}</dd>
       </dl>
+
+      <PaymentSchedule price={unit.price} plan={paymentPlan} />
 
       <button
         type="button"

@@ -18,3 +18,28 @@ const priceFormatter = new Intl.NumberFormat('es-MX', {
 export function formatPrice(price: number): string {
   return priceFormatter.format(price);
 }
+
+export interface PaymentPlan {
+  downPayment: number;
+  monthlyPayment: number;
+  monthsCount: number;
+  balanceAtDelivery: number;
+}
+
+/**
+ * Enganche + saldo contra entrega (fijo, normalmente crédito) + mensualidades durante la
+ * obra, que cubren lo que sobra del precio después de esos dos — por eso mover el enganche
+ * cambia la mensualidad, nunca el saldo contra entrega.
+ */
+export function calculatePaymentPlan(
+  price: number,
+  downPaymentPercent: number,
+  balanceAtDeliveryPercent: number,
+  constructionMonths: number,
+): PaymentPlan {
+  const downPayment = Math.round((price * downPaymentPercent) / 100);
+  const balanceAtDelivery = Math.round((price * balanceAtDeliveryPercent) / 100);
+  const monthlyTotal = Math.max(0, price - downPayment - balanceAtDelivery);
+  const monthlyPayment = constructionMonths > 0 ? Math.round(monthlyTotal / constructionMonths) : 0;
+  return { downPayment, monthlyPayment, monthsCount: constructionMonths, balanceAtDelivery };
+}

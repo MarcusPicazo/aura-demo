@@ -215,6 +215,7 @@ export function Selector3D() {
           polygon={selectedUnitPolygon}
           floorPlan={selectedUnitFloorPlan}
           interiorImages={selectedUnitInteriors}
+          paymentPlan={auraConfig.paymentPlan}
           developmentId={developmentId}
           developmentName={developmentName}
           whatsappPhone={whatsapp}

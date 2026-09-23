@@ -131,6 +131,24 @@ export interface RoofConfig {
   equipmentSize: [number, number, number];
 }
 
+/**
+ * Esquema de pagos: enganche (ajustable con un control) + saldo contra entrega (fijo,
+ * normalmente crédito/hipoteca) + mensualidades durante la obra, que cubren lo que sobra
+ * del precio después de esos dos. Por eso mover el enganche cambia las mensualidades,
+ * nunca el saldo contra entrega.
+ */
+export interface PaymentPlanConfig {
+  /** Valor inicial del control de enganche, 0–100. */
+  downPaymentPercent: number;
+  minDownPaymentPercent: number;
+  maxDownPaymentPercent: number;
+  /** Porcentaje del precio que se liquida contra entrega — fijo, no lo mueve el control. */
+  balanceAtDeliveryPercent: number;
+  constructionMonths: number;
+  /** Fecha estimada de entrega, ISO (`YYYY-MM-DD`) — se muestra por mes/año. */
+  deliveryDate: string;
+}
+
 /** Lado de la huella (bounding box) de la torre: hacia dónde da la calle o la marquesina. */
 export type FootprintSide = 'minX' | 'maxX' | 'minZ' | 'maxZ';
 
@@ -292,6 +310,7 @@ export interface DevelopmentConfig {
   lobby: LobbyConfig;
   roof: RoofConfig;
   context: ContextConfig;
+  paymentPlan: PaymentPlanConfig;
   geometry: TowerGeometryConfig;
   /** Ficha de negocio por tipo (A, B, C, D...), aplica a las unidades de `geometry.plate`. */
   unitTypes: Record<string, UnitTypeSpec>;

@@ -87,6 +87,14 @@
       "windowColor": "#7FA8C9"
     }
   },
+  "paymentPlan": {
+    "downPaymentPercent": 20,
+    "minDownPaymentPercent": 10,
+    "maxDownPaymentPercent": 40,
+    "balanceAtDeliveryPercent": 50,
+    "constructionMonths": 18,
+    "deliveryDate": "2028-03-01"
+  },
   "geometry": {
     "floorHeight": 3.2,
     "slabThickness": 0.3,
