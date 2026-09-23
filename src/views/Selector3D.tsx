@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
@@ -163,9 +163,16 @@ export function Selector3D() {
         />
         <primitive object={sunTarget} position={sunTargetPosition} />
 
-        <Suspense fallback={null}>
-          <Environment preset="city" background={false} />
-        </Suspense>
+        {/* Antes: `preset="city"` descargaba un HDRI de ~1.5 MB de un CDN externo en cada
+            carga (SPEC §8: <3s en 4G simulado). El vidrio no necesita ese nivel de detalle
+            para verse creíble — un env map de baja resolución generado del `<Sky>` que ya
+            está en la escena da el mismo tono de reflejo de cielo sin descargar nada. */}
+        {/* `frames={1}` captura el cubemap una sola vez: el sol/cielo no cambian en
+            tiempo real, así que recalcularlo cada frame bajo frameloop="demand" sería
+            trabajo repetido sin nada nuevo que mostrar. */}
+        <Environment resolution={256} background={false} frames={1}>
+          <Sky sunPosition={sunPosition} turbidity={3} rayleigh={0.9} mieCoefficient={0.006} mieDirectionalG={0.85} />
+        </Environment>
 
         <Context footprint={layout.footprint} context={auraConfig.context} />
         <Tower
