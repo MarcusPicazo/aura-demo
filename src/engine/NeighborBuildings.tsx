@@ -45,7 +45,14 @@ function ToneGroup({ buildings, wallColor, windowColor, repeat }: ToneGroupProps
     tex.repeat.set(repeat[0], repeat[1]);
     return tex;
   }, [wallColor, windowColor, repeat]);
-  const material = useMemo(() => new THREE.MeshStandardMaterial({ map: texture, roughness: 0.85, metalness: 0.02 }), [texture]);
+  // `roughness` alto y `envMapIntensity` bajo a propósito: sin esto, el environment map
+  // (agregado para los reflejos del vidrio de la torre) también le pone brillo a estas
+  // fachadas de fondo, compitiendo con la torre. Los vecinos deben leerse apagados, tipo
+  // maqueta — los materiales ricos son exclusivos de la torre.
+  const material = useMemo(
+    () => new THREE.MeshStandardMaterial({ map: texture, roughness: 0.97, metalness: 0, envMapIntensity: 0.12 }),
+    [texture],
+  );
   const matrices = useMemo(
     () =>
       buildings.map(

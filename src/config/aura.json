@@ -110,8 +110,8 @@
       "minWidth": 10,
       "maxWidth": 20,
       "minClearance": 18,
-      "tones": ["#C9BBA0", "#B5A88F", "#A69C85", "#D6CAB0", "#9C9384"],
-      "windowColor": "#7FA8C9"
+      "tones": ["#A8A6A2", "#A2A19D", "#9C9B97", "#ACAAA6", "#969590"],
+      "windowColor": "#8B9298"
     }
   },
   "paymentPlan": {
