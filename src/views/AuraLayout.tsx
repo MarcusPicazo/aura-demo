@@ -75,7 +75,7 @@ export function AuraLayout() {
   // pestaña (Torre 3D, Fachada, Proyecto), no solo desde el selector 3D — `openContact` se
   // expone por el contexto de ruta para que la ficha de unidad también la dispare.
   const [contactOpen, setContactOpen] = useState(false);
-  const { rendered: presentContact, visible: contactVisible } = usePresence(contactOpen ? true : null, 300);
+  const { rendered: presentContact, visible: contactVisible } = usePresence(contactOpen ? true : null, 380);
   const selectedUnitCode = useSelectionStore((state) => state.selectedUnitCode);
   const selectedUnit = units.find((unit) => unit.code === selectedUnitCode) ?? null;
 
@@ -105,14 +105,17 @@ export function AuraLayout() {
 
       {/* Único botón para "hablar con un asesor" en toda la interfaz principal, visible en
           las tres pestañas — abajo a la izquierda: arriba a la izquierda ya está el logo,
-          arriba a la derecha lo usa Filtros en Torre 3D, y abajo a la derecha (o toda la
-          franja inferior en móvil) es donde anclan la ficha de unidad y esta misma ficha
-          de contacto al abrirse. */}
+          arriba a la derecha lo usa Filtros en Torre 3D. La ficha de contacto (`ContactCard`)
+          "crece" desde esta misma esquina en escritorio (`sm:origin-bottom-left` + escala
+          allá), así que el botón se desvanece mientras esa ficha está montada — si se
+          quedara visible, se vería duplicado justo debajo de la esquina del panel. */}
       <button
         type="button"
         onClick={() => setContactOpen(true)}
         aria-label="Hablar con un asesor"
-        className="pointer-events-auto fixed bottom-4 left-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--brand-primary)] text-white shadow-lg"
+        className={`pointer-events-auto fixed bottom-4 left-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--brand-primary)] text-white shadow-lg transition-opacity duration-300 ease-elegant motion-reduce:transition-none ${
+          presentContact ? 'pointer-events-none opacity-0' : 'opacity-100'
+        }`}
       >
         <ContactTriggerIcon className="h-5 w-5" />
       </button>
@@ -129,7 +132,7 @@ export function AuraLayout() {
 
       {presentLoadError && (
         <div
-          className={`pointer-events-auto fixed inset-x-4 bottom-4 z-30 rounded-xl bg-red-50 p-3 text-sm text-red-800 shadow-lg transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none sm:inset-x-auto sm:right-4 sm:w-96 ${
+          className={`pointer-events-auto fixed inset-x-4 bottom-4 z-30 rounded-xl bg-red-50 p-3 text-sm text-red-800 shadow-lg transition-[opacity,transform] duration-300 ease-elegant motion-reduce:transition-none sm:inset-x-auto sm:right-4 sm:w-96 ${
             errorBannerVisible ? 'translate-y-0 opacity-100 sm:translate-y-0' : 'translate-y-full opacity-0 sm:translate-y-4'
           }`}
         >

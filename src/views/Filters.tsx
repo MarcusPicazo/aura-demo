@@ -34,9 +34,9 @@ export function Filters({ units }: FiltersProps) {
     return value === '' ? null : Number(value);
   }
 
-  // Duración corta (250 ms, en el extremo bajo del rango pedido) porque es un desplegable
-  // chico, no un panel de pantalla completa — una transición larga se sentiría lenta aquí.
-  const { rendered: expandedContent, visible: expandedVisible } = usePresence(expanded ? true : null, 250);
+  // 300ms con la curva compartida (`ease-elegant`) — antes 250ms/ease-out, se sentía un
+  // poco mecánico al llegar a su posición final.
+  const { rendered: expandedContent, visible: expandedVisible } = usePresence(expanded ? true : null, 300);
   useEscapeKey(() => setExpanded(false), expanded);
 
   // El ancho se ataba antes a `expanded` (crudo): al cerrar, la caja se encogía de golpe
@@ -44,9 +44,14 @@ export function Filters({ units }: FiltersProps) {
   // se veía el texto recortado/brincando un frame antes de desaparecer. Atado a
   // `expandedContent` (el valor retenido de `usePresence`), la caja se queda ancha
   // mientras el contenido sigue montado animando su salida, y solo se encoge después.
+  // El ancho ahora también transiciona (antes saltaba de golpe): con `overflow-hidden` +
+  // `transition-[width]`, la caja crece/encoge en el mismo tiempo que el contenido se
+  // desvanece, en vez de aparecer ya del ancho final de un salto.
   return (
     <div
-      className={`pointer-events-auto ml-auto rounded-xl bg-[var(--brand-background)]/95 p-3 text-sm shadow-lg backdrop-blur ${expandedContent ? 'w-60' : ''}`}
+      className={`pointer-events-auto ml-auto overflow-hidden rounded-xl bg-[var(--brand-background)]/95 p-3 text-sm shadow-lg backdrop-blur transition-[width] duration-300 ease-elegant motion-reduce:transition-none ${
+        expandedContent ? 'w-60' : 'w-auto'
+      }`}
     >
       <button
         type="button"
@@ -59,7 +64,7 @@ export function Filters({ units }: FiltersProps) {
 
       {expandedContent && (
         <div
-          className={`mt-3 space-y-3 transition-[opacity,transform] duration-[250ms] ease-out delay-75 motion-reduce:transition-none motion-reduce:delay-0 ${
+          className={`mt-3 space-y-3 transition-[opacity,transform] duration-300 ease-elegant delay-75 motion-reduce:transition-none motion-reduce:delay-0 ${
             expandedVisible ? 'translate-y-0 opacity-100' : '-translate-y-1 opacity-0'
           }`}
         >

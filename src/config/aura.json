@@ -29,9 +29,9 @@
     "profile": "#3B2A1E",
     "interior": "#211D19",
     "interiorInset": 0.18,
-    "statusTint": { "available": "#8FBF9C", "reserved": "#D9B87A", "sold": "#ABA79E" },
-    "statusOpacity": 0.85,
-    "statusEmissiveIntensity": 0.3,
+    "statusTint": { "available": "#4FAE70", "reserved": "#DDA23E", "sold": "#ABA79E" },
+    "statusOpacity": 0.9,
+    "statusEmissiveIntensity": 0.42,
     "soldOpacity": 0.5,
     "soldEmissiveIntensity": 0.04
   },

@@ -48,13 +48,13 @@ function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, o
 
   return (
     <div
-      className={`fixed inset-0 z-40 flex items-end justify-center bg-black/50 transition-opacity duration-300 ease-out motion-reduce:transition-none sm:items-center ${
+      className={`fixed inset-0 z-40 flex items-end justify-center bg-black/50 transition-opacity duration-300 ease-elegant motion-reduce:transition-none sm:items-center ${
         visible ? 'opacity-100' : 'pointer-events-none opacity-0'
       }`}
       onClick={onClose}
     >
       <div
-        className={`max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white shadow-2xl transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none sm:rounded-2xl ${
+        className={`max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white shadow-2xl transition-[opacity,transform] duration-[350ms] ease-elegant motion-reduce:transition-none sm:rounded-2xl ${
           visible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 sm:translate-y-4'
         }`}
         onClick={(event) => event.stopPropagation()}
@@ -91,7 +91,7 @@ function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, o
           )}
         </div>
         <div
-          className={`p-5 transition-opacity duration-300 ease-out delay-100 motion-reduce:transition-none motion-reduce:delay-0 ${
+          className={`p-5 transition-opacity duration-[350ms] ease-elegant delay-100 motion-reduce:transition-none motion-reduce:delay-0 ${
             visible ? 'opacity-100' : 'opacity-0'
           }`}
         >
@@ -121,7 +121,7 @@ export function ProjectView() {
   // sin imagen (`amenity.image` ausente) se queda como tarjeta de solo ícono, sin romperse.
   const amenitiesWithImage = amenities.filter((amenity) => amenity.image);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const { rendered: presentIndex, visible: lightboxVisible } = usePresence(openIndex, 300);
+  const { rendered: presentIndex, visible: lightboxVisible } = usePresence(openIndex, 350);
   const presentAmenity = presentIndex !== null ? amenitiesWithImage[presentIndex] : null;
 
   const [mapResetToken, setMapResetToken] = useState(0);

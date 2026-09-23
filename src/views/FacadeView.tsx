@@ -37,7 +37,7 @@ export function FacadeView() {
 
   // Retiene el piso mostrado mientras la ficha se anima hacia afuera, en vez de vaciarse
   // de golpe apenas se cierra (ver `usePresence`).
-  const { rendered: presentFloor, visible: floorCardVisible } = usePresence(activeFloor, 300);
+  const { rendered: presentFloor, visible: floorCardVisible } = usePresence(activeFloor, 350);
   const activeUnits = presentFloor !== null ? units.filter((unit) => unit.floor === presentFloor) : [];
   const activeAvailableUnits = activeUnits.filter((unit) => unit.status === 'available');
   useEscapeKey(() => setActiveFloor(null), activeFloor !== null);
@@ -104,7 +104,7 @@ export function FacadeView() {
 
         {presentFloor !== null && (
           <div
-            className={`mt-4 rounded-xl bg-white p-4 shadow-lg transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
+            className={`mt-4 rounded-xl bg-white p-4 shadow-lg transition-[opacity,transform] duration-[350ms] ease-elegant motion-reduce:transition-none ${
               floorCardVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
             }`}
           >
@@ -112,7 +112,7 @@ export function FacadeView() {
                 la información espera 100ms más y solo se desvanece — se siente en dos
                 tiempos suaves, no todo junto de golpe. */}
             <div
-              className={`transition-opacity duration-300 ease-out delay-100 motion-reduce:transition-none motion-reduce:delay-0 ${
+              className={`transition-opacity duration-[350ms] ease-elegant delay-100 motion-reduce:transition-none motion-reduce:delay-0 ${
                 floorCardVisible ? 'opacity-100' : 'opacity-0'
               }`}
             >

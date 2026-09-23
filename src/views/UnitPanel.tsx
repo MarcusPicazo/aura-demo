@@ -104,7 +104,7 @@ export function UnitPanel({
       // `select-none` (solo móvil, `sm:select-auto` lo revierte en escritorio donde no hay
       // gesto de arrastre): un swipe que arranca sobre texto del panel en vez de la
       // pestaña de arriba disparaba selección de texto nativa en lugar de mover el panel.
-      className={`fixed inset-x-0 bottom-0 z-20 flex max-h-[65dvh] select-none flex-col overflow-hidden rounded-t-2xl border-t-4 border-[var(--brand-accent)] bg-white shadow-2xl transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-96 sm:max-h-[75dvh] sm:select-auto sm:rounded-2xl sm:border-t-0 sm:border-l-4 ${
+      className={`fixed inset-x-0 bottom-0 z-20 flex max-h-[65dvh] select-none flex-col overflow-hidden rounded-t-2xl border-t-4 border-[var(--brand-accent)] bg-white shadow-2xl transition-[opacity,transform] duration-[350ms] ease-elegant motion-reduce:transition-none sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-96 sm:max-h-[75dvh] sm:select-auto sm:rounded-2xl sm:border-t-0 sm:border-l-4 ${
         visible ? 'translate-y-0 opacity-100 sm:translate-y-0' : 'translate-y-full opacity-0 sm:translate-y-4'
       }`}
       style={dragging ? { transform: `translateY(${dragY}px)`, transition: 'none' } : undefined}
@@ -141,7 +141,7 @@ export function UnitPanel({
             más y solo se desvanece (sin desplazarse aparte) — se siente como que el panel
             se acomoda primero y la información aparece después, no todo de golpe junto. */}
         <div
-          className={`transition-opacity duration-300 ease-out delay-100 motion-reduce:transition-none motion-reduce:delay-0 ${
+          className={`transition-opacity duration-[350ms] ease-elegant delay-100 motion-reduce:transition-none motion-reduce:delay-0 ${
             visible ? 'opacity-100' : 'opacity-0'
           }`}
         >

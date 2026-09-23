@@ -40,6 +40,28 @@ const SUN_DIRECTION: [number, number, number] = [0.55, 0.72, 0.42];
 /** Resolución del shadow map: acotada a propósito (SPEC: cuida el rendimiento en móvil). */
 const SHADOW_MAP_SIZE: [number, number] = [1024, 1024];
 
+/** Parámetros del modelo de cielo (Preetham) compartidos entre el `<Sky>` visible y el que
+ *  alimenta el `<Environment>` de reflejos. `distance` es lo importante: el default de
+ *  drei es 1000, pero la cámara tiene `far: 500` (ver abajo) — la cúpula del cielo se
+ *  recortaba contra el plano lejano y apenas se veía, así que ajustar turbidity/rayleigh
+ *  casi no cambiaba nada visible. 480 la deja cómodamente adentro de los 500. Con la
+ *  cúpula completa ya visible: `turbidity` bajo + `rayleigh` alto es justo lo contrario de
+ *  lo que parecía antes (más calina = cielo más lavado, no más profundo) — un cielo
+ *  despejado con buen contraste cenit/horizonte es lo que de verdad se lee como "profundo".
+ *
+ *  Con la cámara casi a nivel (encuadre "media altura"), lo que se ve del cielo es sobre
+ *  todo la franja baja cerca del horizonte — ahí el propio modelo físico siempre da un
+ *  tono parejo y lavado, sea cual sea `turbidity`/`rayleigh` (así se ve un horizonte real).
+ *  Por eso la niebla (`FOG_COLOR`, abajo) importa tanto como el cielo mismo para la
+ *  sensación de profundidad: antes usaba el color cálido de marca (pensado para paneles de
+ *  interfaz, no para el cielo) y los edificios lejanos se apagaban hacia un tono que no
+ *  combinaba con el azul del cielo — rompía la perspectiva atmosférica en vez de reforzarla. */
+const SKY_PARAMS = { distance: 400, turbidity: 2.2, rayleigh: 2.2, mieCoefficient: 0.006, mieDirectionalG: 0.8 };
+/** Tono de la franja baja del cielo (horizonte) — la niebla debe apagar lo lejano hacia
+ *  este color, no hacia el fondo cálido de la interfaz, para que edificios lejanos y cielo
+ *  se sientan del mismo aire. */
+const FOG_COLOR = '#CBDBE8';
+
 const TONE_MAPPING_EXPOSURE = 1.05;
 
 /** FOV vertical de la cámara — una sola constante, la usan tanto el `Canvas` como el
@@ -120,7 +142,7 @@ export function Selector3D() {
   // juega la transición de salida) — se dispara con el código (string estable), no con el
   // objeto `Unit` completo: ese objeto cambia de referencia en cada actualización de
   // Realtime aunque sea la misma unidad, y reiniciaría la animación de entrada sin motivo.
-  const { rendered: presentUnitCode, visible: unitPanelVisible } = usePresence(selectedUnitCode, 300);
+  const { rendered: presentUnitCode, visible: unitPanelVisible } = usePresence(selectedUnitCode, 350);
   const [lastUnitPanelData, setLastUnitPanelData] = useState<{
     unit: Unit;
     polygon: Point[] | undefined;
@@ -183,8 +205,8 @@ export function Selector3D() {
       >
         {/* Niebla ligera a la distancia (solo se nota cerca del horizonte, no sobre la
             torre): da profundidad sin necesitar postprocesado. */}
-        <fog attach="fog" args={[brand.background, sunDistance * 0.45, sunDistance * 1.4]} />
-        <Sky sunPosition={sunPosition} turbidity={3} rayleigh={0.9} mieCoefficient={0.006} mieDirectionalG={0.85} />
+        <fog attach="fog" args={[FOG_COLOR, sunDistance * 0.45, sunDistance * 1.4]} />
+        <Sky sunPosition={sunPosition} {...SKY_PARAMS} />
 
         {/* Hemisferio (cielo arriba, rebote de piso abajo) en vez de ambiental plano:
             así la sombra del sol tiene con qué contrastar sin que la escena se vea gris. */}
@@ -216,7 +238,7 @@ export function Selector3D() {
             tiempo real, así que recalcularlo cada frame bajo frameloop="demand" sería
             trabajo repetido sin nada nuevo que mostrar. */}
         <Environment resolution={256} background={false} frames={1}>
-          <Sky sunPosition={sunPosition} turbidity={3} rayleigh={0.9} mieCoefficient={0.006} mieDirectionalG={0.85} />
+          <Sky sunPosition={sunPosition} {...SKY_PARAMS} />
         </Environment>
 
         <Context footprint={layout.footprint} context={auraConfig.context} />
