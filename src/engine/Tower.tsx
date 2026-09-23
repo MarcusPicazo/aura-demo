@@ -174,14 +174,11 @@ interface InteriorLinerGroupProps {
 function InteriorLinerGroup({ geometry, matrices, material }: InteriorLinerGroupProps) {
   const ref = useInstanceMatrices(matrices);
   if (matrices.length === 0) return null;
-  return (
-    <instancedMesh
-      ref={ref}
-      args={[geometry, material, matrices.length]}
-      rotation={[-Math.PI / 2, 0, 0]}
-      raycast={noRaycast}
-    />
-  );
+  // Sin `rotation` en el propio InstancedMesh: combinada con matrices que solo trasladan,
+  // la rotación del mesh se aplica DESPUÉS de la traslación de cada instancia (en su
+  // espacio local, antes de rotar), así que "subir en Y" terminaba siendo "correrse en Z"
+  // — la rotación ya viene horneada en cada matriz (ver `interiorMatricesByKey`).
+  return <instancedMesh ref={ref} args={[geometry, material, matrices.length]} raycast={noRaycast} />;
 }
 
 interface HoverState {
@@ -265,12 +262,16 @@ export function Tower({
     [config.materials.interior],
   );
   const interiorMatricesByKey = useMemo(() => {
+    // Misma rotación que usan las unidades de vidrio ([-90°, 0, 0], para acostar la
+    // extrusión), horneada en la matriz de cada instancia — no como prop del InstancedMesh.
+    const rotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+    const scale = new THREE.Vector3(1, 1, 1);
     const map = new Map<string, THREE.Matrix4[]>();
     for (const level of layout.levels) {
       for (const unit of level.units) {
         const key = geometryKey(unit);
         const list = map.get(key) ?? [];
-        list.push(new THREE.Matrix4().makeTranslation(0, level.y, 0));
+        list.push(new THREE.Matrix4().compose(new THREE.Vector3(0, level.y, 0), rotation, scale));
         map.set(key, list);
       }
     }

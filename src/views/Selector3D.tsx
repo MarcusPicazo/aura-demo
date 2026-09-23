@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
@@ -104,14 +104,13 @@ export function Selector3D() {
 
   // El sol apunta al centro de la torre (a media altura), no al origen del mundo — si no,
   // el frustum de su shadow camera queda descentrado y desperdicia resolución de sombra.
-  // three.js requiere que `light.target` esté en el árbol de la escena para que su matriz
-  // se actualice; por eso se asigna a mano en vez de con la prop `target` (que solo acepta
-  // un Object3D ya existente).
+  // `target` va como prop del propio `<directionalLight>` (R3F la asigna igual que
+  // cualquier otra prop, de forma síncrona y en cada commit) — asignarla a mano con un
+  // `ref` + `useEffect` aparte, como estaba antes, dependía del orden exacto en que se
+  // monta el ref frente al efecto y se perdía en cuanto había un remount (HMR, StrictMode):
+  // `light.target` se quedaba apuntando al Object3D por default de three.js, en el origen,
+  // y la sombra dejaba de proyectarse donde debía (o directamente no se veía).
   const sunTarget = useMemo(() => new THREE.Object3D(), []);
-  const sunLightRef = useRef<THREE.DirectionalLight>(null);
-  useEffect(() => {
-    if (sunLightRef.current) sunLightRef.current.target = sunTarget;
-  }, [sunTarget]);
 
   const sunTargetPosition: [number, number, number] = [footprintCenterX, layout.totalHeight / 2, footprintCenterZ];
   // Radio que debe cubrir el frustum de la shadow camera: la torre completa más margen.
@@ -145,8 +144,8 @@ export function Selector3D() {
             así la sombra del sol tiene con qué contrastar sin que la escena se vea gris. */}
         <hemisphereLight args={['#bcd4f2', '#9c9384', 0.35]} />
         <directionalLight
-          ref={sunLightRef}
           position={sunPosition}
+          target={sunTarget}
           intensity={1.4}
           color="#fff3e0"
           castShadow
@@ -185,12 +184,15 @@ export function Selector3D() {
           availabilityMode={availabilityMode}
         />
 
+        {/* `far` acotado a la planta baja (antes: la altura completa de la torre) — con
+            los ~40 m del edificio entero contribuyendo, la sombra de contacto salía
+            borrosa y débil en vez de leerse justo donde el edificio toca el suelo. */}
         <ContactShadows
           position={[footprintCenterX, 0.02, footprintCenterZ]}
-          opacity={0.5}
+          opacity={0.6}
           scale={footprintSpan * 2.2}
-          blur={2.4}
-          far={layout.totalHeight}
+          blur={2}
+          far={geometry.groundFloorHeight}
           frames={1}
         />
 
