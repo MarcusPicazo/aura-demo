@@ -155,6 +155,36 @@ export interface PaymentPlanConfig {
   deliveryDate: string;
 }
 
+/** Una amenidad del desarrollo: `icon` es una clave de `AMENITY_ICONS` (views/AmenityIcons.tsx),
+ *  no una URL ni un componente — así la config sigue siendo JSON plano. */
+export interface AmenityConfig {
+  icon: string;
+  label: string;
+}
+
+/** Punto de interés cercano al desarrollo (sin coordenadas propias: solo se lista, no se
+ *  marca en el mapa individualmente). */
+export interface PointOfInterestConfig {
+  name: string;
+  /** Minutos aproximados a pie; si no se da, se omite el badge de distancia. */
+  distanceMinutes?: number;
+}
+
+export interface ProjectLocationConfig {
+  lat: number;
+  lng: number;
+  address: string;
+}
+
+/** Sección de proyecto: descripción corta, amenidades, ubicación y puntos de interés —
+ *  todo dato de negocio del cliente, nada de esto vive en `engine/`. */
+export interface ProjectInfoConfig {
+  description: string;
+  amenities: AmenityConfig[];
+  location: ProjectLocationConfig;
+  pointsOfInterest: PointOfInterestConfig[];
+}
+
 /** Lado de la huella (bounding box) de la torre: hacia dónde da la calle o la marquesina. */
 export type FootprintSide = 'minX' | 'maxX' | 'minZ' | 'maxZ';
 
@@ -328,6 +358,7 @@ export interface DevelopmentConfig {
   interiors: Record<string, string[]>;
   camera: CameraConfig;
   facade: FacadeConfig;
+  project: ProjectInfoConfig;
 }
 
 export type UnitStatus = 'available' | 'reserved' | 'sold';

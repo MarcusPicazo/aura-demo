@@ -6,6 +6,7 @@ import { Selector3D } from './views/Selector3D';
 // CLAUDE.md: carga diferida del panel de admin y de la vista de fachada — un prospecto
 // que solo ve la torre (SPEC §2, momento 1) nunca descarga ninguno de los dos.
 const FacadeView = lazy(() => import('./views/FacadeView').then((m) => ({ default: m.FacadeView })));
+const ProjectView = lazy(() => import('./views/ProjectView').then((m) => ({ default: m.ProjectView })));
 const AdminPage = lazy(() => import('./admin/AdminPage'));
 const UnitsTable = lazy(() => import('./admin/UnitsTable').then((m) => ({ default: m.UnitsTable })));
 const FacadeEditor = lazy(() => import('./admin/FacadeEditor').then((m) => ({ default: m.FacadeEditor })));
@@ -23,6 +24,14 @@ function App() {
           element={
             <Suspense fallback={null}>
               <FacadeView />
+            </Suspense>
+          }
+        />
+        <Route
+          path="proyecto"
+          element={
+            <Suspense fallback={null}>
+              <ProjectView />
             </Suspense>
           }
         />
