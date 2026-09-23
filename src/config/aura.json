@@ -25,15 +25,21 @@
   "carpentry": { "spacing": 1.35, "thickness": 0.09, "depth": 0.3, "color": "#3B2A1E" },
   "balcony": {
     "depth": 1.2,
-    "slabEdgeHeight": 0.4,
-    "slabEdgeColor": "#F5F3EE",
+    "slabEdgeHeight": 0.46,
+    "slabEdgeColor": "#E8DEC8",
     "railingHeight": 1.0,
     "railingColor": "#CFE0E6",
     "railingThickness": 0.03,
     "handrailColor": "#4A4A48",
     "handrailHeight": 0.05,
-    "soffitColor": "#B39B79",
-    "soffitThickness": 0.09
+    "soffitColor": "#C99A5E",
+    "soffitThickness": 0.11,
+    "vegetationEveryNth": 3,
+    "vegetationPotColor": "#8C7259",
+    "vegetationPotHeight": 0.35,
+    "vegetationPotRadius": 0.16,
+    "vegetationFoliageColor": "#5B7A4F",
+    "vegetationFoliageRadius": 0.32
   },
   "lobby": {
     "glassColor": "#B7C7CE",
@@ -60,7 +66,14 @@
     "pergolaBeamThickness": 0.12,
     "pergolaCoverage": 0.5,
     "equipmentColor": "#9C9384",
-    "equipmentSize": [4, 2, 3]
+    "equipmentSize": [4, 2, 3],
+    "vegetationSpacing": 2.2,
+    "vegetationSetback": 0.6,
+    "vegetationPotColor": "#8C7259",
+    "vegetationPotHeight": 0.4,
+    "vegetationPotRadius": 0.22,
+    "vegetationFoliageColor": "#5B7A4F",
+    "vegetationFoliageRadius": 0.5
   },
   "context": {
     "ground": { "color": "#B8B4A8", "noiseColor": "#9C9788", "sizeFactor": 8 },

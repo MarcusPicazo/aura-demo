@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
-import { computePolygonEdges, type PolygonBounds } from '../lib/geometry';
+import { computeMullionPointsWithNormal, computePolygonEdges, type PolygonBounds } from '../lib/geometry';
 import { createConcreteTexture } from './textures';
 import type { RoofConfig } from '../types';
 
@@ -119,6 +119,64 @@ export function Roof({ footprint, roofY, roof }: RoofProps) {
     minZ + equipDepth / 2 + roof.parapetThickness,
   ];
 
+  // Jardineras a lo largo del pretil, hacia adentro `vegetationSetback` m: reutiliza el
+  // mismo reparto por perímetro que la carpintería de fachada (`computeMullionPoints...`),
+  // solo que aquí sobre el rectángulo de la huella en vez del polígono de una unidad.
+  // Se saltan los puntos que caerían sobre el volumen de instalaciones, para no encimarse.
+  const vegetationPositions = useMemo(() => {
+    const equipMinX = minX + roof.parapetThickness;
+    const equipMaxX = equipMinX + equipWidth;
+    const equipMinZ = minZ + roof.parapetThickness;
+    const equipMaxZ = equipMinZ + equipDepth;
+    const points: [number, number][] = [];
+    for (const { position, outward } of computeMullionPointsWithNormal(
+      [
+        [minX, minZ],
+        [maxX, minZ],
+        [maxX, maxZ],
+        [minX, maxZ],
+      ],
+      roof.vegetationSpacing,
+    )) {
+      const x = position[0] - outward[0] * roof.vegetationSetback;
+      const z = position[1] - outward[1] * roof.vegetationSetback;
+      const inEquipmentZone = x > equipMinX - 0.4 && x < equipMaxX + 0.4 && z > equipMinZ - 0.4 && z < equipMaxZ + 0.4;
+      if (!inEquipmentZone) points.push([x, z]);
+    }
+    return points;
+  }, [minX, maxX, minZ, maxZ, roof.vegetationSpacing, roof.vegetationSetback, roof.parapetThickness, equipWidth, equipDepth]);
+
+  const vegetationPotMatrices = useMemo(
+    () => vegetationPositions.map(([x, z]) => new THREE.Matrix4().makeTranslation(x, roofY + roof.vegetationPotHeight / 2, z)),
+    [vegetationPositions, roofY, roof.vegetationPotHeight],
+  );
+  const vegetationFoliageMatrices = useMemo(
+    () =>
+      vegetationPositions.map(
+        ([x, z]) => new THREE.Matrix4().makeTranslation(x, roofY + roof.vegetationPotHeight + roof.vegetationFoliageRadius * 0.7, z),
+      ),
+    [vegetationPositions, roofY, roof.vegetationPotHeight, roof.vegetationFoliageRadius],
+  );
+  const vegetationPotGeometry = useMemo(
+    () => new THREE.CylinderGeometry(roof.vegetationPotRadius * 0.8, roof.vegetationPotRadius, roof.vegetationPotHeight, 8),
+    [roof.vegetationPotRadius, roof.vegetationPotHeight],
+  );
+  // Icosaedro de bajo detalle, igual que la copa de los árboles de la calle (Trees.tsx).
+  const vegetationFoliageGeometry = useMemo(
+    () => new THREE.IcosahedronGeometry(roof.vegetationFoliageRadius, 1),
+    [roof.vegetationFoliageRadius],
+  );
+  const vegetationPotMaterial = useMemo(
+    () => new THREE.MeshStandardMaterial({ color: roof.vegetationPotColor, roughness: 0.8, metalness: 0 }),
+    [roof.vegetationPotColor],
+  );
+  const vegetationFoliageMaterial = useMemo(
+    () => new THREE.MeshStandardMaterial({ color: roof.vegetationFoliageColor, roughness: 0.85, metalness: 0 }),
+    [roof.vegetationFoliageColor],
+  );
+  const vegetationPotRef = useInstanceMatrices(vegetationPotMatrices);
+  const vegetationFoliageRef = useInstanceMatrices(vegetationFoliageMatrices);
+
   return (
     <group>
       {parapetEdges.map((edge, index) => (
@@ -153,6 +211,21 @@ export function Roof({ footprint, roofY, roof }: RoofProps) {
         geometry={equipmentGeometry}
         material={equipmentMaterial}
         position={equipmentPosition}
+        raycast={noRaycast}
+        castShadow
+        receiveShadow
+      />
+
+      <instancedMesh
+        ref={vegetationPotRef}
+        args={[vegetationPotGeometry, vegetationPotMaterial, vegetationPotMatrices.length]}
+        raycast={noRaycast}
+        castShadow
+        receiveShadow
+      />
+      <instancedMesh
+        ref={vegetationFoliageRef}
+        args={[vegetationFoliageGeometry, vegetationFoliageMaterial, vegetationFoliageMatrices.length]}
         raycast={noRaycast}
         castShadow
         receiveShadow

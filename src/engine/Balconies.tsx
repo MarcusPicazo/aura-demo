@@ -49,16 +49,21 @@ function edgeBandMatrix(
  * medidas/colores de `balcony` (config del cliente).
  */
 export function Balconies({ geometry, layout, balcony }: BalconiesProps) {
-  const { slabEdge, railing, handrail, soffit } = useMemo(() => {
+  const { slabEdge, railing, handrail, soffit, pot, foliage } = useMemo(() => {
     const slabEdgeMatrices: THREE.Matrix4[] = [];
     const railingMatrices: THREE.Matrix4[] = [];
     const handrailMatrices: THREE.Matrix4[] = [];
     const soffitMatrices: THREE.Matrix4[] = [];
+    const potMatrices: THREE.Matrix4[] = [];
+    const foliageMatrices: THREE.Matrix4[] = [];
 
     const railingBaseY = balcony.slabEdgeHeight / 2;
     const handrailBaseY = balcony.slabEdgeHeight / 2 + balcony.railingHeight;
     const soffitOffsetY = -(balcony.slabEdgeHeight / 2 + balcony.soffitThickness / 2);
+    // Piso del balcón: la cara de arriba del canto de losa.
+    const floorY = balcony.slabEdgeHeight / 2;
 
+    let edgeCount = 0;
     for (const level of layout.levels) {
       const units = level.isPenthouse ? geometry.penthousePlate : geometry.plate;
 
@@ -72,11 +77,31 @@ export function Balconies({ geometry, layout, balcony }: BalconiesProps) {
             edgeBandMatrix(edge, balcony.depth - balcony.railingThickness / 2, level.y + handrailBaseY + balcony.handrailHeight / 2),
           );
           soffitMatrices.push(edgeBandMatrix(edge, balcony.depth / 2, level.y + soffitOffsetY));
+
+          // Maceta en 1 de cada N balcones (recorrido determinista): se ve habitado sin
+          // empalagar, y sin que dos plantas sigas caigan en el mismo piso/lado siempre.
+          if (edgeCount % balcony.vegetationEveryNth === 0) {
+            const [ox, oz] = edge.outward;
+            const outwardOffset = balcony.depth * 0.6;
+            const x = edge.midpoint[0] + ox * outwardOffset;
+            const z = edge.midpoint[1] + oz * outwardOffset;
+            const potTopY = level.y + floorY + balcony.vegetationPotHeight;
+            potMatrices.push(new THREE.Matrix4().makeTranslation(x, level.y + floorY + balcony.vegetationPotHeight / 2, z));
+            foliageMatrices.push(new THREE.Matrix4().makeTranslation(x, potTopY + balcony.vegetationFoliageRadius * 0.6, z));
+          }
+          edgeCount += 1;
         }
       }
     }
 
-    return { slabEdge: slabEdgeMatrices, railing: railingMatrices, handrail: handrailMatrices, soffit: soffitMatrices };
+    return {
+      slabEdge: slabEdgeMatrices,
+      railing: railingMatrices,
+      handrail: handrailMatrices,
+      soffit: soffitMatrices,
+      pot: potMatrices,
+      foliage: foliageMatrices,
+    };
   }, [geometry, layout, balcony]);
 
   const slabEdgeGeometry = useMemo(
@@ -94,6 +119,16 @@ export function Balconies({ geometry, layout, balcony }: BalconiesProps) {
   const soffitGeometry = useMemo(
     () => new THREE.BoxGeometry(1, balcony.soffitThickness, balcony.depth),
     [balcony.soffitThickness, balcony.depth],
+  );
+  const potGeometry = useMemo(
+    () => new THREE.CylinderGeometry(balcony.vegetationPotRadius * 0.8, balcony.vegetationPotRadius, balcony.vegetationPotHeight, 8),
+    [balcony.vegetationPotRadius, balcony.vegetationPotHeight],
+  );
+  // Icosaedro de bajo detalle, igual que la copa de los árboles de la calle (Trees.tsx):
+  // mismo lenguaje visual "follaje low-poly" en todo el motor.
+  const foliageGeometry = useMemo(
+    () => new THREE.IcosahedronGeometry(balcony.vegetationFoliageRadius, 1),
+    [balcony.vegetationFoliageRadius],
   );
 
   const slabEdgeMaterial = useMemo(
@@ -121,11 +156,21 @@ export function Balconies({ geometry, layout, balcony }: BalconiesProps) {
     () => new THREE.MeshStandardMaterial({ color: balcony.soffitColor, roughness: 0.7, metalness: 0 }),
     [balcony.soffitColor],
   );
+  const potMaterial = useMemo(
+    () => new THREE.MeshStandardMaterial({ color: balcony.vegetationPotColor, roughness: 0.8, metalness: 0 }),
+    [balcony.vegetationPotColor],
+  );
+  const foliageMaterial = useMemo(
+    () => new THREE.MeshStandardMaterial({ color: balcony.vegetationFoliageColor, roughness: 0.85, metalness: 0 }),
+    [balcony.vegetationFoliageColor],
+  );
 
   const slabEdgeRef = useInstanceMatrices(slabEdge);
   const railingRef = useInstanceMatrices(railing);
   const handrailRef = useInstanceMatrices(handrail);
   const soffitRef = useInstanceMatrices(soffit);
+  const potRef = useInstanceMatrices(pot);
+  const foliageRef = useInstanceMatrices(foliage);
 
   return (
     <>
@@ -147,6 +192,14 @@ export function Balconies({ geometry, layout, balcony }: BalconiesProps) {
       <instancedMesh
         ref={soffitRef}
         args={[soffitGeometry, soffitMaterial, soffit.length]}
+        raycast={noRaycast}
+        castShadow
+        receiveShadow
+      />
+      <instancedMesh ref={potRef} args={[potGeometry, potMaterial, pot.length]} raycast={noRaycast} castShadow receiveShadow />
+      <instancedMesh
+        ref={foliageRef}
+        args={[foliageGeometry, foliageMaterial, foliage.length]}
         raycast={noRaycast}
         castShadow
         receiveShadow

@@ -110,6 +110,14 @@ export interface BalconyConfig {
   handrailHeight: number;
   soffitColor: string;
   soffitThickness: number;
+  /** Maceta en algunos balcones, no todos: 1 de cada N en el orden en que se recorren
+   *  (determinista, no al azar) — para que se vea habitado sin empalagar. */
+  vegetationEveryNth: number;
+  vegetationPotColor: string;
+  vegetationPotHeight: number;
+  vegetationPotRadius: number;
+  vegetationFoliageColor: string;
+  vegetationFoliageRadius: number;
 }
 
 /**
@@ -154,6 +162,15 @@ export interface RoofConfig {
   equipmentColor: string;
   /** Ancho, alto y profundo del volumen de instalaciones, en metros. */
   equipmentSize: [number, number, number];
+  /** Jardineras a lo largo del pretil, separadas como máximo estos metros. */
+  vegetationSpacing: number;
+  /** Qué tanto hacia adentro del pretil quedan las jardineras, en metros. */
+  vegetationSetback: number;
+  vegetationPotColor: string;
+  vegetationPotHeight: number;
+  vegetationPotRadius: number;
+  vegetationFoliageColor: string;
+  vegetationFoliageRadius: number;
 }
 
 /**
