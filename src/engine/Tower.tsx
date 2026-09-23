@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Edges, Outlines } from '@react-three/drei';
-import type { ThreeEvent } from '@react-three/fiber';
-import { buildTowerLayout, deriveRegularUnitCode, polygonToShape } from '../lib/geometry';
+import { useThree, type ThreeEvent } from '@react-three/fiber';
+import { buildTowerLayout, deriveRegularUnitCode, insetRectilinearPolygon, polygonToShape } from '../lib/geometry';
 import { unitMatchesFilters, type UnitFilters } from '../lib/filters';
 import { FacadeMullions } from './FacadeMullions';
 import { Balconies } from './Balconies';
@@ -17,12 +17,16 @@ const STATUSES: UnitStatus[] = ['available', 'reserved', 'sold'];
  *  filtros activos) < nada < su piso en hover < ella en hover < seleccionada. */
 type InteractionState = 'filtered' | 'none' | 'floor' | 'unit' | 'selected';
 const INTERACTION_STATES: InteractionState[] = ['filtered', 'none', 'floor', 'unit', 'selected'];
+// Subidos respecto a la primera versión: con opacidad 0.55 en reposo, dos caras de vidrio
+// una detrás de otra dejaban ver de lado a lado y la torre se leía hueca. Es convención
+// genérica del selector (como STATUS_COLORS en lib/status.ts), no dato de marca — por eso
+// vive aquí y no en la config del cliente.
 const INTERACTION_OPACITY: Record<InteractionState, number> = {
   filtered: 0.08,
-  none: 0.55,
-  floor: 0.72,
-  unit: 0.88,
-  selected: 0.92,
+  none: 0.74,
+  floor: 0.85,
+  unit: 0.92,
+  selected: 0.94,
 };
 const INTERACTION_EMISSIVE: Record<InteractionState, number> = {
   filtered: 0,
@@ -41,6 +45,11 @@ const INTERACTION_EMISSIVE: Record<InteractionState, number> = {
  * siguen leyéndose como vidrio. `baseColor` es lo único que cambia entre el vidrio neutro
  * del edificio real y el tinte por estado — todo lo demás (opacidad, reflectividad) es
  * el mismo look de vidrio en los dos modos.
+ *
+ * `side: THREE.FrontSide` (antes `DoubleSide`): con las dos caras activas se veía la cara
+ * trasera de la misma caja a través de la delantera —la fachada opuesta de la unidad,
+ * invertida— que es justo lo que hacía leer la torre como hueca. Con un solo lado, más el
+ * forro interior opaco detrás (ver `buildInteriorMaterial`), la vista se detiene ahí.
  */
 function buildGlassVariants(baseColor: string, reflectivity: number): Record<InteractionState, THREE.MeshPhysicalMaterial> {
   const variants = {} as Record<InteractionState, THREE.MeshPhysicalMaterial>;
@@ -56,7 +65,7 @@ function buildGlassVariants(baseColor: string, reflectivity: number): Record<Int
       clearcoat: 0.4,
       clearcoatRoughness: 0.15,
       envMapIntensity: reflectivity,
-      side: THREE.DoubleSide,
+      side: THREE.FrontSide,
     });
   }
   return variants;
@@ -118,6 +127,61 @@ function buildUnitGeometryMap(units: PlateUnit[], floorHeight: number): Map<stri
     map.set(geometryKey(unit), new THREE.ExtrudeGeometry(shape, { depth: floorHeight, bevelEnabled: false }));
   }
   return map;
+}
+
+/** Un forro por *tipo* de unidad (no por unidad): unidades del mismo tipo en pisos
+ *  distintos comparten exactamente el mismo polígono encogido, solo cambia su Y. */
+function buildInteriorGeometryMap(units: PlateUnit[], floorHeight: number, inset: number): Map<string, THREE.ExtrudeGeometry> {
+  const map = new Map<string, THREE.ExtrudeGeometry>();
+  for (const unit of units) {
+    const shape = polygonToShape(insetRectilinearPolygon(unit.polygon, inset));
+    map.set(geometryKey(unit), new THREE.ExtrudeGeometry(shape, { depth: floorHeight, bevelEnabled: false }));
+  }
+  return map;
+}
+
+/** Opaco y mate a propósito: es lo primero que corta la vista detrás del vidrio, no debe
+ *  competir con él ni con brillo ni con reflejo. */
+function buildInteriorMaterial(color: string): THREE.MeshStandardMaterial {
+  return new THREE.MeshStandardMaterial({ color, roughness: 0.95, metalness: 0 });
+}
+
+/** Escribe las matrices en el buffer del InstancedMesh una sola vez (o cuando cambian) y
+ *  pide un frame — mismo patrón que en Roof/Lobby/Balconies/FacadeMullions. */
+function useInstanceMatrices(matrices: THREE.Matrix4[]) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const invalidate = useThree((state) => state.invalidate);
+  useEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    matrices.forEach((matrix, index) => mesh.setMatrixAt(index, matrix));
+    mesh.instanceMatrix.needsUpdate = true;
+    invalidate();
+  }, [matrices, invalidate]);
+  return ref;
+}
+
+interface InteriorLinerGroupProps {
+  geometry: THREE.ExtrudeGeometry;
+  matrices: THREE.Matrix4[];
+  material: THREE.MeshStandardMaterial;
+}
+
+/** Un `InstancedMesh` por tipo de unidad (A/B/C/D/penthouses), no uno por unidad: el forro
+ *  interior es idéntico en todos los pisos que repiten el mismo tipo. Componente aparte
+ *  (no un `.map()` con el hook adentro) porque `useInstanceMatrices` no puede llamarse
+ *  condicionalmente dentro de un loop. */
+function InteriorLinerGroup({ geometry, matrices, material }: InteriorLinerGroupProps) {
+  const ref = useInstanceMatrices(matrices);
+  if (matrices.length === 0) return null;
+  return (
+    <instancedMesh
+      ref={ref}
+      args={[geometry, material, matrices.length]}
+      rotation={[-Math.PI / 2, 0, 0]}
+      raycast={noRaycast}
+    />
+  );
 }
 
 interface HoverState {
@@ -184,6 +248,34 @@ export function Tower({
     () => buildUnitGeometryMap(geometry.penthousePlate, geometry.floorHeight),
     [geometry.penthousePlate, geometry.floorHeight],
   );
+
+  // Forro interior oscuro detrás del vidrio (evita que la torre se vea hueca): una
+  // geometría por tipo (encogida hacia adentro `interiorInset` m) y sus posiciones Y se
+  // arman por separado — mismo polígono en cada piso que repite ese tipo, solo cambia Y.
+  const interiorInset = config.materials.interiorInset;
+  const interiorGeometries = useMemo(() => {
+    const map = buildInteriorGeometryMap(geometry.plate, geometry.floorHeight, interiorInset);
+    for (const [key, value] of buildInteriorGeometryMap(geometry.penthousePlate, geometry.floorHeight, interiorInset)) {
+      map.set(key, value);
+    }
+    return map;
+  }, [geometry.plate, geometry.penthousePlate, geometry.floorHeight, interiorInset]);
+  const interiorMaterial = useMemo(
+    () => buildInteriorMaterial(config.materials.interior),
+    [config.materials.interior],
+  );
+  const interiorMatricesByKey = useMemo(() => {
+    const map = new Map<string, THREE.Matrix4[]>();
+    for (const level of layout.levels) {
+      for (const unit of level.units) {
+        const key = geometryKey(unit);
+        const list = map.get(key) ?? [];
+        list.push(new THREE.Matrix4().makeTranslation(0, level.y, 0));
+        map.set(key, list);
+      }
+    }
+    return map;
+  }, [layout.levels]);
 
   const coreGeometry = useMemo(() => {
     const shape = polygonToShape(layout.core);
@@ -281,6 +373,17 @@ export function Tower({
           );
         });
       })}
+
+      {/* Forro interior oscuro, un InstancedMesh por tipo de unidad (no por unidad ni por
+          piso): corta la vista detrás del vidrio para que la torre no se lea hueca. */}
+      {[...interiorGeometries.entries()].map(([key, unitGeometry]) => (
+        <InteriorLinerGroup
+          key={key}
+          geometry={unitGeometry}
+          matrices={interiorMatricesByKey.get(key) ?? []}
+          material={interiorMaterial}
+        />
+      ))}
 
       {/* Losas: una franja delgada en cada frontera de nivel. */}
       {layout.slabYs.map((y) => (

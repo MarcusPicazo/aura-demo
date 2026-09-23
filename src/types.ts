@@ -56,6 +56,11 @@ export interface MaterialsConfig {
   glassReflectivity: number;
   /** Perfiles/marcos (Edges) de losas, núcleo y unidades. */
   profile: string;
+  /** Forro interior detrás del vidrio (oscuro, opaco): evita que la torre se vea hueca
+   *  al dejar ver de lado a lado a través de dos caras de vidrio. */
+  interior: string;
+  /** Cuánto se encoge el forro interior respecto a la línea de vidrio, en metros. */
+  interiorInset: number;
   statusTint: StatusTintConfig;
 }
 

@@ -421,3 +421,44 @@ export function sideAxisFrom(footprint: PolygonBounds, side: FootprintSide): Sid
     },
   };
 }
+
+/**
+ * Encoge un polígono ortogonal (todos los lados horizontales o verticales — el caso de
+ * cualquier planta de unidad de esta config) `distance` metros hacia adentro. Cada lado se
+ * desplaza hacia el interior y el vértice nuevo es la intersección de los dos lados
+ * desplazados que se juntan ahí — trivial en un polígono ortogonal, porque cada lado es una
+ * recta x=cte o z=cte.
+ *
+ * La normal hacia afuera de cada lado sale de rotar -90° el vector de la arista (asume
+ * recorrido antihorario, el mismo que usa la config), no de comparar contra el centroide
+ * como `computePolygonEdges`: esa comparación puede fallar justo en la esquina recortada de
+ * un polígono cóncavo (unidad en L), donde el centroide cae casi sobre la propia arista.
+ *
+ * Se usa para el forro interior oscuro detrás del vidrio (evita que la torre se vea hueca).
+ */
+export function insetRectilinearPolygon(polygon: Point[], distance: number): Point[] {
+  const n = polygon.length;
+
+  const shiftedLines = polygon.map((p1, index) => {
+    const [x1, z1] = p1;
+    const [x2, z2] = polygon[(index + 1) % n];
+    const dx = x2 - x1;
+    const dz = z2 - z1;
+    if (Math.abs(dx) < 1e-6) {
+      // Arista vertical (x constante): la normal hacia afuera es (signo(dz), 0).
+      const outward = Math.sign(dz);
+      return { axis: 'x' as const, value: x1 - outward * distance };
+    }
+    // Arista horizontal (z constante): la normal hacia afuera es (0, -signo(dx)).
+    const outward = -Math.sign(dx);
+    return { axis: 'z' as const, value: z1 - outward * distance };
+  });
+
+  return polygon.map((_, index) => {
+    const prev = shiftedLines[(index - 1 + n) % n];
+    const curr = shiftedLines[index];
+    const xLine = prev.axis === 'x' ? prev : curr;
+    const zLine = prev.axis === 'z' ? prev : curr;
+    return [xLine.value, zLine.value] as Point;
+  });
+}

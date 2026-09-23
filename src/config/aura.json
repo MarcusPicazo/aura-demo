@@ -10,10 +10,12 @@
     "privacyContactEmail": "privacidad@torreauradelvalle.mx"
   },
   "materials": {
-    "concrete": "#EDEAE2",
+    "concrete": "#D9D2C3",
     "glass": "#B7C7CE",
-    "glassReflectivity": 1.6,
+    "glassReflectivity": 2.4,
     "profile": "#3B2A1E",
+    "interior": "#211D19",
+    "interiorInset": 0.18,
     "statusTint": { "available": "#8FBF9C", "reserved": "#D9B87A", "sold": "#ABA79E" }
   },
   "carpentry": { "spacing": 1.35, "thickness": 0.09, "depth": 0.3, "color": "#3B2A1E" },
@@ -26,19 +28,19 @@
     "railingThickness": 0.03,
     "handrailColor": "#4A4A48",
     "handrailHeight": 0.05,
-    "soffitColor": "#D9C9A8",
+    "soffitColor": "#B39B79",
     "soffitThickness": 0.09
   },
   "lobby": {
     "glassColor": "#B7C7CE",
-    "glassReflectivity": 1.4,
+    "glassReflectivity": 2.0,
     "columnSpacing": 4.5,
     "columnRadius": 0.18,
     "columnColor": "#3B2A1E",
     "marqueeSide": "minZ",
     "marqueeDepth": 3.0,
     "marqueeThickness": 0.3,
-    "marqueeColor": "#EDEAE2",
+    "marqueeColor": "#D9D2C3",
     "marqueeElevation": 3.5,
     "mullionSpacing": 2.25,
     "mullionThickness": 0.08,
@@ -47,7 +49,7 @@
   "roof": {
     "parapetHeight": 1.1,
     "parapetThickness": 0.2,
-    "parapetColor": "#EDEAE2",
+    "parapetColor": "#D9D2C3",
     "pergolaColor": "#D9C9A8",
     "pergolaHeight": 2.4,
     "pergolaBeamSpacing": 0.6,
