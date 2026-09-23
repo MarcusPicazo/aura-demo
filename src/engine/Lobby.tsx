@@ -60,6 +60,10 @@ export function Lobby({ footprint, groundFloorHeight, profileColor, lobby }: Lob
         clearcoat: 0.5,
         envMapIntensity: lobby.glassReflectivity,
         side: THREE.DoubleSide,
+        // Sin escritura de profundidad: mismo motivo que el vidrio de las unidades
+        // (Tower.tsx) — evita que el vidrio se autooculte contra los montantes/marco a
+        // corta distancia por precisión del depth buffer.
+        depthWrite: false,
       }),
     [lobby.glassColor, lobby.glassReflectivity],
   );

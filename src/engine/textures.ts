@@ -25,6 +25,10 @@ export function createWindowGridTexture(wallColor: string, windowColor: string):
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.colorSpace = THREE.SRGBColorSpace;
+  // Anisotropía máxima: three.js la recorta sola al límite real del GPU, así que un valor
+  // alto aquí es seguro en cualquier dispositivo. Sin esto, estas texturas se ven borrosas
+  // en ángulos rasantes (fachada vista de lado) sin importar la distancia de cámara.
+  texture.anisotropy = 16;
   return texture;
 }
 
@@ -88,6 +92,7 @@ export function createConcreteTexture(baseColor: string): THREE.CanvasTexture {
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 16;
   return texture;
 }
 
@@ -127,5 +132,6 @@ export function createGroundTexture(baseColor: string, noiseColor: string): THRE
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 16;
   return texture;
 }

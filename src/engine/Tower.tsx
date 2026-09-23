@@ -50,6 +50,15 @@ const INTERACTION_EMISSIVE: Record<InteractionState, number> = {
  * trasera de la misma caja a través de la delantera —la fachada opuesta de la unidad,
  * invertida— que es justo lo que hacía leer la torre como hueca. Con un solo lado, más el
  * forro interior opaco detrás (ver `buildInteriorMaterial`), la vista se detiene ahí.
+ *
+ * `depthWrite: false`: un material transparente que sí escribe en el depth buffer puede
+ * tapar (no solo atenuar) lo que tiene detrás a corta distancia — el forro interior, los
+ * mullions, las líneas de `Edges` — porque a esa escala la diferencia de profundidad entre
+ * el vidrio y esa geometría (unos centímetros) cae dentro del margen de error del depth
+ * buffer y el z-fighting resultante ya no es un parpadeo de un píxel: ocupa la mitad de la
+ * pantalla. Sin escritura de profundidad, el vidrio se sigue dibujando encima por orden
+ * (three.js ordena la transparencia de atrás hacia adelante), pero deja de competir por el
+ * mismo píxel del depth buffer con lo que tiene inmediatamente detrás.
  */
 function buildGlassVariants(baseColor: string, reflectivity: number): Record<InteractionState, THREE.MeshPhysicalMaterial> {
   const variants = {} as Record<InteractionState, THREE.MeshPhysicalMaterial>;
@@ -66,6 +75,7 @@ function buildGlassVariants(baseColor: string, reflectivity: number): Record<Int
       clearcoatRoughness: 0.15,
       envMapIntensity: reflectivity,
       side: THREE.FrontSide,
+      depthWrite: false,
     });
   }
   return variants;

@@ -130,7 +130,14 @@ export function Selector3D() {
         // y bajo "demand" solo hay render cuando algo realmente invalida la escena.
         frameloop="demand"
         shadows="soft"
-        camera={{ position: camera.intro, fov: 50, near: 0.1, far: 500 }}
+        // `near` antes era 0.1: junto con `far=500` da una proporción far/near de 5000:1,
+        // que deja muy poca precisión de profundidad disponible para la escena real (todo
+        // pasa a metros del target, nunca a centímetros de la cámara). A poca distancia esa
+        // falta de precisión se nota grueso (no como un parpadeo de un píxel): el vidrio y
+        // lo que tiene detrás (mullions, forro interior) compiten por el mismo valor de
+        // profundidad y el más cercano "gana" de forma inestable. 1 sigue siendo mucho más
+        // cerca de lo que la cámara puede llegar (`minDistance` en OrbitControls, abajo).
+        camera={{ position: camera.intro, fov: 50, near: 1, far: 500 }}
         onPointerMissed={() => handleSelectUnit(null)}
         dpr={DPR_RANGE}
         gl={{ toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: TONE_MAPPING_EXPOSURE }}
