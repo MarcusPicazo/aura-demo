@@ -441,14 +441,54 @@
   "project": {
     "description": "Torre Aura Del Valle combina arquitectura contemporánea con la vida de barrio de una de las colonias más consolidadas de la Ciudad de México: calles arboladas, comercio de cercanía y conexión inmediata con Insurgentes y el resto de la ciudad.",
     "amenities": [
-      { "icon": "pool", "label": "Alberca climatizada" },
-      { "icon": "gym", "label": "Gimnasio equipado" },
-      { "icon": "coworking", "label": "Sala de coworking" },
-      { "icon": "rooftop", "label": "Roof garden con asadores" },
-      { "icon": "kids", "label": "Salón de juegos infantil" },
-      { "icon": "security", "label": "Seguridad 24/7 con acceso controlado" },
-      { "icon": "parking", "label": "Estacionamiento para visitas" },
-      { "icon": "pets", "label": "Área pet friendly" }
+      {
+        "icon": "pool",
+        "label": "Alberca climatizada",
+        "image": "/clients/aura/amenities/alberca.jpg",
+        "description": "Alberca climatizada techada, para nadar todo el año, con área de camastros y sombra."
+      },
+      {
+        "icon": "gym",
+        "label": "Gimnasio equipado",
+        "image": "/clients/aura/amenities/gimnasio.jpg",
+        "description": "Gimnasio totalmente equipado con máquinas de cardio y pesas libres, disponible las 24 horas."
+      },
+      {
+        "icon": "coworking",
+        "label": "Sala de coworking",
+        "image": "/clients/aura/amenities/coworking.jpg",
+        "description": "Espacio de coworking con internet de alta velocidad, salas de juntas y área de café."
+      },
+      {
+        "icon": "rooftop",
+        "label": "Roof garden con asadores",
+        "image": "/clients/aura/amenities/roof-garden.jpg",
+        "description": "Roof garden con asadores, terraza y vista panorámica de la ciudad."
+      },
+      {
+        "icon": "kids",
+        "label": "Salón de juegos infantil",
+        "image": "/clients/aura/amenities/ludoteca.jpg",
+        "description": "Ludoteca segura y luminosa para los más pequeños de la casa."
+      },
+      {
+        "icon": "security",
+        "label": "Seguridad 24/7 con acceso controlado",
+        "image": "/clients/aura/amenities/seguridad.jpg",
+        "description": "Vigilancia las 24 horas, acceso controlado y circuito cerrado de cámaras."
+      },
+      {
+        "icon": "parking",
+        "label": "Estacionamiento para visitas",
+        "image": "/clients/aura/amenities/estacionamiento.jpg",
+        "description": "Estacionamiento techado con cajones adicionales para visitas."
+      },
+      {
+        "icon": "pets",
+        "label": "Área pet friendly",
+        "image": "/clients/aura/amenities/pet-friendly.jpg",
+        "description": "Área pet friendly con juegos y estación de limpieza para tu mascota."
+      }
     ],
     "location": {
       "lat": 19.3838,

@@ -179,6 +179,11 @@ export interface PaymentPlanConfig {
 export interface AmenityConfig {
   icon: string;
   label: string;
+  /** Ruta en `public/clients/<slug>/amenities/`. Opcional: si falta, la tarjeta se queda
+   *  solo con ícono y no abre la vista en grande. */
+  image?: string;
+  /** Texto para la vista en grande; sin esto solo se muestra el nombre. */
+  description?: string;
 }
 
 /** Punto de interés cercano al desarrollo (sin coordenadas propias: solo se lista, no se
