@@ -13,8 +13,8 @@
   },
   "carpentry": { "spacing": 1.35, "thickness": 0.09, "depth": 0.3, "color": "#3B2A1E" },
   "balcony": {
-    "depth": 1.0,
-    "slabEdgeHeight": 0.25,
+    "depth": 1.2,
+    "slabEdgeHeight": 0.4,
     "slabEdgeColor": "#F5F3EE",
     "railingHeight": 1.0,
     "railingColor": "#CFE0E6",
@@ -22,7 +22,7 @@
     "handrailColor": "#4A4A48",
     "handrailHeight": 0.05,
     "soffitColor": "#D9C9A8",
-    "soffitThickness": 0.06
+    "soffitThickness": 0.09
   },
   "lobby": {
     "glassColor": "#B7C7CE",
