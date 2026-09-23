@@ -8,6 +8,7 @@ import { FacadeMullions } from './FacadeMullions';
 import { Balconies } from './Balconies';
 import { Lobby } from './Lobby';
 import { Roof } from './Roof';
+import { createConcreteTexture } from './textures';
 import type { DevelopmentConfig, MaterialsConfig, PenthousePlateUnit, PlateUnit, Unit, UnitStatus } from '../types';
 
 const STATUSES: UnitStatus[] = ['available', 'reserved', 'sold'];
@@ -84,13 +85,19 @@ function buildUnitMaterialSets(materials: MaterialsConfig): UnitMaterialSets {
 interface StructureMaterials {
   slab: THREE.MeshStandardMaterial;
   core: THREE.MeshStandardMaterial;
+  /** Compartida entre slab y core: un solo `repeat` ajusta el grano en ambas mallas. */
+  concreteTexture: THREE.CanvasTexture;
 }
 
-/** Concreto de losas y núcleo: mismo color, cada malla con su propio material por si algún día necesitan variar aparte. */
+/** Concreto de losas y núcleo: misma textura (mismo color base), cada malla con su propio
+ *  material por si algún día necesitan variar aparte. Sin `color` en el material —solo
+ *  `map`— para no oscurecer la textura multiplicándola contra un tono aparte. */
 function buildStructureMaterials(concrete: string): StructureMaterials {
+  const concreteTexture = createConcreteTexture(concrete);
   return {
-    slab: new THREE.MeshStandardMaterial({ color: concrete, roughness: 0.85, metalness: 0.05 }),
-    core: new THREE.MeshStandardMaterial({ color: concrete, roughness: 0.85, metalness: 0.05, side: THREE.DoubleSide }),
+    slab: new THREE.MeshStandardMaterial({ map: concreteTexture, roughness: 0.85, metalness: 0.05 }),
+    core: new THREE.MeshStandardMaterial({ map: concreteTexture, roughness: 0.85, metalness: 0.05, side: THREE.DoubleSide }),
+    concreteTexture,
   };
 }
 
@@ -159,6 +166,14 @@ export function Tower({
     [config.materials],
   );
   const structureMaterials = useMemo(() => buildStructureMaterials(config.materials.concrete), [config.materials.concrete]);
+  // Repeat en metros de mundo (≈1.2 m por tile, como un tablero de cimbra), no un valor fijo:
+  // así el grano se ve igual de fino sin importar cuánto mida la huella de este cliente.
+  const footprintSpan = Math.max(
+    layout.footprint.maxX - layout.footprint.minX,
+    layout.footprint.maxZ - layout.footprint.minZ,
+  );
+  const concreteRepeat = Math.max(2, Math.round(footprintSpan / 1.2));
+  structureMaterials.concreteTexture.repeat.set(concreteRepeat, concreteRepeat);
 
   const unitGeometries = useMemo(
     () => buildUnitGeometryMap(geometry.plate, geometry.floorHeight),

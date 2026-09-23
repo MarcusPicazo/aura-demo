@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
 import { computePolygonEdges, type PolygonBounds } from '../lib/geometry';
+import { createConcreteTexture } from './textures';
 import type { RoofConfig } from '../types';
 
 /** Decorativo, no vendible: fuera del raycasting para no interferir con el picking de unidades. */
@@ -54,10 +55,16 @@ export function Roof({ footprint, roofY, roof }: RoofProps) {
     () => new THREE.BoxGeometry(1, roof.parapetHeight, roof.parapetThickness),
     [roof.parapetHeight, roof.parapetThickness],
   );
+  const parapetTexture = useMemo(() => createConcreteTexture(roof.parapetColor), [roof.parapetColor]);
   const parapetMaterial = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: roof.parapetColor, roughness: 0.7, metalness: 0.05 }),
-    [roof.parapetColor],
+    () => new THREE.MeshStandardMaterial({ map: parapetTexture, roughness: 0.7, metalness: 0.05 }),
+    [parapetTexture],
   );
+  // Mismo criterio que las losas: ~1.2 m por tile, usando el largo promedio de un tramo
+  // de pretil (los 4 comparten una sola textura, no hay un `repeat` exacto por tramo).
+  const parapetPerimeter = parapetEdges.reduce((sum, edge) => sum + edge.length, 0);
+  const parapetAvgEdge = parapetEdges.length > 0 ? parapetPerimeter / parapetEdges.length : 1;
+  parapetTexture.repeat.set(Math.max(2, Math.round(parapetAvgEdge / 1.2)), 1);
 
   // Pérgola: vigas paralelas al eje X, repartidas a lo largo de Z, centradas y acotadas a `pergolaCoverage`.
   const coveredWidth = width * roof.pergolaCoverage;
