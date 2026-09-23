@@ -4,6 +4,89 @@
   "tagline": "Vivir en la luz de Del Valle",
   "whatsapp": "5215500000000",
   "brand": { "primary": "#2B2B2B", "accent": "#C8A27A", "background": "#F4EFE8" },
+  "materials": {
+    "concrete": "#EDEAE2",
+    "glass": "#B7C7CE",
+    "glassReflectivity": 1.6,
+    "profile": "#3B2A1E",
+    "statusTint": { "available": "#8FBF9C", "reserved": "#D9B87A", "sold": "#ABA79E" }
+  },
+  "carpentry": { "spacing": 1.35, "thickness": 0.09, "depth": 0.3, "color": "#3B2A1E" },
+  "balcony": {
+    "depth": 1.0,
+    "slabEdgeHeight": 0.25,
+    "slabEdgeColor": "#F5F3EE",
+    "railingHeight": 1.0,
+    "railingColor": "#CFE0E6",
+    "railingThickness": 0.03,
+    "handrailColor": "#4A4A48",
+    "handrailHeight": 0.05,
+    "soffitColor": "#D9C9A8",
+    "soffitThickness": 0.06
+  },
+  "lobby": {
+    "glassColor": "#B7C7CE",
+    "glassReflectivity": 1.4,
+    "columnSpacing": 4.5,
+    "columnRadius": 0.18,
+    "columnColor": "#3B2A1E",
+    "marqueeSide": "minZ",
+    "marqueeDepth": 3.0,
+    "marqueeThickness": 0.3,
+    "marqueeColor": "#EDEAE2",
+    "marqueeElevation": 3.5
+  },
+  "roof": {
+    "parapetHeight": 1.1,
+    "parapetThickness": 0.2,
+    "parapetColor": "#EDEAE2",
+    "pergolaColor": "#D9C9A8",
+    "pergolaHeight": 2.4,
+    "pergolaBeamSpacing": 0.6,
+    "pergolaBeamThickness": 0.12,
+    "pergolaCoverage": 0.5,
+    "equipmentColor": "#9C9384",
+    "equipmentSize": [4, 2, 3]
+  },
+  "context": {
+    "ground": { "color": "#B8B4A8", "noiseColor": "#9C9788", "sizeFactor": 8 },
+    "street": {
+      "side": "minZ",
+      "distanceFromTower": 3,
+      "width": 7,
+      "sidewalkWidth": 2.4,
+      "curbHeight": 0.15,
+      "asphaltColor": "#3A3A3A",
+      "lineColor": "#D8C878",
+      "sidewalkColor": "#B0ABA0",
+      "curbColor": "#9A958C",
+      "carSpacing": 6,
+      "carColors": ["#8B8B8B", "#3A4A5C", "#7A2E2E", "#C9C4B8", "#2E2E30"],
+      "carWidth": 1.8,
+      "carLength": 4.3,
+      "carHeight": 1.4
+    },
+    "trees": {
+      "spacing": 8,
+      "setback": 0,
+      "trunkColor": "#5C4A38",
+      "trunkRadius": 0.12,
+      "trunkHeight": 2.2,
+      "canopyColor": "#4F7942",
+      "canopyRadius": 1.6
+    },
+    "neighborBuildings": {
+      "count": 10,
+      "minLevels": 3,
+      "maxLevels": 8,
+      "levelHeight": 3.0,
+      "minWidth": 10,
+      "maxWidth": 20,
+      "minClearance": 18,
+      "tones": ["#C9BBA0", "#B5A88F", "#A69C85", "#D6CAB0", "#9C9384"],
+      "windowColor": "#7FA8C9"
+    }
+  },
   "geometry": {
     "floorHeight": 3.2,
     "slabThickness": 0.3,

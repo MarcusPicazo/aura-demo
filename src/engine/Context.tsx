@@ -1,43 +1,45 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { buildContextBlocks, type PolygonBounds } from '../lib/geometry';
-
-const blockGeometry = new THREE.BoxGeometry(1, 1, 1);
-
-const blockMaterial = new THREE.MeshStandardMaterial({
-  color: '#8a8a86',
-  transparent: true,
-  opacity: 0.45,
-  roughness: 0.9,
-  metalness: 0,
-});
-
-const groundMaterial = new THREE.MeshStandardMaterial({
-  color: '#c9c4b8',
-  roughness: 1,
-  metalness: 0,
-});
+import { type PolygonBounds } from '../lib/geometry';
+import { createGroundTexture } from './textures';
+import { Street } from './Street';
+import { Trees } from './Trees';
+import { NeighborBuildings } from './NeighborBuildings';
+import type { ContextConfig } from '../types';
 
 /** No son unidades vendibles: fuera del raycasting para no interferir con el picking. */
 const noRaycast = () => null;
 
 interface ContextProps {
   footprint: PolygonBounds;
-  towerHeight: number;
+  context: ContextConfig;
 }
 
 /**
- * Contexto urbano genérico: plano de piso y edificios vecinos como bloques grises
- * semitransparentes, distribuidos alrededor de la huella de la torre. No conoce nada
- * del cliente: solo recibe la huella y la altura por props.
+ * Entorno urbano genérico alrededor de la torre: piso con textura sutil, calle con
+ * banquetas/guarnición/coches/árboles en `context.street.side`, y edificios vecinos de 3-8
+ * niveles con ventanas por textura en el resto del perímetro. No conoce nada del cliente:
+ * todo (huella, medidas, colores) llega por props/config.
  */
-export function Context({ footprint, towerHeight }: ContextProps) {
-  const blocks = useMemo(() => buildContextBlocks(footprint, towerHeight), [footprint, towerHeight]);
-
+export function Context({ footprint, context }: ContextProps) {
   const centerX = (footprint.minX + footprint.maxX) / 2;
   const centerZ = (footprint.minZ + footprint.maxZ) / 2;
   const span = Math.max(footprint.maxX - footprint.minX, footprint.maxZ - footprint.minZ);
-  const groundSize = span * 6;
+  const groundSize = span * context.ground.sizeFactor;
+
+  const groundTexture = useMemo(
+    () => createGroundTexture(context.ground.color, context.ground.noiseColor),
+    [context.ground.color, context.ground.noiseColor],
+  );
+  const groundRepeat = Math.max(4, Math.round(groundSize / 6));
+  groundTexture.repeat.set(groundRepeat, groundRepeat);
+
+  const groundMaterial = useMemo(
+    () => new THREE.MeshStandardMaterial({ map: groundTexture, roughness: 1, metalness: 0 }),
+    [groundTexture],
+  );
+
+  const treeBaseDistance = context.street.distanceFromTower + context.street.sidewalkWidth / 2;
 
   return (
     <group>
@@ -46,20 +48,14 @@ export function Context({ footprint, towerHeight }: ContextProps) {
         rotation={[-Math.PI / 2, 0, 0]}
         material={groundMaterial}
         raycast={noRaycast}
+        receiveShadow
       >
         <planeGeometry args={[groundSize, groundSize]} />
       </mesh>
 
-      {blocks.map((block, index) => (
-        <mesh
-          key={index}
-          geometry={blockGeometry}
-          material={blockMaterial}
-          position={[block.x, block.height / 2, block.z]}
-          scale={[block.width, block.height, block.depth]}
-          raycast={noRaycast}
-        />
-      ))}
+      <Street footprint={footprint} street={context.street} />
+      <Trees footprint={footprint} side={context.street.side} baseDistance={treeBaseDistance} tree={context.trees} />
+      <NeighborBuildings footprint={footprint} streetSide={context.street.side} config={context.neighborBuildings} />
     </group>
   );
 }

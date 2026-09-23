@@ -1,7 +1,8 @@
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
+import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
-import { ContactShadows, Environment, OrbitControls } from '@react-three/drei';
+import { ContactShadows, Environment, OrbitControls, Sky } from '@react-three/drei';
 import { Tower } from '../engine/Tower';
 import { Context } from '../engine/Context';
 import { CameraRig } from '../engine/CameraRig';
@@ -9,8 +10,10 @@ import { AdaptivePerformance } from '../engine/AdaptivePerformance';
 import { UnitPanel } from './UnitPanel';
 import { Filters } from './Filters';
 import { Legend } from './Legend';
+import { AvailabilityToggle } from './AvailabilityToggle';
 import type { AuraOutletContext } from './AuraLayout';
 import { buildTowerLayout, findUnitPolygon, floorPlanKey } from '../lib/geometry';
+import { hasActiveFilters } from '../lib/filters';
 import { useSelectionStore } from '../store/selectionStore';
 import { useFiltersStore } from '../store/filtersStore';
 import auraConfigJson from '../config/aura.json';
@@ -29,6 +32,14 @@ const FOCUSED_FLOOR_DURATION_MS = 3500;
  */
 const DPR_RANGE: [number, number] = [0.75, 1.5];
 
+/** Dirección del sol (normalizada): sol de media tarde, alto pero claramente de un lado. */
+const SUN_DIRECTION: [number, number, number] = [0.55, 0.72, 0.42];
+
+/** Resolución del shadow map: acotada a propósito (SPEC: cuida el rendimiento en móvil). */
+const SHADOW_MAP_SIZE: [number, number] = [1024, 1024];
+
+const TONE_MAPPING_EXPOSURE = 1.05;
+
 export function Selector3D() {
   const { camera, geometry, brand, name: developmentName, whatsapp } = auraConfig;
   const [introDone, setIntroDone] = useState(false);
@@ -45,7 +56,10 @@ export function Selector3D() {
   const priceMin = useFiltersStore((state) => state.priceMin);
   const priceMax = useFiltersStore((state) => state.priceMax);
   const onlyAvailable = useFiltersStore((state) => state.onlyAvailable);
+  const showAvailability = useFiltersStore((state) => state.showAvailability);
   const filters = { bedrooms, priceMin, priceMax, onlyAvailable };
+  // Cualquier filtro activo implica "ver disponibilidad" aunque el toggle manual esté apagado.
+  const availabilityMode = showAvailability || hasActiveFilters(filters);
 
   // URL -> selección: entrar a /aura/unidad/:code, o usar atrás/adelante, selecciona esa
   // unidad. Es la única dirección manejada con efecto; selección -> URL se hace de forma
@@ -87,24 +101,72 @@ export function Selector3D() {
   const selectedUnitFloorPlan = selectedUnitPlanKey ? auraConfig.floorPlans[selectedUnitPlanKey] : undefined;
   const selectedUnitInteriors = selectedUnitPlanKey ? (auraConfig.interiors[selectedUnitPlanKey] ?? []) : [];
 
+  // El sol apunta al centro de la torre (a media altura), no al origen del mundo — si no,
+  // el frustum de su shadow camera queda descentrado y desperdicia resolución de sombra.
+  // three.js requiere que `light.target` esté en el árbol de la escena para que su matriz
+  // se actualice; por eso se asigna a mano en vez de con la prop `target` (que solo acepta
+  // un Object3D ya existente).
+  const sunTarget = useMemo(() => new THREE.Object3D(), []);
+  const sunLightRef = useRef<THREE.DirectionalLight>(null);
+  useEffect(() => {
+    if (sunLightRef.current) sunLightRef.current.target = sunTarget;
+  }, [sunTarget]);
+
+  const sunTargetPosition: [number, number, number] = [footprintCenterX, layout.totalHeight / 2, footprintCenterZ];
+  // Radio que debe cubrir el frustum de la shadow camera: la torre completa más margen.
+  const sceneRadius = Math.max(footprintSpan, layout.totalHeight) * 1.2;
+  const sunDistance = sceneRadius * 4;
+  const sunPosition: [number, number, number] = [
+    footprintCenterX + SUN_DIRECTION[0] * sunDistance,
+    SUN_DIRECTION[1] * sunDistance,
+    footprintCenterZ + SUN_DIRECTION[2] * sunDistance,
+  ];
+
   return (
     <div className="relative h-dvh w-screen bg-neutral-900">
       <Canvas
+        // `frameloop="demand"` ya evita recalcular el shadow map en frames de más: el
+        // shadow map de three.js se recalcula en cada render (autoUpdate por default),
+        // y bajo "demand" solo hay render cuando algo realmente invalida la escena.
         frameloop="demand"
+        shadows="soft"
         camera={{ position: camera.intro, fov: 50, near: 0.1, far: 500 }}
         onPointerMissed={() => handleSelectUnit(null)}
         dpr={DPR_RANGE}
+        gl={{ toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: TONE_MAPPING_EXPOSURE }}
       >
-        <color attach="background" args={[brand.background]} />
+        {/* Niebla ligera a la distancia (solo se nota cerca del horizonte, no sobre la
+            torre): da profundidad sin necesitar postprocesado. */}
+        <fog attach="fog" args={[brand.background, sunDistance * 0.45, sunDistance * 1.4]} />
+        <Sky sunPosition={sunPosition} turbidity={3} rayleigh={0.9} mieCoefficient={0.006} mieDirectionalG={0.85} />
 
-        <ambientLight intensity={0.35} />
-        <directionalLight position={[40, 60, 20]} intensity={0.9} />
+        {/* Hemisferio (cielo arriba, rebote de piso abajo) en vez de ambiental plano:
+            así la sombra del sol tiene con qué contrastar sin que la escena se vea gris. */}
+        <hemisphereLight args={['#bcd4f2', '#9c9384', 0.35]} />
+        <directionalLight
+          ref={sunLightRef}
+          position={sunPosition}
+          intensity={1.4}
+          color="#fff3e0"
+          castShadow
+          shadow-mapSize={SHADOW_MAP_SIZE}
+          shadow-radius={4}
+          shadow-bias={-0.0012}
+          shadow-normalBias={0.4}
+          shadow-camera-left={-sceneRadius}
+          shadow-camera-right={sceneRadius}
+          shadow-camera-top={sceneRadius}
+          shadow-camera-bottom={-sceneRadius}
+          shadow-camera-near={sunDistance - sceneRadius * 2}
+          shadow-camera-far={sunDistance + sceneRadius * 2}
+        />
+        <primitive object={sunTarget} position={sunTargetPosition} />
 
         <Suspense fallback={null}>
           <Environment preset="city" background={false} />
         </Suspense>
 
-        <Context footprint={layout.footprint} towerHeight={layout.totalHeight} />
+        <Context footprint={layout.footprint} context={auraConfig.context} />
         <Tower
           config={auraConfig}
           units={units}
@@ -112,6 +174,7 @@ export function Selector3D() {
           selectedUnitCode={selectedUnitCode}
           onSelectUnit={handleSelectUnit}
           focusedFloor={focusedFloor}
+          availabilityMode={availabilityMode}
         />
 
         <ContactShadows
@@ -141,6 +204,7 @@ export function Selector3D() {
           el ancho del otro). */}
       <div className="fixed inset-x-4 top-20 z-10 flex flex-wrap items-start gap-2">
         <Legend units={units} loadError={loadError} />
+        <AvailabilityToggle />
         <Filters units={units} />
       </div>
 

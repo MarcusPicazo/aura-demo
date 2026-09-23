@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useFiltersStore } from '../store/filtersStore';
+import { hasActiveFilters } from '../lib/filters';
 import { formatPrice } from '../lib/pricing';
 import type { Unit } from '../types';
 
@@ -25,7 +26,7 @@ export function Filters({ units }: FiltersProps) {
   const dataMin = prices.length > 0 ? Math.min(...prices) : 0;
   const dataMax = prices.length > 0 ? Math.max(...prices) : 0;
 
-  const hasActiveFilters = bedrooms !== null || priceMin !== null || priceMax !== null || onlyAvailable;
+  const filtersActive = hasActiveFilters({ bedrooms, priceMin, priceMax, onlyAvailable });
 
   function parsePriceInput(value: string): number | null {
     return value === '' ? null : Number(value);
@@ -38,7 +39,7 @@ export function Filters({ units }: FiltersProps) {
         onClick={() => setExpanded((value) => !value)}
         className="flex w-full items-center justify-between gap-3 font-medium text-neutral-900"
       >
-        <span>Filtros{hasActiveFilters ? ' •' : ''}</span>
+        <span>Filtros{filtersActive ? ' •' : ''}</span>
         <span className="text-neutral-400">{expanded ? '−' : '+'}</span>
       </button>
 
@@ -103,7 +104,7 @@ export function Filters({ units }: FiltersProps) {
             Solo disponibles
           </label>
 
-          {hasActiveFilters && (
+          {filtersActive && (
             <button type="button" onClick={reset} className="text-xs text-neutral-500 underline">
               Limpiar filtros
             </button>

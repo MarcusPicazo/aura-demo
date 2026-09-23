@@ -23,3 +23,8 @@ export function unitMatchesFilters(unit: Unit, filters: UnitFilters): boolean {
   if (filters.onlyAvailable && unit.status !== 'available') return false;
   return true;
 }
+
+/** true si algún filtro se aleja de sus valores por default (sin restricción). */
+export function hasActiveFilters(filters: UnitFilters): boolean {
+  return filters.bedrooms !== null || filters.priceMin !== null || filters.priceMax !== null || filters.onlyAvailable;
+}

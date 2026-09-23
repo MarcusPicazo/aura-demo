@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import * as THREE from 'three';
-import { Edges } from '@react-three/drei';
+import { Edges, Outlines } from '@react-three/drei';
 import type { ThreeEvent } from '@react-three/fiber';
 import { buildTowerLayout, deriveRegularUnitCode, polygonToShape } from '../lib/geometry';
 import { unitMatchesFilters, type UnitFilters } from '../lib/filters';
-import { STATUS_COLORS } from '../lib/status';
-import type { DevelopmentConfig, PenthousePlateUnit, PlateUnit, Unit, UnitStatus } from '../types';
-
-const EDGE_COLOR = '#33302a';
+import { FacadeMullions } from './FacadeMullions';
+import { Balconies } from './Balconies';
+import { Lobby } from './Lobby';
+import { Roof } from './Roof';
+import type { DevelopmentConfig, MaterialsConfig, PenthousePlateUnit, PlateUnit, Unit, UnitStatus } from '../types';
 
 const STATUSES: UnitStatus[] = ['available', 'reserved', 'sold'];
 
@@ -35,56 +36,63 @@ const INTERACTION_EMISSIVE: Record<InteractionState, number> = {
  * `transmission` obliga a three.js a redibujar el fondo en una textura por frame, lo
  * cual es caro en celulares de gama media con ~46 unidades semitransparentes en pantalla.
  * Con reflectividad + clearcoat + el HDRI del entorno alcanza un look de vidrio creíble
- * a una fracción del costo. El color base cambia por estado (verde/ámbar/gris); hover y
- * selección solo suben opacidad y emisivo, así que siguen leyéndose como vidrio.
- * Se construyen una sola vez (15 variantes fijas: 3 estados de negocio × 5 estados de
- * interacción) y se reutilizan por referencia.
+ * a una fracción del costo. Hover y selección solo suben opacidad y emisivo, así que
+ * siguen leyéndose como vidrio. `baseColor` es lo único que cambia entre el vidrio neutro
+ * del edificio real y el tinte por estado — todo lo demás (opacidad, reflectividad) es
+ * el mismo look de vidrio en los dos modos.
  */
-function buildUnitMaterials(): Record<UnitStatus, Record<InteractionState, THREE.MeshPhysicalMaterial>> {
-  const materials = {} as Record<UnitStatus, Record<InteractionState, THREE.MeshPhysicalMaterial>>;
-  for (const status of STATUSES) {
-    const byState = {} as Record<InteractionState, THREE.MeshPhysicalMaterial>;
-    for (const state of INTERACTION_STATES) {
-      byState[state] = new THREE.MeshPhysicalMaterial({
-        color: STATUS_COLORS[status],
-        emissive: STATUS_COLORS[status],
-        emissiveIntensity: INTERACTION_EMISSIVE[state],
-        transparent: true,
-        opacity: INTERACTION_OPACITY[state],
-        roughness: 0.1,
-        metalness: 0,
-        clearcoat: 0.4,
-        clearcoatRoughness: 0.15,
-        envMapIntensity: 1.15,
-        side: THREE.DoubleSide,
-      });
-    }
-    materials[status] = byState;
+function buildGlassVariants(baseColor: string, reflectivity: number): Record<InteractionState, THREE.MeshPhysicalMaterial> {
+  const variants = {} as Record<InteractionState, THREE.MeshPhysicalMaterial>;
+  for (const state of INTERACTION_STATES) {
+    variants[state] = new THREE.MeshPhysicalMaterial({
+      color: baseColor,
+      emissive: baseColor,
+      emissiveIntensity: INTERACTION_EMISSIVE[state],
+      transparent: true,
+      opacity: INTERACTION_OPACITY[state],
+      roughness: 0.1,
+      metalness: 0,
+      clearcoat: 0.4,
+      clearcoatRoughness: 0.15,
+      envMapIntensity: reflectivity,
+      side: THREE.DoubleSide,
+    });
   }
-  return materials;
+  return variants;
 }
 
-const unitMaterials = buildUnitMaterials();
+interface UnitMaterialSets {
+  /** Vidrio neutro del edificio real (default): el mismo material sin importar el estado. */
+  neutral: Record<InteractionState, THREE.MeshPhysicalMaterial>;
+  /** Tinte sutil por estado; solo se usa cuando el modo "ver disponibilidad" está activo. */
+  byStatus: Record<UnitStatus, Record<InteractionState, THREE.MeshPhysicalMaterial>>;
+}
 
-const groundMaterial = new THREE.MeshStandardMaterial({
-  color: '#bdb7a9',
-  roughness: 0.75,
-  metalness: 0.05,
-  side: THREE.DoubleSide,
-});
+/**
+ * Se construyen una sola vez por config (30 variantes: 5 de vidrio neutro + 3 estados × 5 de
+ * interacción) y se reutilizan por referencia — cambiar de modo solo elige cuál usar, nunca
+ * reconstruye materiales.
+ */
+function buildUnitMaterialSets(materials: MaterialsConfig): UnitMaterialSets {
+  const byStatus = {} as Record<UnitStatus, Record<InteractionState, THREE.MeshPhysicalMaterial>>;
+  for (const status of STATUSES) {
+    byStatus[status] = buildGlassVariants(materials.statusTint[status], materials.glassReflectivity);
+  }
+  return { neutral: buildGlassVariants(materials.glass, materials.glassReflectivity), byStatus };
+}
 
-const slabMaterial = new THREE.MeshStandardMaterial({
-  color: '#9a958c',
-  roughness: 0.85,
-  metalness: 0.05,
-});
+interface StructureMaterials {
+  slab: THREE.MeshStandardMaterial;
+  core: THREE.MeshStandardMaterial;
+}
 
-const coreMaterial = new THREE.MeshStandardMaterial({
-  color: '#6b6862',
-  roughness: 0.85,
-  metalness: 0.05,
-  side: THREE.DoubleSide,
-});
+/** Concreto de losas y núcleo: mismo color, cada malla con su propio material por si algún día necesitan variar aparte. */
+function buildStructureMaterials(concrete: string): StructureMaterials {
+  return {
+    slab: new THREE.MeshStandardMaterial({ color: concrete, roughness: 0.85, metalness: 0.05 }),
+    core: new THREE.MeshStandardMaterial({ color: concrete, roughness: 0.85, metalness: 0.05, side: THREE.DoubleSide }),
+  };
+}
 
 /** No son unidades vendibles: fuera del raycasting para no interferir con el picking. */
 const noRaycast = () => null;
@@ -118,22 +126,39 @@ interface TowerProps {
   onSelectUnit: (code: string | null) => void;
   /** SPEC §4.2: piso "enfocado" al llegar desde la vista de fachada (se ve como el hover de piso). */
   focusedFloor?: number | null;
+  /** Tinta las unidades por estado (verde/ámbar/gris); si es false se ve el edificio real. */
+  availabilityMode: boolean;
 }
 
 /**
  * Motor genérico: extruye la torre completa a partir de `config.geometry`, colorea
- * cada unidad según su estado en `units`, resalta piso/unidad al hover o tap, y
- * atenúa las que no coinciden con `filters`. No conoce nombres, colores de marca ni
- * datos de negocio propios del cliente: todo (geometría, unidades, filtros, selección)
- * llega por props.
+ * cada unidad según su estado en `units` solo cuando `availabilityMode` está activo (si no,
+ * se ve el edificio real con los materiales de `config.materials`), resalta piso/unidad al
+ * hover o tap, y atenúa las que no coinciden con `filters`. No conoce nombres, colores de
+ * marca ni datos de negocio propios del cliente: todo (geometría, materiales, unidades,
+ * filtros, selección) llega por props.
  */
-export function Tower({ config, units, filters, selectedUnitCode, onSelectUnit, focusedFloor = null }: TowerProps) {
+export function Tower({
+  config,
+  units,
+  filters,
+  selectedUnitCode,
+  onSelectUnit,
+  focusedFloor = null,
+  availabilityMode,
+}: TowerProps) {
   const { geometry } = config;
 
   const layout = useMemo(() => buildTowerLayout(geometry), [geometry]);
   const unitsByCode = useMemo(() => new Map(units.map((unit) => [unit.code, unit])), [units]);
 
   const [hovered, setHovered] = useState<HoverState | null>(null);
+
+  const { neutral: neutralMaterials, byStatus: statusMaterials } = useMemo(
+    () => buildUnitMaterialSets(config.materials),
+    [config.materials],
+  );
+  const structureMaterials = useMemo(() => buildStructureMaterials(config.materials.concrete), [config.materials.concrete]);
 
   const unitGeometries = useMemo(
     () => buildUnitGeometryMap(geometry.plate, geometry.floorHeight),
@@ -150,11 +175,6 @@ export function Tower({ config, units, filters, selectedUnitCode, onSelectUnit, 
     return new THREE.ExtrudeGeometry(shape, { depth: layout.totalHeight, bevelEnabled: false });
   }, [layout.core, layout.totalHeight]);
 
-  const groundGeometry = useMemo(() => {
-    const { minX, maxX, minZ, maxZ } = layout.footprint;
-    return new THREE.BoxGeometry(maxX - minX, geometry.groundFloorHeight, maxZ - minZ);
-  }, [layout.footprint, geometry.groundFloorHeight]);
-
   const slabGeometry = useMemo(() => {
     const { minX, maxX, minZ, maxZ } = layout.footprint;
     return new THREE.BoxGeometry(maxX - minX, layout.slabThickness, maxZ - minZ);
@@ -165,24 +185,24 @@ export function Tower({ config, units, filters, selectedUnitCode, onSelectUnit, 
 
   return (
     <group>
-      {/* Planta baja: lobby y amenidades, envolvente simple sin subdividir en unidades. */}
-      <mesh
-        geometry={groundGeometry}
-        material={groundMaterial}
-        position={[footprintCenterX, geometry.groundFloorHeight / 2, footprintCenterZ]}
-        raycast={noRaycast}
-      >
-        <Edges color={EDGE_COLOR} />
-      </mesh>
+      {/* Planta baja: lobby de doble altura (vidrio + columnas + marquesina en voladizo). */}
+      <Lobby
+        footprint={layout.footprint}
+        groundFloorHeight={geometry.groundFloorHeight}
+        profileColor={config.materials.profile}
+        lobby={config.lobby}
+      />
 
       {/* Núcleo: una sola extrusión de la base al techo. */}
       <mesh
         geometry={coreGeometry}
-        material={coreMaterial}
+        material={structureMaterials.core}
         rotation={[-Math.PI / 2, 0, 0]}
         raycast={noRaycast}
+        castShadow
+        receiveShadow
       >
-        <Edges color={EDGE_COLOR} />
+        <Edges color={config.materials.profile} />
       </mesh>
 
       {/* Departamentos por nivel (plate) y penthouses (penthousePlate) en el último nivel. */}
@@ -209,13 +229,18 @@ export function Tower({ config, units, filters, selectedUnitCode, onSelectUnit, 
                   ? 'floor'
                   : 'none';
 
+          const materialSet = availabilityMode ? statusMaterials[status] : neutralMaterials;
+
           return (
             <mesh
               key={`${level.index}-${geometryKey(unit)}`}
               geometry={unitGeometry}
-              material={unitMaterials[status][interactionState]}
+              material={materialSet[interactionState]}
               position={[0, level.y, 0]}
               rotation={[-Math.PI / 2, 0, 0]}
+              // Sin castShadow: son vidrio casi transparente, y una sombra opaca de su
+              // volumen completo se vería mal — sí reciben la sombra de la losa de arriba.
+              receiveShadow
               onPointerOver={(event: ThreeEvent<PointerEvent>) => {
                 event.stopPropagation();
                 setHovered({ floor: level.index, code });
@@ -231,7 +256,12 @@ export function Tower({ config, units, filters, selectedUnitCode, onSelectUnit, 
                 onSelectUnit(isSelected ? null : code);
               }}
             >
-              <Edges color={EDGE_COLOR} />
+              <Edges color={config.materials.profile} />
+              {/* Contorno de selección: independiente del material/modo, siempre visible.
+                  Sin `screenspace`: en ese modo `thickness` son metros de mundo, no
+                  píxeles, y con unidades de ~3m de piso un valor chico ya revienta el
+                  contorno. El modo default sí da grosor constante en píxeles de pantalla. */}
+              {isSelected && <Outlines thickness={3} color={config.brand.accent} transparent opacity={0.95} />}
             </mesh>
           );
         });
@@ -242,11 +272,17 @@ export function Tower({ config, units, filters, selectedUnitCode, onSelectUnit, 
         <mesh
           key={`slab-${y}`}
           geometry={slabGeometry}
-          material={slabMaterial}
+          material={structureMaterials.slab}
           position={[footprintCenterX, y, footprintCenterZ]}
           raycast={noRaycast}
+          castShadow
+          receiveShadow
         />
       ))}
+
+      <FacadeMullions geometry={geometry} layout={layout} carpentry={config.carpentry} />
+      <Balconies geometry={geometry} layout={layout} balcony={config.balcony} />
+      <Roof footprint={layout.footprint} roofY={layout.totalHeight} roof={config.roof} />
     </group>
   );
 }

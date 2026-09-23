@@ -33,6 +33,174 @@ export interface BrandConfig {
   background: string;
 }
 
+/** Tinte sutil por estado, solo visible en modo "ver disponibilidad" — no el color saturado de la leyenda. */
+export interface StatusTintConfig {
+  available: string;
+  reserved: string;
+  sold: string;
+}
+
+/**
+ * Materiales de la torre: nada de esto puede ser una constante dentro de `engine/` — el
+ * motor recibe estos colores por config para poder mostrar un edificio con la fachada real
+ * del cliente por default, y solo tintar por estado cuando se activa "ver disponibilidad".
+ */
+export interface MaterialsConfig {
+  /** Concreto de losas, muros y núcleo. */
+  concrete: string;
+  /** Vidrio neutro por default (fuera del modo disponibilidad). */
+  glass: string;
+  /** Intensidad del reflejo del vidrio (envMapIntensity aproximado). */
+  glassReflectivity: number;
+  /** Perfiles/marcos (Edges) de losas, núcleo y unidades. */
+  profile: string;
+  statusTint: StatusTintConfig;
+}
+
+/**
+ * Carpintería de fachada (canceles): perfiles verticales a lo largo del perímetro de
+ * vidrio de cada unidad, más un perfil horizontal arriba y abajo de cada nivel. Genérico
+ * (no hay medidas ni colores de cliente dentro de `engine/`): todo esto es config.
+ */
+export interface CarpentryConfig {
+  /** Separación objetivo entre perfiles verticales, en metros (p. ej. 1.35 → entre 1.2 y 1.5). */
+  spacing: number;
+  /** Ancho de la sección del perfil a lo largo de la fachada, en metros. */
+  thickness: number;
+  /** Cuánto sobresale el perfil más allá de la línea de vidrio, en metros — la profundidad
+   *  real que hace que proyecte sombra dura hacia el vidrio (no una tira plana al ras). */
+  depth: number;
+  color: string;
+}
+
+/**
+ * Balcones: se aplican en el perímetro de vidrio de cada unidad, en cada nivel (excepto
+ * planta baja, que no tiene unidades). Canto de losa + barandal de vidrio + pasamanos
+ * arriba, plafón de madera colgando abajo — todo proyectado `depth` metros más allá de la
+ * línea de vidrio.
+ */
+export interface BalconyConfig {
+  /** Cuánto proyecta el balcón más allá de la línea de vidrio, en metros. */
+  depth: number;
+  slabEdgeHeight: number;
+  slabEdgeColor: string;
+  railingHeight: number;
+  railingColor: string;
+  railingThickness: number;
+  handrailColor: string;
+  handrailHeight: number;
+  soffitColor: string;
+  soffitThickness: number;
+}
+
+/**
+ * Planta baja: lobby de doble altura con vidrio, columnas delgadas alrededor de la huella,
+ * y una marquesina en voladizo sobre la entrada (en el lado `marqueeSide` de la huella).
+ */
+export interface LobbyConfig {
+  glassColor: string;
+  glassReflectivity: number;
+  columnSpacing: number;
+  columnRadius: number;
+  columnColor: string;
+  /** Lado de la huella (bounding box) donde va la entrada/marquesina. */
+  marqueeSide: 'minX' | 'maxX' | 'minZ' | 'maxZ';
+  marqueeDepth: number;
+  marqueeThickness: number;
+  marqueeColor: string;
+  /** A qué altura sobre el piso queda la losa de la marquesina, en metros. */
+  marqueeElevation: number;
+}
+
+/**
+ * Azotea: pretil perimetral (para que no se vea "cortada"), pérgola de madera sobre parte
+ * de la losa de azotea, y un volumen pequeño de instalaciones.
+ */
+export interface RoofConfig {
+  parapetHeight: number;
+  parapetThickness: number;
+  parapetColor: string;
+  pergolaColor: string;
+  pergolaHeight: number;
+  pergolaBeamSpacing: number;
+  pergolaBeamThickness: number;
+  /** Fracción (0–1) de cada dimensión de la huella que cubre la pérgola, centrada. */
+  pergolaCoverage: number;
+  equipmentColor: string;
+  /** Ancho, alto y profundo del volumen de instalaciones, en metros. */
+  equipmentSize: [number, number, number];
+}
+
+/** Lado de la huella (bounding box) de la torre: hacia dónde da la calle o la marquesina. */
+export type FootprintSide = 'minX' | 'maxX' | 'minZ' | 'maxZ';
+
+/** Piso: asfalto con línea central, banquetas con guarnición, coches estacionados. */
+export interface StreetConfig {
+  side: FootprintSide;
+  /** Separación entre el pie de la torre y el arroyo, en metros. */
+  distanceFromTower: number;
+  width: number;
+  sidewalkWidth: number;
+  curbHeight: number;
+  asphaltColor: string;
+  lineColor: string;
+  sidewalkColor: string;
+  curbColor: string;
+  carSpacing: number;
+  /** Paleta discreta de colores de coche; se reparte determinísticamente por posición. */
+  carColors: string[];
+  carWidth: number;
+  carLength: number;
+  carHeight: number;
+}
+
+/** Árboles instanciados (tronco + copa) a lo largo de la banqueta. */
+export interface TreeConfig {
+  spacing: number;
+  /** Qué tan lejos del borde exterior de la banqueta, en metros. */
+  setback: number;
+  trunkColor: string;
+  trunkRadius: number;
+  trunkHeight: number;
+  canopyColor: string;
+  canopyRadius: number;
+}
+
+/**
+ * Edificios vecinos: antes eran cajas grises semitransparentes flotando. Ahora son masas
+ * opacas de 3-8 niveles con tono variado y una cuadrícula de ventanas por textura,
+ * repartidas de forma determinista (no aleatoria) en un anillo alrededor de la torre que
+ * evita el lado de la calle, a una distancia mínima garantizada.
+ */
+export interface NeighborBuildingsConfig {
+  count: number;
+  minLevels: number;
+  maxLevels: number;
+  levelHeight: number;
+  minWidth: number;
+  maxWidth: number;
+  /** Separación mínima entre el pie de la torre y la cara más cercana de cualquier vecino. */
+  minClearance: number;
+  /** Paleta de tonos de fachada; se reparte determinísticamente por índice de edificio. */
+  tones: string[];
+  windowColor: string;
+}
+
+export interface GroundConfig {
+  color: string;
+  noiseColor: string;
+  /** Múltiplo del span de la huella de la torre para el tamaño del plano de piso. */
+  sizeFactor: number;
+}
+
+/** Entorno urbano: todo procedural, todo parametrizado — nada de esto vive en `engine/`. */
+export interface ContextConfig {
+  ground: GroundConfig;
+  street: StreetConfig;
+  trees: TreeConfig;
+  neighborBuildings: NeighborBuildingsConfig;
+}
+
 export interface FacadeFloorConfig {
   floor: number;
   polygon: Point[];
@@ -118,6 +286,12 @@ export interface DevelopmentConfig {
   tagline: string;
   whatsapp: string;
   brand: BrandConfig;
+  materials: MaterialsConfig;
+  carpentry: CarpentryConfig;
+  balcony: BalconyConfig;
+  lobby: LobbyConfig;
+  roof: RoofConfig;
+  context: ContextConfig;
   geometry: TowerGeometryConfig;
   /** Ficha de negocio por tipo (A, B, C, D...), aplica a las unidades de `geometry.plate`. */
   unitTypes: Record<string, UnitTypeSpec>;

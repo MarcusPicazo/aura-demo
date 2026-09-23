@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { DoorSymbol, Point, TowerGeometryConfig, PlateUnit, Unit } from '../types';
+import type { DoorSymbol, FootprintSide, Point, TowerGeometryConfig, PlateUnit, Unit } from '../types';
 
 /**
  * Construye un THREE.Shape a partir de un polígono en coordenadas de planta [x, z].
@@ -207,45 +207,217 @@ export function pointsToSvgPath(points: Point[]): string {
     .join(' ');
 }
 
-export interface ContextBlock {
+export interface NeighborBuilding {
   x: number;
   z: number;
   width: number;
   depth: number;
   height: number;
+  levels: number;
+  /** Índice 0..(tones.length-1) para elegir tono de fachada en la paleta de config, determinista. */
+  toneIndex: number;
+}
+
+/** Ángulo (radianes, mismo sistema que `computePolygonEdges`) hacia el que da cada lado de la huella. */
+const SIDE_ANGLE: Record<'minX' | 'maxX' | 'minZ' | 'maxZ', number> = {
+  maxX: 0,
+  minZ: -Math.PI / 2,
+  minX: Math.PI,
+  maxZ: Math.PI / 2,
+};
+
+export interface NeighborBuildingsParams {
+  count: number;
+  minLevels: number;
+  maxLevels: number;
+  levelHeight: number;
+  minWidth: number;
+  maxWidth: number;
+  minClearance: number;
+  toneCount: number;
+  /** Lado de la huella donde está la calle: no se ponen vecinos ahí (banqueta/coches van en ese lado). */
+  streetSide: 'minX' | 'maxX' | 'minZ' | 'maxZ';
 }
 
 /**
- * Distribución fija (ángulo, distancia, tamaño y altura relativa) de los bloques de
- * contexto urbano alrededor de la torre. Son proporciones, no metros: se escalan con
- * el tamaño de la huella de cada torre, así que sirven para cualquier cliente.
+ * Distribución determinista (no aleatoria, para que el resultado sea estable entre renders)
+ * de edificios vecinos: un anillo alrededor de la huella de la torre, a una distancia mínima
+ * garantizada (`minClearance` medido desde el círculo que circunscribe la huella, así que
+ * nunca se encima con la torre sin importar su forma), evitando el arco que da a la calle.
+ * Alturas, anchos y tono varían por índice con aritmética modular, no `Math.random()`.
  */
-const CONTEXT_LAYOUT = [
-  { angle: 0.3, distance: 1.8, width: 0.5, depth: 0.4, heightFactor: 0.55 },
-  { angle: 1.1, distance: 2.1, width: 0.65, depth: 0.5, heightFactor: 0.35 },
-  { angle: 2.0, distance: 1.7, width: 0.4, depth: 0.45, heightFactor: 0.7 },
-  { angle: 2.8, distance: 2.3, width: 0.55, depth: 0.6, heightFactor: 0.45 },
-  { angle: 3.6, distance: 1.9, width: 0.5, depth: 0.5, heightFactor: 0.6 },
-  { angle: 4.4, distance: 2.2, width: 0.45, depth: 0.55, heightFactor: 0.3 },
-  { angle: 5.2, distance: 1.85, width: 0.6, depth: 0.4, heightFactor: 0.5 },
-  { angle: 6.0, distance: 2.0, width: 0.5, depth: 0.5, heightFactor: 0.4 },
-] as const;
-
-/**
- * Bloques de contexto urbano (edificios vecinos) alrededor de la huella de la torre.
- * Distribución determinista (no aleatoria) derivada solo de la huella y la altura total,
- * para que el resultado sea estable entre renders y genérico para cualquier cliente.
- */
-export function buildContextBlocks(footprint: PolygonBounds, towerHeight: number): ContextBlock[] {
+export function buildNeighborBuildings(footprint: PolygonBounds, params: NeighborBuildingsParams): NeighborBuilding[] {
   const centerX = (footprint.minX + footprint.maxX) / 2;
   const centerZ = (footprint.minZ + footprint.maxZ) / 2;
-  const span = Math.max(footprint.maxX - footprint.minX, footprint.maxZ - footprint.minZ);
+  const circumRadius = Math.hypot(footprint.maxX - centerX, footprint.maxZ - centerZ);
+  const baseRadius = circumRadius + params.minClearance;
 
-  return CONTEXT_LAYOUT.map(({ angle, distance, width, depth, heightFactor }) => ({
-    x: centerX + Math.cos(angle) * span * distance,
-    z: centerZ + Math.sin(angle) * span * distance,
-    width: span * width,
-    depth: span * depth,
-    height: Math.max(towerHeight * heightFactor, 6),
-  }));
+  const streetAngle = SIDE_ANGLE[params.streetSide];
+  const excludeHalfWidth = Math.PI / 4;
+  const arcStart = streetAngle + excludeHalfWidth;
+  const arcSpan = Math.PI * 2 - excludeHalfWidth * 2;
+
+  const levelRange = params.maxLevels - params.minLevels + 1;
+  const widthRange = Math.max(1, Math.round(params.maxWidth - params.minWidth));
+
+  const buildings: NeighborBuilding[] = [];
+  for (let index = 0; index < params.count; index += 1) {
+    const angle = arcStart + (arcSpan * (index + 0.5)) / params.count;
+    const levels = params.minLevels + ((index * 5) % levelRange);
+    const width = params.minWidth + ((index * 7) % widthRange);
+    const depth = params.minWidth + (((index + 3) * 11) % widthRange);
+    // Variación chica y determinista de profundidad radial, para que no queden en un anillo perfecto.
+    const radius = baseRadius + (index % 3) * (params.minClearance / 3) + Math.max(width, depth) / 2;
+
+    buildings.push({
+      x: centerX + Math.cos(angle) * radius,
+      z: centerZ + Math.sin(angle) * radius,
+      width,
+      depth,
+      height: levels * params.levelHeight,
+      levels,
+      toneIndex: index % Math.max(1, params.toneCount),
+    });
+  }
+  return buildings;
+}
+
+/**
+ * Puntos a lo largo del perímetro de un polígono, espaciados como máximo `maxSpacing`
+ * (cada arista se subdivide en el número entero de tramos que lo garantiza). Se usa para
+ * los perfiles verticales de la carpintería de fachada: un punto por vértice y por cada
+ * subdivisión intermedia, sin duplicar esquinas.
+ */
+export function computeMullionPoints(polygon: Point[], maxSpacing: number): Point[] {
+  const points: Point[] = [];
+  for (let index = 0; index < polygon.length; index += 1) {
+    const [x1, z1] = polygon[index];
+    const [x2, z2] = polygon[(index + 1) % polygon.length];
+    const dx = x2 - x1;
+    const dz = z2 - z1;
+    const length = Math.hypot(dx, dz);
+    if (length < 1e-6) continue;
+
+    const segments = Math.max(1, Math.ceil(length / maxSpacing));
+    for (let segment = 0; segment < segments; segment += 1) {
+      const t = segment / segments;
+      points.push([x1 + dx * t, z1 + dz * t]);
+    }
+  }
+  return points;
+}
+
+export interface MullionPoint {
+  position: Point;
+  /** Normal unitaria hacia afuera del polígono en ese punto (constante a lo largo de cada arista). */
+  outward: Point;
+}
+
+/**
+ * Igual que `computeMullionPoints`, pero además regresa la normal hacia afuera de cada
+ * punto — para desplazar un perfil vertical más allá de la línea de vidrio y que tenga
+ * profundidad real (en vez de quedar centrado y al ras).
+ */
+export function computeMullionPointsWithNormal(polygon: Point[], maxSpacing: number): MullionPoint[] {
+  const [centroidX, centroidZ] = polygonCentroid(polygon);
+  const points: MullionPoint[] = [];
+  for (let index = 0; index < polygon.length; index += 1) {
+    const [x1, z1] = polygon[index];
+    const [x2, z2] = polygon[(index + 1) % polygon.length];
+    const dx = x2 - x1;
+    const dz = z2 - z1;
+    const length = Math.hypot(dx, dz);
+    if (length < 1e-6) continue;
+
+    const midX = (x1 + x2) / 2;
+    const midZ = (z1 + z2) / 2;
+    let outwardX = -dz / length;
+    let outwardZ = dx / length;
+    if (outwardX * (midX - centroidX) + outwardZ * (midZ - centroidZ) < 0) {
+      outwardX = -outwardX;
+      outwardZ = -outwardZ;
+    }
+
+    const segments = Math.max(1, Math.ceil(length / maxSpacing));
+    for (let segment = 0; segment < segments; segment += 1) {
+      const t = segment / segments;
+      points.push({ position: [x1 + dx * t, z1 + dz * t], outward: [outwardX, outwardZ] });
+    }
+  }
+  return points;
+}
+
+export interface PolygonEdge {
+  midpoint: Point;
+  length: number;
+  /** Rotación en Y (radianes) que alinea el eje +X local de una caja con esta arista. */
+  rotationY: number;
+  /** Normal unitaria hacia afuera del polígono (se aleja del centroide), en el plano (x,z). */
+  outward: Point;
+}
+
+/**
+ * Cada arista de un polígono (punto medio, largo, rotación y normal hacia afuera), para
+ * los perfiles horizontales de la carpintería y para proyectar balcones/cantos de losa
+ * más allá de la línea de vidrio.
+ */
+export function computePolygonEdges(polygon: Point[]): PolygonEdge[] {
+  const [centroidX, centroidZ] = polygonCentroid(polygon);
+  const edges: PolygonEdge[] = [];
+  for (let index = 0; index < polygon.length; index += 1) {
+    const [x1, z1] = polygon[index];
+    const [x2, z2] = polygon[(index + 1) % polygon.length];
+    const dx = x2 - x1;
+    const dz = z2 - z1;
+    const length = Math.hypot(dx, dz);
+    if (length < 1e-6) continue;
+
+    const midX = (x1 + x2) / 2;
+    const midZ = (z1 + z2) / 2;
+    // Perpendicular a la arista; se elige el sentido que se aleja del centroide.
+    let outwardX = -dz / length;
+    let outwardZ = dx / length;
+    if (outwardX * (midX - centroidX) + outwardZ * (midZ - centroidZ) < 0) {
+      outwardX = -outwardX;
+      outwardZ = -outwardZ;
+    }
+
+    edges.push({
+      midpoint: [midX, midZ],
+      length,
+      rotationY: Math.atan2(-dz, dx),
+      outward: [outwardX, outwardZ],
+    });
+  }
+  return edges;
+}
+
+export interface SideAxis {
+  /** `u` = a lo largo del lado elegido (centrado en la huella); `v` = distancia hacia afuera desde ese lado. */
+  toWorld: (u: number, v: number) => Point;
+  /** Rotación en Y que alinea el eje +X local (largo unitario) con la dirección de `u`. */
+  rotationY: number;
+}
+
+/**
+ * Sistema de coordenadas (u = a lo largo del lado, v = hacia afuera) para un lado de la
+ * huella (bounding box) de la torre, útil para acomodar cualquier cosa "pegada a un lado"
+ * (calle, banqueta, marquesina) sin repetir la trigonometría en cada componente.
+ */
+export function sideAxisFrom(footprint: PolygonBounds, side: FootprintSide): SideAxis {
+  const centerX = (footprint.minX + footprint.maxX) / 2;
+  const centerZ = (footprint.minZ + footprint.maxZ) / 2;
+  const outwardIsX = side === 'minX' || side === 'maxX';
+  const sign = side === 'minX' || side === 'minZ' ? -1 : 1;
+  const edge = outwardIsX ? (sign === -1 ? footprint.minX : footprint.maxX) : (sign === -1 ? footprint.minZ : footprint.maxZ);
+  const uCenter = outwardIsX ? centerZ : centerX;
+
+  return {
+    rotationY: outwardIsX ? Math.PI / 2 : 0,
+    toWorld: (u, v) => {
+      const along = uCenter + u;
+      const outward = edge + sign * v;
+      return outwardIsX ? [outward, along] : [along, outward];
+    },
+  };
 }
