@@ -47,6 +47,9 @@ export default function AdminPage() {
             <NavLink to="/admin/facade" className={navLinkClass}>
               Fachada
             </NavLink>
+            <NavLink to="/admin/leads" className={navLinkClass}>
+              Leads
+            </NavLink>
           </nav>
         </div>
         <button type="button" onClick={() => supabaseAdmin.auth.signOut()} className="text-sm text-neutral-500 underline">

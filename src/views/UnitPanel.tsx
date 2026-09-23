@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useState, type FormEvent } from 'react';
 import { FloorPlanDetailed } from './FloorPlanDetailed';
 import { InteriorGallery } from './InteriorGallery';
@@ -39,6 +40,7 @@ export function UnitPanel({
 }: UnitPanelProps) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [consentAccepted, setConsentAccepted] = useState(false);
   const [leadStatus, setLeadStatus] = useState<LeadFormStatus>('idle');
 
   function handleInterest() {
@@ -47,16 +49,24 @@ export function UnitPanel({
     const message = buildInterestMessage(unit, developmentName);
     window.open(buildWhatsappLink(whatsappPhone, message), '_blank', 'noopener,noreferrer');
 
-    createLead({ developmentId, unitId: unit.id }).catch((error: unknown) => {
+    createLead({ developmentId, unitId: unit.id, origin: 'whatsapp' }).catch((error: unknown) => {
       console.error('No se pudo guardar el lead de "Me interesa":', error);
     });
   }
 
   async function handleLeadSubmit(event: FormEvent) {
     event.preventDefault();
+    if (!consentAccepted) return;
     setLeadStatus('submitting');
     try {
-      await createLead({ developmentId, unitId: unit.id, name, phone });
+      await createLead({
+        developmentId,
+        unitId: unit.id,
+        name,
+        phone,
+        origin: 'form',
+        consentAt: new Date().toISOString(),
+      });
       setLeadStatus('success');
     } catch (error) {
       console.error('No se pudo guardar el lead del formulario:', error);
@@ -130,9 +140,25 @@ export function UnitPanel({
             onChange={(event) => setPhone(event.target.value)}
             className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
           />
+          <label className="flex items-start gap-2 text-xs text-neutral-600">
+            <input
+              type="checkbox"
+              required
+              checked={consentAccepted}
+              onChange={(event) => setConsentAccepted(event.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              Acepto el tratamiento de mis datos personales conforme al{' '}
+              <Link to="/aviso-de-privacidad" target="_blank" rel="noreferrer" className="underline">
+                aviso de privacidad
+              </Link>
+              .
+            </span>
+          </label>
           <button
             type="submit"
-            disabled={leadStatus === 'submitting'}
+            disabled={leadStatus === 'submitting' || !consentAccepted}
             className="w-full rounded-full border border-neutral-900 py-2 text-sm font-medium text-neutral-900 disabled:opacity-50"
           >
             {leadStatus === 'submitting' ? 'Enviando…' : 'Dejar mis datos'}

@@ -1,7 +1,7 @@
 import { PostgrestClient } from '@supabase/postgrest-js';
 import { RealtimeClient } from '@supabase/realtime-js';
 import { supabaseAnonKey, supabaseUrl } from './env';
-import type { Unit, UnitStatus } from '../types';
+import type { LeadOrigin, Unit, UnitStatus } from '../types';
 
 /**
  * Cliente ligero para el selector público: solo Postgrest + Realtime, sin Auth/Storage/
@@ -61,6 +61,10 @@ interface CreateLeadInput {
   unitId: string;
   name?: string | null;
   phone?: string | null;
+  origin: LeadOrigin;
+  /** ISO 8601; solo el formulario de contacto lo manda (su casilla de consentimiento es
+   *  obligatoria) — "Me interesa" no recolecta datos personales, así que no aplica. */
+  consentAt?: string;
 }
 
 /** SPEC §2/§4.1: el lead se guarda al presionar "Me interesa", o desde el formulario opcional. */
@@ -70,6 +74,8 @@ export async function createLead(input: CreateLeadInput): Promise<void> {
     unit_id: input.unitId,
     name: input.name || null,
     phone: input.phone || null,
+    origin: input.origin,
+    consent_at: input.consentAt ?? null,
   });
 
   if (error) throw error;

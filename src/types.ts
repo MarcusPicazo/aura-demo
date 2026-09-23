@@ -359,6 +359,15 @@ export interface DevelopmentConfig {
   camera: CameraConfig;
   facade: FacadeConfig;
   project: ProjectInfoConfig;
+  legal: LegalConfig;
+}
+
+/** Datos del responsable para el aviso de privacidad (LFPDPPP) — de la config del
+ *  cliente, nunca fijos en el texto de la página. */
+export interface LegalConfig {
+  privacyResponsibleParty: string;
+  privacyAddress: string;
+  privacyContactEmail: string;
 }
 
 export type UnitStatus = 'available' | 'reserved' | 'sold';
@@ -375,4 +384,19 @@ export interface Unit {
   price: number;
   orientation: string;
   status: UnitStatus;
+}
+
+/** De dónde vino el lead: clic directo en "Me interesa" (WhatsApp) o el formulario
+ *  opcional de nombre/teléfono, que exige la casilla de consentimiento. */
+export type LeadOrigin = 'whatsapp' | 'form';
+
+/** Lead tal como lo lee el admin, con el código de unidad ya resuelto (join a `units`). */
+export interface Lead {
+  id: string;
+  createdAt: string;
+  unitCode: string | null;
+  name: string | null;
+  phone: string | null;
+  origin: LeadOrigin;
+  consentAt: string | null;
 }
