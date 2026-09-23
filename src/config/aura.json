@@ -34,7 +34,10 @@
     "marqueeDepth": 3.0,
     "marqueeThickness": 0.3,
     "marqueeColor": "#EDEAE2",
-    "marqueeElevation": 3.5
+    "marqueeElevation": 3.5,
+    "mullionSpacing": 2.25,
+    "mullionThickness": 0.08,
+    "mullionDepth": 0.12
   },
   "roof": {
     "parapetHeight": 1.1,

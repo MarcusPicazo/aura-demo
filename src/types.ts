@@ -110,6 +110,12 @@ export interface LobbyConfig {
   marqueeColor: string;
   /** A qué altura sobre el piso queda la losa de la marquesina, en metros. */
   marqueeElevation: number;
+  /** Separación objetivo entre montantes verticales del vidrio del lobby, en metros —
+   *  escala de vitrina/storefront, más abierta que `carpentry.spacing` de los niveles de arriba. */
+  mullionSpacing: number;
+  mullionThickness: number;
+  /** Cuánto sobresale el montante más allá de la línea de vidrio, en metros. */
+  mullionDepth: number;
 }
 
 /**
