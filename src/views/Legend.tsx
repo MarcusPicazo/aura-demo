@@ -13,7 +13,7 @@ export function Legend({ units, loadError }: LegendProps) {
   const availableCount = units.filter((unit) => unit.status === 'available').length;
 
   return (
-    <div className="pointer-events-auto rounded-xl bg-white/95 p-3 text-sm shadow-lg backdrop-blur">
+    <div className="pointer-events-auto rounded-xl bg-[var(--brand-background)]/95 p-3 text-sm shadow-lg backdrop-blur">
       <ul className="space-y-1">
         {LEGEND_STATUSES.map((status) => (
           <li key={status} className="flex items-center gap-2 text-neutral-700">

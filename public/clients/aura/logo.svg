@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 40" width="172" height="40" role="img" aria-label="Torre Aura Del Valle">
+  <g fill="none" stroke="#C8A27A" stroke-width="1.6">
+    <path d="M6 32V14L18 4L30 14V32" />
+    <path d="M12 32V20H24V32" />
+    <line x1="18" y1="4" x2="18" y2="32" stroke-width="1" />
+  </g>
+  <text x="42" y="26" font-family="Georgia, 'Times New Roman', serif" font-size="20" letter-spacing="2" fill="#2B2B2B">AURA</text>
+</svg>

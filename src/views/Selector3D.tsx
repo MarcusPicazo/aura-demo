@@ -11,6 +11,7 @@ import { UnitPanel } from './UnitPanel';
 import { Filters } from './Filters';
 import { Legend } from './Legend';
 import { AvailabilityToggle } from './AvailabilityToggle';
+import { LoadingScreen } from './LoadingScreen';
 import type { AuraOutletContext } from './AuraLayout';
 import { buildTowerLayout, findUnitPolygon, floorPlanKey } from '../lib/geometry';
 import { hasActiveFilters } from '../lib/filters';
@@ -222,6 +223,8 @@ export function Selector3D() {
           onClose={() => handleSelectUnit(null)}
         />
       )}
+
+      <LoadingScreen visible={!introDone} logo={brand.logo} name={developmentName} tagline={auraConfig.tagline} />
     </div>
   );
 }

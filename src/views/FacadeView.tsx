@@ -66,7 +66,11 @@ export function FacadeView() {
                     <polygon
                       points={floorConfig.polygon.map(([x, y]) => `${x},${y}`).join(' ')}
                       onClick={() => setActiveFloor(isActive ? null : floorConfig.floor)}
-                      className={`cursor-pointer ${isActive ? 'fill-white/35 stroke-white' : 'fill-white/0 stroke-white/50 hover:fill-white/15'}`}
+                      className={`cursor-pointer ${
+                        isActive
+                          ? 'fill-[var(--brand-accent)]/35 stroke-[var(--brand-accent)]'
+                          : 'fill-white/0 stroke-white/50 hover:fill-white/15'
+                      }`}
                       strokeWidth={0.0025}
                     />
                     <text
@@ -118,7 +122,7 @@ export function FacadeView() {
             <button
               type="button"
               onClick={() => handleViewInTower(activeFloor)}
-              className="mt-3 w-full rounded-full bg-neutral-900 py-2 text-sm font-medium text-white"
+              className="mt-3 w-full rounded-full bg-[var(--brand-primary)] py-2 text-sm font-medium text-white"
             >
               Ver piso en la torre 3D
             </button>

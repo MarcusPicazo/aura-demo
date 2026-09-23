@@ -43,7 +43,7 @@ export function PaymentSchedule({ price, plan }: PaymentScheduleProps) {
           max={plan.maxDownPaymentPercent}
           value={downPaymentPercent}
           onChange={(event) => setDownPaymentPercent(Number(event.target.value))}
-          className="mt-1.5 w-full accent-neutral-900"
+          className="mt-1.5 w-full accent-[var(--brand-accent)]"
         />
       </div>
 

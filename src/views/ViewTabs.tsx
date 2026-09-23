@@ -10,12 +10,12 @@ export function ViewTabs() {
 
   function tabClass(active: boolean): string {
     return `rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-      active ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:bg-neutral-100'
+      active ? 'bg-[var(--brand-primary)] text-white' : 'text-neutral-600 hover:bg-neutral-100'
     }`;
   }
 
   return (
-    <nav className="fixed left-1/2 top-4 z-20 flex -translate-x-1/2 gap-1 rounded-full bg-white/95 p-1 shadow-lg backdrop-blur">
+    <nav className="fixed left-1/2 top-4 z-20 flex -translate-x-1/2 gap-1 rounded-full bg-[var(--brand-background)]/95 p-1 shadow-lg backdrop-blur">
       <Link to="/aura" className={tabClass(isTower)}>
         Torre 3D
       </Link>

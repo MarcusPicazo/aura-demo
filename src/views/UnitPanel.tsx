@@ -75,7 +75,7 @@ export function UnitPanel({
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-20 max-h-[75dvh] overflow-y-auto rounded-t-2xl bg-white p-5 shadow-2xl sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-96 sm:rounded-2xl">
+    <div className="fixed inset-x-0 bottom-0 z-20 max-h-[75dvh] overflow-y-auto rounded-t-2xl border-t-4 border-[var(--brand-accent)] bg-white p-5 shadow-2xl sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-96 sm:rounded-2xl sm:border-t-0 sm:border-l-4">
       <button
         type="button"
         onClick={onClose}
@@ -146,7 +146,7 @@ export function UnitPanel({
               required
               checked={consentAccepted}
               onChange={(event) => setConsentAccepted(event.target.checked)}
-              className="mt-0.5"
+              className="mt-0.5 accent-[var(--brand-primary)]"
             />
             <span>
               Acepto el tratamiento de mis datos personales conforme al{' '}
@@ -159,7 +159,7 @@ export function UnitPanel({
           <button
             type="submit"
             disabled={leadStatus === 'submitting' || !consentAccepted}
-            className="w-full rounded-full border border-neutral-900 py-2 text-sm font-medium text-neutral-900 disabled:opacity-50"
+            className="w-full rounded-full border border-[var(--brand-primary)] py-2 text-sm font-medium text-[var(--brand-primary)] disabled:opacity-50"
           >
             {leadStatus === 'submitting' ? 'Enviando…' : 'Dejar mis datos'}
           </button>

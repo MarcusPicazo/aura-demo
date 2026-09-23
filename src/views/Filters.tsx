@@ -33,7 +33,9 @@ export function Filters({ units }: FiltersProps) {
   }
 
   return (
-    <div className={`pointer-events-auto ml-auto rounded-xl bg-white/95 p-3 text-sm shadow-lg backdrop-blur ${expanded ? 'w-60' : ''}`}>
+    <div
+      className={`pointer-events-auto ml-auto rounded-xl bg-[var(--brand-background)]/95 p-3 text-sm shadow-lg backdrop-blur ${expanded ? 'w-60' : ''}`}
+    >
       <button
         type="button"
         onClick={() => setExpanded((value) => !value)}
@@ -52,7 +54,9 @@ export function Filters({ units }: FiltersProps) {
                 type="button"
                 onClick={() => setBedrooms(null)}
                 className={`rounded-full border px-2 py-1 text-xs ${
-                  bedrooms === null ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300 text-neutral-700'
+                  bedrooms === null
+                    ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white'
+                    : 'border-neutral-300 text-neutral-700'
                 }`}
               >
                 Todas
@@ -63,7 +67,9 @@ export function Filters({ units }: FiltersProps) {
                   type="button"
                   onClick={() => setBedrooms(bedrooms === count ? null : count)}
                   className={`rounded-full border px-2 py-1 text-xs ${
-                    bedrooms === count ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300 text-neutral-700'
+                    bedrooms === count
+                      ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white'
+                      : 'border-neutral-300 text-neutral-700'
                   }`}
                 >
                   {count}
@@ -99,7 +105,7 @@ export function Filters({ units }: FiltersProps) {
               type="checkbox"
               checked={onlyAvailable}
               onChange={(event) => setOnlyAvailable(event.target.checked)}
-              className="h-4 w-4 rounded border-neutral-300"
+              className="h-4 w-4 rounded border-neutral-300 accent-[var(--brand-primary)]"
             />
             Solo disponibles
           </label>

@@ -31,6 +31,8 @@ export interface BrandConfig {
   primary: string;
   accent: string;
   background: string;
+  /** Ruta del logo del desarrollo, en `public/clients/<slug>/`. */
+  logo: string;
 }
 
 /** Tinte sutil por estado, solo visible en modo "ver disponibilidad" — no el color saturado de la leyenda. */

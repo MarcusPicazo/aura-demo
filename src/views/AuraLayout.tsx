@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { Outlet } from 'react-router-dom';
 import { fetchDevelopmentUnits, subscribeToUnitChanges } from '../lib/supabase';
 import { ViewTabs } from './ViewTabs';
+import { Logo } from './Logo';
 import auraConfigJson from '../config/aura.json';
 import type { DevelopmentConfig, Unit } from '../types';
 
@@ -66,8 +67,24 @@ export function AuraLayout() {
 
   const context: AuraOutletContext = { units, developmentId, loadError };
 
+  // SPEC §3: paleta del cliente aplicada a botones, paneles y acentos. Se define una sola
+  // vez aquí, como variables CSS heredadas por todo el árbol del selector (Torre 3D,
+  // Fachada, Proyecto, ficha de unidad...) — así ningún componente hijo hardcodea un color
+  // de marca, solo referencia `var(--brand-*)`.
+  const brandStyle = {
+    '--brand-primary': auraConfig.brand.primary,
+    '--brand-accent': auraConfig.brand.accent,
+    '--brand-background': auraConfig.brand.background,
+  } as CSSProperties;
+
   return (
-    <div className="relative h-dvh w-screen">
+    <div className="relative h-dvh w-screen" style={brandStyle}>
+      {/* En móvil, ViewTabs (centrado, tres pestañas) casi no deja hueco a la izquierda —
+          se recorta a solo el ícono (ancho fijo + overflow-hidden) para que no se encimen;
+          desde `sm:` hay espacio de sobra para el logo completo. */}
+      <div className="fixed left-4 top-4 z-20 h-8 w-8 overflow-hidden drop-shadow-sm sm:h-9 sm:w-auto sm:overflow-visible">
+        <Logo src={auraConfig.brand.logo} name={auraConfig.name} className="h-full w-auto" />
+      </div>
       <ViewTabs />
       <Outlet context={context} />
 

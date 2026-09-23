@@ -3,7 +3,7 @@
   "name": "Torre Aura Del Valle",
   "tagline": "Vivir en la luz de Del Valle",
   "whatsapp": "5215500000000",
-  "brand": { "primary": "#2B2B2B", "accent": "#C8A27A", "background": "#F4EFE8" },
+  "brand": { "primary": "#2B2B2B", "accent": "#C8A27A", "background": "#F4EFE8", "logo": "/clients/aura/logo.svg" },
   "legal": {
     "privacyResponsibleParty": "Desarrolladora Aura del Valle, S.A. de C.V. (nombre ilustrativo)",
     "privacyAddress": "Insurgentes Sur 1234, Col. Del Valle Centro, Benito Juárez, CDMX, C.P. 03100 (dirección ilustrativa)",
