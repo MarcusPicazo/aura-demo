@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type SVGProps } from 'react';
 import { AmenityIcon } from './AmenityIcons';
 import { useEscapeKey } from '../lib/useEscapeKey';
 import { usePresence } from '../lib/usePresence';
@@ -14,6 +14,15 @@ const MAP_BBOX_DELTA = 0.008;
 function buildOsmEmbedUrl(lat: number, lng: number): string {
   const bbox = [lng - MAP_BBOX_DELTA, lat - MAP_BBOX_DELTA, lng + MAP_BBOX_DELTA, lat + MAP_BBOX_DELTA].join('%2C');
   return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lng}`;
+}
+
+function RecenterIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+    </svg>
+  );
 }
 
 interface AmenityLightboxProps {
@@ -115,6 +124,8 @@ export function ProjectView() {
   const { rendered: presentIndex, visible: lightboxVisible } = usePresence(openIndex, 300);
   const presentAmenity = presentIndex !== null ? amenitiesWithImage[presentIndex] : null;
 
+  const [mapResetToken, setMapResetToken] = useState(0);
+
   return (
     <div className="h-dvh w-screen overflow-y-auto bg-neutral-50 pt-20 pb-8">
       <div className="animate-panel-enter mx-auto w-full max-w-2xl px-4">
@@ -128,7 +139,12 @@ export function ProjectView() {
               <p className="text-sm font-medium text-neutral-500">Amenidades</p>
               <p className="text-xs text-neutral-400">Imágenes conceptuales ilustrativas</p>
             </div>
-            <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {/* `flex flex-wrap justify-center` en vez de `grid`: con un número de amenidades
+                que no es múltiplo exacto de columnas, un grid deja la última fila incompleta
+                pegada a la izquierda (se siente desbalanceada) — flex-wrap centra esa última
+                fila sola. El ancho de cada tarjeta replica a mano el ancho que tendría en un
+                grid de 2/3 columnas con el mismo gap, así se ve idéntico cuando sí completa. */}
+            <div className="mt-2 flex flex-wrap justify-center gap-3">
               {amenities.map((amenity) => {
                 const imageIndex = amenitiesWithImage.indexOf(amenity);
                 const openable = imageIndex !== -1;
@@ -138,7 +154,7 @@ export function ProjectView() {
                     type="button"
                     disabled={!openable}
                     onClick={() => setOpenIndex(imageIndex)}
-                    className={`overflow-hidden rounded-xl bg-white text-left shadow-sm ${openable ? 'cursor-pointer hover:shadow-md' : 'cursor-default'}`}
+                    className={`w-[calc(50%-0.375rem)] overflow-hidden rounded-xl bg-white text-left shadow-sm sm:w-[calc(33.333%-0.5rem)] ${openable ? 'cursor-pointer hover:shadow-md' : 'cursor-default'}`}
                   >
                     {amenity.image && (
                       <img
@@ -161,13 +177,26 @@ export function ProjectView() {
 
         <div className="mt-6">
           <p className="text-sm font-medium text-neutral-500">Ubicación</p>
-          <div className="mt-2 overflow-hidden rounded-xl bg-white shadow-sm">
+          <div className="relative mt-2 overflow-hidden rounded-xl bg-white shadow-sm">
+            {/* El embed de OpenStreetMap deja arrastrar y hacer zoom adentro del iframe —
+                si el usuario se aleja del pin no hay forma de volver salvo recargarlo. `key`
+                fuerza un remount (el iframe vuelve a pedir la misma URL desde cero, de
+                regreso al recorte centrado en el pin) cada vez que se toca el botón. */}
             <iframe
+              key={mapResetToken}
               title={`Ubicación de ${name}`}
               src={buildOsmEmbedUrl(location.lat, location.lng)}
               loading="lazy"
               className="h-64 w-full border-0 sm:h-80"
             />
+            <button
+              type="button"
+              onClick={() => setMapResetToken((token) => token + 1)}
+              aria-label="Volver a centrar el mapa en la ubicación"
+              className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-neutral-700 shadow-md hover:text-neutral-900"
+            >
+              <RecenterIcon className="h-4 w-4" />
+            </button>
           </div>
           <p className="mt-2 text-xs text-neutral-500">{location.address}</p>
         </div>

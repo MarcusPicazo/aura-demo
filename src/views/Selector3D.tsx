@@ -159,7 +159,10 @@ export function Selector3D() {
   ];
 
   return (
-    <div className="relative h-dvh w-screen bg-neutral-900">
+    // `select-none`: arrastrar para orbitar la torre (escritorio) podía iniciar una
+    // selección de texto nativa del navegador si el gesto pasaba cerca de la leyenda o
+    // los filtros — el cursor terminaba subrayando letras en vez de solo girar la cámara.
+    <div className="relative h-dvh w-screen select-none bg-neutral-900">
       <Canvas
         // `frameloop="demand"` ya evita recalcular el shadow map en frames de más: el
         // shadow map de three.js se recalcula en cada render (autoUpdate por default),

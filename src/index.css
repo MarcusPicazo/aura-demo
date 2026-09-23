@@ -50,3 +50,26 @@ button:not(:disabled) {
     animation: none;
   }
 }
+
+/* Barra de la pantalla de carga (LoadingScreen): indeterminada porque no medimos progreso
+   real de carga de assets, solo mostramos algo elegante mientras corre la animación de
+   entrada de cámara (duración fija). Una franja recorre la pista de ida, en loop. */
+@keyframes loading-bar {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(350%);
+  }
+}
+
+.animate-loading-bar {
+  animation: loading-bar 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-loading-bar {
+    animation: none;
+    transform: translateX(40%);
+  }
+}

@@ -15,7 +15,7 @@ export function AvailabilityToggle() {
       type="button"
       onClick={toggleShowAvailability}
       aria-pressed={showAvailability}
-      className={`pointer-events-auto rounded-xl px-3 py-2 text-sm font-medium shadow-lg backdrop-blur ${
+      className={`pointer-events-auto rounded-xl px-2.5 py-1.5 text-xs font-medium shadow-lg backdrop-blur sm:px-3 sm:py-2 sm:text-sm ${
         showAvailability ? 'bg-[var(--brand-primary)] text-white' : 'bg-[var(--brand-background)]/95 text-neutral-900'
       }`}
     >

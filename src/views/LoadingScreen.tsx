@@ -22,6 +22,14 @@ export function LoadingScreen({ visible, logo, name, tagline }: LoadingScreenPro
       <Logo src={logo} name={name} className="h-9 w-auto" />
       <p className="font-serif text-lg text-[var(--brand-primary)]">{name}</p>
       <p className="text-sm italic text-neutral-500">{tagline}</p>
+
+      {/* Indicador de carga: no medimos progreso real (la pantalla dura lo que tarda la
+          animación de entrada de cámara, un tiempo fijo), así que es indeterminado —
+          delgado y en el acento de marca, para que se sienta parte del sitio y no un
+          spinner genérico de navegador. */}
+      <div className="mt-2 h-[3px] w-40 overflow-hidden rounded-full bg-[var(--brand-primary)]/15">
+        <div className="animate-loading-bar h-full w-1/3 rounded-full bg-[var(--brand-accent)]" />
+      </div>
     </div>
   );
 }
