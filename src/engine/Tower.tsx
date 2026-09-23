@@ -60,23 +60,57 @@ const INTERACTION_EMISSIVE: Record<InteractionState, number> = {
  * (three.js ordena la transparencia de atrás hacia adelante), pero deja de competir por el
  * mismo píxel del depth buffer con lo que tiene inmediatamente detrás.
  */
+function createGlassMaterial(
+  baseColor: string,
+  reflectivity: number,
+  opacity: number,
+  emissiveIntensity: number,
+): THREE.MeshPhysicalMaterial {
+  return new THREE.MeshPhysicalMaterial({
+    color: baseColor,
+    emissive: baseColor,
+    emissiveIntensity,
+    transparent: true,
+    opacity,
+    roughness: 0.1,
+    metalness: 0,
+    clearcoat: 0.4,
+    clearcoatRoughness: 0.15,
+    envMapIntensity: reflectivity,
+    side: THREE.FrontSide,
+    depthWrite: false,
+  });
+}
+
 function buildGlassVariants(baseColor: string, reflectivity: number): Record<InteractionState, THREE.MeshPhysicalMaterial> {
   const variants = {} as Record<InteractionState, THREE.MeshPhysicalMaterial>;
   for (const state of INTERACTION_STATES) {
-    variants[state] = new THREE.MeshPhysicalMaterial({
-      color: baseColor,
-      emissive: baseColor,
-      emissiveIntensity: INTERACTION_EMISSIVE[state],
-      transparent: true,
-      opacity: INTERACTION_OPACITY[state],
-      roughness: 0.1,
-      metalness: 0,
-      clearcoat: 0.4,
-      clearcoatRoughness: 0.15,
-      envMapIntensity: reflectivity,
-      side: THREE.FrontSide,
-      depthWrite: false,
-    });
+    variants[state] = createGlassMaterial(baseColor, reflectivity, INTERACTION_OPACITY[state], INTERACTION_EMISSIVE[state]);
+  }
+  return variants;
+}
+
+/**
+ * Vidrio con tinte de estado (modo "ver disponibilidad"): mismo look de vidrio que
+ * `buildGlassVariants`, pero partiendo de un piso de opacidad/emisivo más alto que el
+ * vidrio neutro — en reposo (antes: opacidad 0.74, emisivo 0, igual que el edificio real)
+ * el color de disponible/apartado se perdía contra el reflejo del entorno. Los pisos
+ * (`opacityFloor`/`emissiveFloor`) vienen de la config; los saltos entre hover/selección
+ * reutilizan los mismos deltas que ya usa el vidrio neutro, así que "seleccionada" sigue
+ * siendo siempre la más marcada dentro de su propio estado.
+ */
+function buildStatusGlassVariants(
+  baseColor: string,
+  reflectivity: number,
+  opacityFloor: number,
+  emissiveFloor: number,
+): Record<InteractionState, THREE.MeshPhysicalMaterial> {
+  const variants = {} as Record<InteractionState, THREE.MeshPhysicalMaterial>;
+  for (const state of INTERACTION_STATES) {
+    const opacity =
+      state === 'filtered' ? INTERACTION_OPACITY.filtered : Math.min(0.98, opacityFloor + (INTERACTION_OPACITY[state] - INTERACTION_OPACITY.none));
+    const emissiveIntensity = state === 'filtered' ? 0 : emissiveFloor + INTERACTION_EMISSIVE[state];
+    variants[state] = createGlassMaterial(baseColor, reflectivity, opacity, emissiveIntensity);
   }
   return variants;
 }
@@ -96,7 +130,11 @@ interface UnitMaterialSets {
 function buildUnitMaterialSets(materials: MaterialsConfig): UnitMaterialSets {
   const byStatus = {} as Record<UnitStatus, Record<InteractionState, THREE.MeshPhysicalMaterial>>;
   for (const status of STATUSES) {
-    byStatus[status] = buildGlassVariants(materials.statusTint[status], materials.glassReflectivity);
+    // Vendida usa su propio piso, más bajo, para leerse claramente apagada frente a
+    // disponible/apartado — no solo con otro color, también con menos presencia.
+    const opacityFloor = status === 'sold' ? materials.soldOpacity : materials.statusOpacity;
+    const emissiveFloor = status === 'sold' ? materials.soldEmissiveIntensity : materials.statusEmissiveIntensity;
+    byStatus[status] = buildStatusGlassVariants(materials.statusTint[status], materials.glassReflectivity, opacityFloor, emissiveFloor);
   }
   return { neutral: buildGlassVariants(materials.glass, materials.glassReflectivity), byStatus };
 }
@@ -348,6 +386,9 @@ export function Tower({
                   : 'none';
 
           const materialSet = availabilityMode ? statusMaterials[status] : neutralMaterials;
+          // Contorno del color de estado (no solo el tinte del vidrio) para que la
+          // disponibilidad se lea incluso donde el vidrio quede casi de canto.
+          const edgeColor = availabilityMode ? config.materials.statusTint[status] : config.materials.profile;
 
           return (
             <mesh
@@ -374,7 +415,7 @@ export function Tower({
                 onSelectUnit(isSelected ? null : code);
               }}
             >
-              <Edges color={config.materials.profile} />
+              <Edges color={edgeColor} />
               {/* Contorno de selección: independiente del material/modo, siempre visible.
                   Sin `screenspace`: en ese modo `thickness` son metros de mundo, no
                   píxeles, y con unidades de ~3m de piso un valor chico ya revienta el

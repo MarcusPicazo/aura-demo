@@ -16,7 +16,11 @@
     "profile": "#3B2A1E",
     "interior": "#211D19",
     "interiorInset": 0.18,
-    "statusTint": { "available": "#8FBF9C", "reserved": "#D9B87A", "sold": "#ABA79E" }
+    "statusTint": { "available": "#8FBF9C", "reserved": "#D9B87A", "sold": "#ABA79E" },
+    "statusOpacity": 0.85,
+    "statusEmissiveIntensity": 0.3,
+    "soldOpacity": 0.5,
+    "soldEmissiveIntensity": 0.04
   },
   "carpentry": { "spacing": 1.35, "thickness": 0.09, "depth": 0.3, "color": "#3B2A1E" },
   "balcony": {

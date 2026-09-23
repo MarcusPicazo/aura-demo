@@ -62,6 +62,18 @@ export interface MaterialsConfig {
   /** Cuánto se encoge el forro interior respecto a la línea de vidrio, en metros. */
   interiorInset: number;
   statusTint: StatusTintConfig;
+  /** Opacidad del vidrio en reposo cuando lleva tinte de estado (disponible/apartado) —
+   *  más alta que `glass` neutro a propósito, para que el tinte se lea sin depender de
+   *  que el reflejo del entorno coopere. */
+  statusOpacity: number;
+  /** Emisivo del tinte de estado en reposo: sin esto en 0 (como el vidrio neutro), el
+   *  color de disponibilidad se perdía contra el reflejo del cielo. */
+  statusEmissiveIntensity: number;
+  /** Opacidad reducida específica de las unidades vendidas — se ven claramente apagadas
+   *  frente a disponible/apartado, no solo con otro color. */
+  soldOpacity: number;
+  /** Emisivo casi nulo para vendidas: sin brillo, a propósito. */
+  soldEmissiveIntensity: number;
 }
 
 /**
