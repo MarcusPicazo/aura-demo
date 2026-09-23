@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AmenityIcon } from './AmenityIcons';
+import { useEscapeKey } from '../lib/useEscapeKey';
 import { usePresence } from '../lib/usePresence';
 import auraConfigJson from '../config/aura.json';
 import type { AmenityConfig, DevelopmentConfig } from '../types';
@@ -25,10 +26,17 @@ interface AmenityLightboxProps {
   onClose: () => void;
 }
 
-/** Vista en grande de una amenidad: misma animación (deslizar + desvanecer) que la ficha
- *  de unidad y la ficha de piso en fachada — desde abajo en móvil, con un fundido más
- *  sutil en escritorio. */
+/**
+ * Vista en grande de una amenidad: misma animación de dos tiempos que la ficha de unidad
+ * — primero se acomoda el marco (deslizar + desvanecer), y la información de adentro
+ * aparece un poco después con su propio desvanecido (`delay-100`), en vez de saltar junto
+ * con el marco. Altura de imagen fija (`h-56`/`h-72`, no `max-h`+`object-cover` variable):
+ * así la tarjeta no cambia de tamaño al pasar de una amenidad a otra con foto más alta o
+ * más ancha. Escape cierra, igual que el resto de los paneles.
+ */
 function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, onClose }: AmenityLightboxProps) {
+  useEscapeKey(onClose, visible);
+
   return (
     <div
       className={`fixed inset-0 z-40 flex items-end justify-center bg-black/50 transition-opacity duration-300 ease-out motion-reduce:transition-none sm:items-center ${
@@ -43,7 +51,7 @@ function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, o
         onClick={(event) => event.stopPropagation()}
       >
         <div className="relative">
-          <img src={amenity.image} alt={amenity.label} className="block max-h-[50dvh] w-full object-cover sm:rounded-t-2xl" />
+          <img src={amenity.image} alt={amenity.label} className="block h-56 w-full object-cover sm:h-72 sm:rounded-t-2xl" />
           <button
             type="button"
             onClick={onClose}
@@ -73,7 +81,11 @@ function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, o
             </button>
           )}
         </div>
-        <div className="p-5">
+        <div
+          className={`p-5 transition-opacity duration-300 ease-out delay-100 motion-reduce:transition-none motion-reduce:delay-0 ${
+            visible ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
           <div className="flex items-center gap-2">
             <AmenityIcon name={amenity.icon} className="h-5 w-5 shrink-0 text-[var(--brand-primary)]" />
             <p className="font-serif text-lg text-neutral-900">{amenity.label}</p>

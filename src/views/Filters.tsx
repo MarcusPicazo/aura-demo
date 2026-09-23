@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useFiltersStore } from '../store/filtersStore';
 import { hasActiveFilters } from '../lib/filters';
 import { formatPrice } from '../lib/pricing';
+import { useEscapeKey } from '../lib/useEscapeKey';
 import { usePresence } from '../lib/usePresence';
 import type { Unit } from '../types';
 
@@ -36,10 +37,16 @@ export function Filters({ units }: FiltersProps) {
   // Duración corta (250 ms, en el extremo bajo del rango pedido) porque es un desplegable
   // chico, no un panel de pantalla completa — una transición larga se sentiría lenta aquí.
   const { rendered: expandedContent, visible: expandedVisible } = usePresence(expanded ? true : null, 250);
+  useEscapeKey(() => setExpanded(false), expanded);
 
+  // El ancho se ataba antes a `expanded` (crudo): al cerrar, la caja se encogía de golpe
+  // en el mismo instante en que el contenido TODAVÍA se estaba desvaneciendo adentro —
+  // se veía el texto recortado/brincando un frame antes de desaparecer. Atado a
+  // `expandedContent` (el valor retenido de `usePresence`), la caja se queda ancha
+  // mientras el contenido sigue montado animando su salida, y solo se encoge después.
   return (
     <div
-      className={`pointer-events-auto ml-auto rounded-xl bg-[var(--brand-background)]/95 p-3 text-sm shadow-lg backdrop-blur ${expanded ? 'w-60' : ''}`}
+      className={`pointer-events-auto ml-auto rounded-xl bg-[var(--brand-background)]/95 p-3 text-sm shadow-lg backdrop-blur ${expandedContent ? 'w-60' : ''}`}
     >
       <button
         type="button"
@@ -52,7 +59,7 @@ export function Filters({ units }: FiltersProps) {
 
       {expandedContent && (
         <div
-          className={`mt-3 space-y-3 transition-[opacity,transform] duration-[250ms] ease-out motion-reduce:transition-none ${
+          className={`mt-3 space-y-3 transition-[opacity,transform] duration-[250ms] ease-out delay-75 motion-reduce:transition-none motion-reduce:delay-0 ${
             expandedVisible ? 'translate-y-0 opacity-100' : '-translate-y-1 opacity-0'
           }`}
         >

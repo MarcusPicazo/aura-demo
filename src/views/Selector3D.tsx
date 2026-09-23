@@ -239,18 +239,24 @@ export function Selector3D() {
         <AdaptivePerformance dprRange={DPR_RANGE} />
       </Canvas>
 
-      {/* flex-wrap: en pantallas angostas, si Filters se expande y ya no cabe junto a
-          Legend, baja de línea en vez de encimarse (en vez de dos `fixed` adivinando
-          el ancho del otro). */}
-      <div className="fixed inset-x-4 top-20 z-10 flex flex-wrap items-start gap-2">
-        <Legend units={units} loadError={loadError} />
-        <AvailabilityToggle />
+      {/* "Ver disponibilidad" antes iba junto a Legend en la misma fila y quedaba muy
+          cerca del centro de la escena, estorbando la vista de la torre — ahora cuelga
+          debajo de Legend, mismo lado. flex-wrap en el grupo de la izquierda: si algún
+          día Legend crece (ej. banner de error) y ya no cabe en una fila, baja de línea
+          en vez de encimarse con Filters. */}
+      <div className="fixed inset-x-4 top-20 z-10 flex flex-wrap items-start justify-between gap-2">
+        <div className="flex flex-col items-start gap-2">
+          <Legend units={units} loadError={loadError} />
+          <AvailabilityToggle />
+        </div>
         <Filters units={units} />
       </div>
 
       {presentUnitCode && lastUnitPanelData && developmentId && (
+        // Sin `key`: cambiar de unidad sin cerrar antes ya no remonta el panel de golpe
+        // (cortaba su propia animación de entrada/salida) — el formulario interno se
+        // reinicia por su cuenta (`useEffect` en UnitPanel.tsx sobre `unit.code`).
         <UnitPanel
-          key={presentUnitCode}
           unit={lastUnitPanelData.unit}
           polygon={lastUnitPanelData.polygon}
           floorPlan={lastUnitPanelData.floorPlan}

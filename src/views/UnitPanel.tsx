@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { FloorPlanDetailed } from './FloorPlanDetailed';
 import { InteriorGallery } from './InteriorGallery';
 import { PaymentSchedule } from './PaymentSchedule';
@@ -7,6 +7,7 @@ import { buildInterestMessage, buildWhatsappLink } from '../lib/whatsapp';
 import { createLead } from '../lib/supabase';
 import { formatPrice } from '../lib/pricing';
 import { STATUS_LABELS } from '../lib/status';
+import { useEscapeKey } from '../lib/useEscapeKey';
 import type { FloorPlanConfig, PaymentPlanConfig, Point, Unit } from '../types';
 
 type LeadFormStatus = 'idle' | 'submitting' | 'success' | 'error';
@@ -46,6 +47,19 @@ export function UnitPanel({
   const [phone, setPhone] = useState('');
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [leadStatus, setLeadStatus] = useState<LeadFormStatus>('idle');
+
+  // El panel ya no se remonta al cambiar de unidad (ver Selector3D.tsx — remontarlo ahí
+  // cortaba la animación de salida/entrada de golpe cada vez que se elegía otra unidad
+  // sin cerrar antes). El formulario sí debe reiniciarse por unidad, así que ese reseteo
+  // se hace a mano aquí en vez de depender de un remount completo del panel.
+  useEffect(() => {
+    setName('');
+    setPhone('');
+    setConsentAccepted(false);
+    setLeadStatus('idle');
+  }, [unit.code]);
+
+  useEscapeKey(onClose, visible);
 
   function handleInterest() {
     // window.open debe llamarse de forma síncrona en el click, antes de cualquier
@@ -93,6 +107,14 @@ export function UnitPanel({
         &times;
       </button>
 
+      {/* El marco (arriba) se desliza/desvanece de inmediato; el contenido espera 100ms
+          más y solo se desvanece (sin desplazarse aparte) — se siente como que el panel
+          se acomoda primero y la información aparece después, no todo de golpe junto. */}
+      <div
+        className={`transition-opacity duration-300 ease-out delay-100 motion-reduce:transition-none motion-reduce:delay-0 ${
+          visible ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
       <p className="text-sm font-medium uppercase tracking-wide text-neutral-500">Unidad {unit.code}</p>
       <h2 className="font-serif text-2xl text-neutral-900">Tipo {unit.type}</h2>
       <p className="mt-1 text-lg font-semibold text-neutral-900">{formatPrice(unit.price)}</p>
@@ -119,7 +141,9 @@ export function UnitPanel({
         <dd className="text-right text-neutral-900">{unit.orientation}</dd>
       </dl>
 
-      <PaymentSchedule price={unit.price} plan={paymentPlan} />
+      {/* `key`: reinicia solo el control de enganche al cambiar de unidad, sin necesitar
+          que el panel completo se remonte (eso era lo que cortaba su propia animación). */}
+      <PaymentSchedule key={unit.code} price={unit.price} plan={paymentPlan} />
 
       <button
         type="button"
@@ -174,6 +198,7 @@ export function UnitPanel({
           {leadStatus === 'error' && <p className="text-center text-sm text-red-600">No se pudo enviar. Intenta de nuevo.</p>}
         </form>
       )}
+      </div>
     </div>
   );
 }

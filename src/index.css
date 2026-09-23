@@ -19,6 +19,13 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Los navegadores no ponen `cursor: pointer` en <button> por default (a diferencia de
+   los enlaces) — sin esto, el cursor solo cambiaba en los elementos que ya lo pedían a
+   mano, y quedaba inconsistente entre botones. Uno solo, global, para toda la app. */
+button:not(:disabled) {
+  cursor: pointer;
+}
+
 /* Entrada para vistas de ruta completa (sección de Proyecto): no necesitan animación de
    salida como los paneles/menús (React Router ya se encarga de desmontarlas), solo un
    arranque suave. Aparte de `usePresence` (paneles con datos que sí cierran) porque acá

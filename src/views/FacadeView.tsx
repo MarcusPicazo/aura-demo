@@ -3,6 +3,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import type { AuraOutletContext } from './AuraLayout';
 import { polygonCentroid } from '../lib/geometry';
 import { formatPrice } from '../lib/pricing';
+import { useEscapeKey } from '../lib/useEscapeKey';
 import { usePresence } from '../lib/usePresence';
 import { useSelectionStore } from '../store/selectionStore';
 import auraConfigJson from '../config/aura.json';
@@ -39,6 +40,7 @@ export function FacadeView() {
   const { rendered: presentFloor, visible: floorCardVisible } = usePresence(activeFloor, 300);
   const activeUnits = presentFloor !== null ? units.filter((unit) => unit.floor === presentFloor) : [];
   const activeAvailableUnits = activeUnits.filter((unit) => unit.status === 'available');
+  useEscapeKey(() => setActiveFloor(null), activeFloor !== null);
 
   return (
     <div className="flex h-dvh w-screen items-start justify-center overflow-y-auto bg-neutral-900 pt-20 pb-8">
@@ -102,38 +104,47 @@ export function FacadeView() {
               floorCardVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <p className="font-serif text-lg text-neutral-900">Piso {presentFloor}</p>
+            {/* Igual que la ficha de unidad: el marco de la tarjeta se acomoda primero,
+                la información espera 100ms más y solo se desvanece — se siente en dos
+                tiempos suaves, no todo junto de golpe. */}
+            <div
+              className={`transition-opacity duration-300 ease-out delay-100 motion-reduce:transition-none motion-reduce:delay-0 ${
+                floorCardVisible ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <p className="font-serif text-lg text-neutral-900">Piso {presentFloor}</p>
+                <button
+                  type="button"
+                  onClick={() => setActiveFloor(null)}
+                  aria-label="Cerrar"
+                  className="text-xl leading-none text-neutral-400 hover:text-neutral-700"
+                >
+                  &times;
+                </button>
+              </div>
+
+              {activeAvailableUnits.length > 0 ? (
+                <ul className="mt-2 space-y-1 text-sm text-neutral-700">
+                  {activeAvailableUnits.map((unit) => (
+                    <li key={unit.code} className="flex justify-between">
+                      <span>Unidad {unit.code}</span>
+                      <span>{formatPrice(unit.price)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-2 text-sm text-neutral-500">Sin unidades disponibles en este piso.</p>
+              )}
+
               <button
                 type="button"
-                onClick={() => setActiveFloor(null)}
-                aria-label="Cerrar"
-                className="text-xl leading-none text-neutral-400 hover:text-neutral-700"
+                onClick={() => handleViewInTower(presentFloor)}
+                className="mt-3 w-full rounded-full bg-[var(--brand-primary)] py-2 text-sm font-medium text-white"
               >
-                &times;
+                Ver piso en la torre 3D
               </button>
             </div>
-
-            {activeAvailableUnits.length > 0 ? (
-              <ul className="mt-2 space-y-1 text-sm text-neutral-700">
-                {activeAvailableUnits.map((unit) => (
-                  <li key={unit.code} className="flex justify-between">
-                    <span>Unidad {unit.code}</span>
-                    <span>{formatPrice(unit.price)}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-2 text-sm text-neutral-500">Sin unidades disponibles en este piso.</p>
-            )}
-
-            <button
-              type="button"
-              onClick={() => handleViewInTower(presentFloor)}
-              className="mt-3 w-full rounded-full bg-[var(--brand-primary)] py-2 text-sm font-medium text-white"
-            >
-              Ver piso en la torre 3D
-            </button>
           </div>
         )}
       </div>
