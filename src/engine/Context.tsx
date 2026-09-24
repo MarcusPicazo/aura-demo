@@ -34,8 +34,12 @@ export function Context({ footprint, context }: ContextProps) {
   const groundRepeat = Math.max(4, Math.round(groundSize / 6));
   groundTexture.repeat.set(groundRepeat, groundRepeat);
 
+  // `envMapIntensity` bajo a propósito: por default (1) el piso recibe tanta luz ambiental
+  // del `Environment` (el cielo entero como fuente de luz) que la sombra del sol — que solo
+  // resta la contribución DIRECCIONAL, no la ambiental — se volvía casi imperceptible contra
+  // un tono tan claro. Con menos ambiental, la sombra directa pesa más en el resultado final.
   const groundMaterial = useMemo(
-    () => new THREE.MeshStandardMaterial({ map: groundTexture, roughness: 1, metalness: 0 }),
+    () => new THREE.MeshStandardMaterial({ map: groundTexture, roughness: 1, metalness: 0, envMapIntensity: 0.3 }),
     [groundTexture],
   );
 

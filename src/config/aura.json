@@ -89,7 +89,7 @@
     "vegetationFoliageRadius": 0.5
   },
   "context": {
-    "ground": { "color": "#B8B4A8", "noiseColor": "#9C9788", "sizeFactor": 8 },
+    "ground": { "color": "#A29C8E", "noiseColor": "#8A8478", "sizeFactor": 8 },
     "street": {
       "side": "minZ",
       "distanceFromTower": 3,

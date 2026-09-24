@@ -62,7 +62,10 @@ const SKY_PARAMS = { distance: 400, turbidity: 2.2, rayleigh: 2.2, mieCoefficien
  *  se sientan del mismo aire. */
 const FOG_COLOR = '#CBDBE8';
 
-const TONE_MAPPING_EXPOSURE = 1.05;
+// Bajada de 1.05: hace falta para compensar `intensity` del sol mucho más alta (ver abajo)
+// y devolver la escena a un brillo general normal sin perder el contraste que esa
+// intensidad le da a la sombra.
+const TONE_MAPPING_EXPOSURE = 0.7;
 
 /** FOV vertical de la cámara — una sola constante, la usan tanto el `Canvas` como el
  *  cálculo de encuadre (`computeCameraFraming`), para que nunca queden desincronizados. */
@@ -209,24 +212,46 @@ export function Selector3D() {
         <Sky sunPosition={sunPosition} {...SKY_PARAMS} />
 
         {/* Hemisferio (cielo arriba, rebote de piso abajo) en vez de ambiental plano:
-            así la sombra del sol tiene con qué contrastar sin que la escena se vea gris. */}
-        <hemisphereLight args={['#bcd4f2', '#9c9384', 0.35]} />
+            así la sombra del sol tiene con qué contrastar sin que la escena se vea gris.
+            Bajado de 0.35 a 0.22: con más luz de relleno ambiental, la zona en sombra casi
+            no se distinguía de la iluminada — la sombra del sol necesita algo de contraste
+            para leerse, no solo existir en el shadow map. */}
+        <hemisphereLight args={['#bcd4f2', '#9c9384', 0.22]} />
         <directionalLight
           position={sunPosition}
           target={sunTarget}
-          intensity={1.4}
+          // Subida de 1.4 a 6, junto con `TONE_MAPPING_EXPOSURE` bajado para compensar:
+          // diagnostiqué por qué la sombra no se veía (más abajo, en el shadow map en sí no
+          // era el problema — sí tenía datos correctos) sacando la escena a un contraste
+          // extremo a mano y viendo en qué punto la sombra se volvía visible. El motivo real
+          // es que la sombra solo resta la contribución DIRECCIONAL, nunca la ambiental (el
+          // `Environment` entero actuando como luz), y con una intensidad "razonable" en
+          // papel (1.4–1.6) esa resta apenas se notaba contra tanto relleno ambiental — ACES
+          // además comprime más las diferencias chicas que las grandes, así que hacía falta
+          // una diferencia de partida bastante más grande de lo que parece razonable a
+          // simple vista para que sobreviva la curva y se lea "dura", no solo presente.
+          intensity={6}
           color="#fff3e0"
           castShadow
           shadow-mapSize={SHADOW_MAP_SIZE}
-          shadow-radius={4}
-          shadow-bias={-0.0012}
-          shadow-normalBias={0.4}
+          // `radius` bajado de 4 a 1: el pedido es sombra DURA y bien definida, no un
+          // desenfoque suave — 4 (con normalBias grande, ver abajo) la dejaba casi
+          // imperceptible. `normalBias` bajado de 0.4 a 0.05: 0.4 empujaba la muestra ~40cm
+          // a lo largo de la normal, mucho para geometría delgada (mullions, cantos de losa,
+          // vidrio) — se conoce como "peter-panning" y básicamente desprendía la sombra de
+          // su objeto o la debilitaba. El frustum de la shadow camera también se acota más
+          // cerca de la escena real (antes ±2×sceneRadius de margen, ahora ±1.2×): con casi
+          // toda esa distancia vacía, la precisión de profundidad se repartía donde no hacía
+          // falta en vez de sobre la torre y la calle.
+          shadow-radius={1}
+          shadow-bias={-0.0006}
+          shadow-normalBias={0.05}
           shadow-camera-left={-sceneRadius}
           shadow-camera-right={sceneRadius}
           shadow-camera-top={sceneRadius}
           shadow-camera-bottom={-sceneRadius}
-          shadow-camera-near={sunDistance - sceneRadius * 2}
-          shadow-camera-far={sunDistance + sceneRadius * 2}
+          shadow-camera-near={sunDistance - sceneRadius * 1.2}
+          shadow-camera-far={sunDistance + sceneRadius * 1.2}
         />
         <primitive object={sunTarget} position={sunTargetPosition} />
 
@@ -254,14 +279,19 @@ export function Selector3D() {
 
         {/* `far` acotado a la planta baja (antes: la altura completa de la torre) — con
             los ~40 m del edificio entero contribuyendo, la sombra de contacto salía
-            borrosa y débil en vez de leerse justo donde el edificio toca el suelo. */}
+            borrosa y débil en vez de leerse justo donde el edificio toca el suelo.
+            Sin `frames`: con `frames={1}` capturaba una sola vez, potencialmente antes de
+            que los `InstancedMesh` del motor (balcones, mullions...) terminaran de poner
+            sus matrices en su propio `useEffect` tras montar — esa primera captura podía
+            quedar incompleta y nunca se repetía. Sin el límite, se repinta en cada render
+            bajo `frameloop="demand"` (solo cuando algo invalida la escena), sin costo extra
+            fuera de eso. */}
         <ContactShadows
           position={[footprintCenterX, 0.02, footprintCenterZ]}
-          opacity={0.6}
+          opacity={0.7}
           scale={footprintSpan * 2.2}
           blur={2}
           far={geometry.groundFloorHeight}
-          frames={1}
         />
 
         <CameraRig intro={framing.intro} target={framing.target} onComplete={() => setIntroDone(true)} />

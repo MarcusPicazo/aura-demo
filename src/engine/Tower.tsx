@@ -397,8 +397,12 @@ export function Tower({
               material={materialSet[interactionState]}
               position={[0, level.y, 0]}
               rotation={[-Math.PI / 2, 0, 0]}
-              // Sin castShadow: son vidrio casi transparente, y una sombra opaca de su
-              // volumen completo se vería mal — sí reciben la sombra de la losa de arriba.
+              // `castShadow` aquí también: sin él, lo único que proyectaba sombra era el
+              // núcleo, las losas delgadas y los mullions — una filigrana casi invisible en
+              // vez de la silueta del edificio. Un torre de vidrio real sí proyecta una
+              // sombra marcada (el vidrio absorbe/refleja suficiente luz); dejarla sin
+              // sombra se veía flotando, no "vidrio realista".
+              castShadow
               receiveShadow
               onPointerOver={(event: ThreeEvent<PointerEvent>) => {
                 event.stopPropagation();

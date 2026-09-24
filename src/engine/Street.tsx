@@ -56,8 +56,11 @@ export function Street({ footprint, street }: StreetProps) {
     () => new THREE.BoxGeometry(streetLength, 0.1, street.sidewalkWidth),
     [streetLength, street.sidewalkWidth],
   );
+  // `envMapIntensity` bajo (igual que el piso en Context.tsx): sin esto, la luz ambiental
+  // del `Environment` competía con la sombra direccional del sol y la sombra proyectada
+  // sobre calle/banqueta se veía casi plana.
   const sidewalkMaterial = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: street.sidewalkColor, roughness: 0.9, metalness: 0 }),
+    () => new THREE.MeshStandardMaterial({ color: street.sidewalkColor, roughness: 0.9, metalness: 0, envMapIntensity: 0.3 }),
     [street.sidewalkColor],
   );
   const curbGeometry = useMemo(
@@ -65,12 +68,12 @@ export function Street({ footprint, street }: StreetProps) {
     [streetLength, street.curbHeight],
   );
   const curbMaterial = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: street.curbColor, roughness: 0.8, metalness: 0 }),
+    () => new THREE.MeshStandardMaterial({ color: street.curbColor, roughness: 0.8, metalness: 0, envMapIntensity: 0.3 }),
     [street.curbColor],
   );
   const asphaltGeometry = useMemo(() => new THREE.BoxGeometry(streetLength, 0.05, street.width), [streetLength, street.width]);
   const asphaltMaterial = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: street.asphaltColor, roughness: 0.95, metalness: 0 }),
+    () => new THREE.MeshStandardMaterial({ color: street.asphaltColor, roughness: 0.95, metalness: 0, envMapIntensity: 0.3 }),
     [street.asphaltColor],
   );
 
