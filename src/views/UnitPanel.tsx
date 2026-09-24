@@ -5,6 +5,7 @@ import { InteriorGallery } from './InteriorGallery';
 import { PaymentSchedule } from './PaymentSchedule';
 import { buildInterestMessage, buildWhatsappLink } from '../lib/whatsapp';
 import { createLead } from '../lib/supabase';
+import { trackEvent } from '../lib/analytics';
 import { formatPrice } from '../lib/pricing';
 import { STATUS_LABELS } from '../lib/status';
 import { useDragToDismiss } from '../lib/useDragToDismiss';
@@ -101,6 +102,7 @@ export function UnitPanel({
     const message = buildInterestMessage(unit, developmentName);
     window.open(buildWhatsappLink(whatsappPhone, message), '_blank', 'noopener,noreferrer');
 
+    trackEvent({ developmentId, type: 'interest_click', unitId: unit.id });
     createLead({ developmentId, unitId: unit.id, origin: 'whatsapp' }).catch((error: unknown) => {
       console.error('No se pudo guardar el lead de "Me interesa":', error);
     });
@@ -119,6 +121,7 @@ export function UnitPanel({
         origin: 'form',
         consentAt: new Date().toISOString(),
       });
+      trackEvent({ developmentId, type: 'lead_submitted', unitId: unit.id });
       setLeadStatus('success');
     } catch (error) {
       console.error('No se pudo guardar el lead del formulario:', error);

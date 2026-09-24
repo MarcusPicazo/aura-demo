@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAnonKey, supabaseUrl } from './env';
-import type { Lead, LeadOrigin, Unit } from '../types';
+import type { AnalyticsEvent, AnalyticsEventType, Lead, LeadOrigin, Unit } from '../types';
 
 /**
  * Cliente completo (con Auth) para /admin. Deliberadamente en su propio archivo: solo
@@ -45,5 +45,32 @@ export async function fetchLeads(developmentId: string): Promise<Lead[]> {
     phone: row.phone,
     origin: row.origin,
     consentAt: row.consent_at,
+  }));
+}
+
+interface EventRow {
+  id: string;
+  created_at: string;
+  type: AnalyticsEventType;
+  units: { code: string } | null;
+}
+
+/** Pestaña Analítica del admin (se vende como reporte mensual): RLS solo deja leer
+ *  `events` a usuarios autenticados, igual que `leads`. La agregación (10 unidades más
+ *  vistas, leads por semana) es aparte, en `lib/analytics.ts` — aquí solo se trae el dato. */
+export async function fetchEvents(developmentId: string): Promise<AnalyticsEvent[]> {
+  const { data, error } = await supabaseAdmin
+    .from('events')
+    .select('id, created_at, type, units(code)')
+    .eq('development_id', developmentId)
+    .returns<EventRow[]>();
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    createdAt: row.created_at,
+    type: row.type,
+    unitCode: row.units?.code ?? null,
   }));
 }

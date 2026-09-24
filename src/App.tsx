@@ -12,6 +12,7 @@ const AdminPage = lazy(() => import('./admin/AdminPage'));
 const UnitsTable = lazy(() => import('./admin/UnitsTable').then((m) => ({ default: m.UnitsTable })));
 const FacadeEditor = lazy(() => import('./admin/FacadeEditor').then((m) => ({ default: m.FacadeEditor })));
 const LeadsTable = lazy(() => import('./admin/LeadsTable').then((m) => ({ default: m.LeadsTable })));
+const AnalyticsDashboard = lazy(() => import('./admin/AnalyticsDashboard').then((m) => ({ default: m.AnalyticsDashboard })));
 
 function App() {
   return (
@@ -77,6 +78,14 @@ function App() {
           element={
             <Suspense fallback={null}>
               <LeadsTable />
+            </Suspense>
+          }
+        />
+        <Route
+          path="analitica"
+          element={
+            <Suspense fallback={null}>
+              <AnalyticsDashboard />
             </Suspense>
           }
         />

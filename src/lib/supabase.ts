@@ -21,7 +21,9 @@ const authHeaders = {
   Authorization: `Bearer ${supabaseAnonKey}`,
 };
 
-const rest = new PostgrestClient(restUrl, { headers: authHeaders });
+// Exportado: `lib/analytics.ts` lo reutiliza para insertar eventos — mismo cliente ligero,
+// sin duplicar la configuración de URL/headers.
+export const rest = new PostgrestClient(restUrl, { headers: authHeaders });
 
 const realtime = new RealtimeClient(realtimeUrl.href, {
   params: { apikey: supabaseAnonKey },

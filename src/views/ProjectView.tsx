@@ -1,7 +1,10 @@
-import { useState, type SVGProps } from 'react';
+import { useEffect, useState, type SVGProps } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { AmenityIcon } from './AmenityIcons';
 import { useEscapeKey } from '../lib/useEscapeKey';
 import { usePresence } from '../lib/usePresence';
+import { trackEvent } from '../lib/analytics';
+import type { AuraOutletContext } from './AuraLayout';
 import auraConfigJson from '../config/aura.json';
 import type { AmenityConfig, DevelopmentConfig } from '../types';
 
@@ -116,6 +119,16 @@ function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, o
 export function ProjectView() {
   const { name, tagline, project } = auraConfig;
   const { description, amenities, location, pointsOfInterest } = project;
+  const { developmentId } = useOutletContext<AuraOutletContext>();
+
+  // Analítica (se vende como reporte mensual, ver /admin → Analítica): una vista por
+  // carga de esta pestaña. `developmentId` solo llega una vez el fetch inicial de
+  // AuraLayout.tsx resuelve, así que puede tardar un instante en dispararse si se entra
+  // directo a /aura/proyecto antes de que cargue.
+  useEffect(() => {
+    if (!developmentId) return;
+    trackEvent({ developmentId, type: 'project_view' });
+  }, [developmentId]);
 
   // Solo las amenidades con imagen abren la vista en grande y se navegan entre sí — una
   // sin imagen (`amenity.image` ausente) se queda como tarjeta de solo ícono, sin romperse.

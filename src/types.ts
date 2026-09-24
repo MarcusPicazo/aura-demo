@@ -478,3 +478,21 @@ export interface Lead {
   origin: LeadOrigin;
   consentAt: string | null;
 }
+
+/** Analítica ligera (tabla `events`, se vende como reporte mensual): un valor por cada
+ *  momento que vale la pena contar, ver `lib/analytics.ts`. */
+export type AnalyticsEventType =
+  | 'selector_view'
+  | 'unit_view'
+  | 'filter_used'
+  | 'interest_click'
+  | 'lead_submitted'
+  | 'project_view';
+
+/** Evento tal como lo lee el admin, con el código de unidad ya resuelto (join a `units`). */
+export interface AnalyticsEvent {
+  id: string;
+  createdAt: string;
+  type: AnalyticsEventType;
+  unitCode: string | null;
+}

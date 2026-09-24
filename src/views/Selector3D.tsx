@@ -15,6 +15,7 @@ import { LoadingScreen } from './LoadingScreen';
 import type { AuraOutletContext } from './AuraLayout';
 import { buildTowerLayout, computeCameraFraming, findUnitPolygon, floorPlanKey } from '../lib/geometry';
 import { hasActiveFilters } from '../lib/filters';
+import { trackEvent } from '../lib/analytics';
 import { usePresence } from '../lib/usePresence';
 import { useSelectionStore } from '../store/selectionStore';
 import { useFiltersStore } from '../store/filtersStore';
@@ -110,6 +111,39 @@ export function Selector3D() {
     const timeout = setTimeout(() => setFocusedFloor(null), FOCUSED_FLOOR_DURATION_MS);
     return () => clearTimeout(timeout);
   }, [focusedFloor, setFocusedFloor]);
+
+  // Analítica (se vende como reporte mensual, ver /admin → Analítica): una vista del
+  // selector por carga — `developmentId` solo cambia cuando el fetch inicial resuelve
+  // (AuraLayout.tsx), así que este efecto no se repite en cada re-render.
+  useEffect(() => {
+    if (!developmentId) return;
+    trackEvent({ developmentId, type: 'selector_view' });
+  }, [developmentId]);
+
+  // Una unidad "vista" es que `selectedUnitCode` deje de ser null, sin importar cómo llegó
+  // ahí (clic directo, link compartido a /aura/unidad/:code, o piso enfocado desde
+  // Fachada y luego clic) — todas pasan por el mismo store, así que un solo efecto las
+  // cubre todas. `units` a propósito fuera de las dependencias: cambia de referencia en
+  // cada actualización de Realtime (un cambio de estado/precio, no una nueva vista), y
+  // volver a contar la misma unidad por eso sería ruido en el reporte.
+  useEffect(() => {
+    if (!developmentId || !selectedUnitCode) return;
+    const unit = units.find((candidate) => candidate.code === selectedUnitCode);
+    trackEvent({ developmentId, type: 'unit_view', unitId: unit?.id });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [developmentId, selectedUnitCode]);
+
+  // Filtros usados: con debounce (800ms de silencio) para no registrar un evento por cada
+  // tecleo en el rango de precio — solo cuenta cuando el usuario deja de tocar los
+  // controles con al menos un filtro activo.
+  useEffect(() => {
+    if (!developmentId || !hasActiveFilters(filters)) return undefined;
+    const timeout = setTimeout(() => {
+      trackEvent({ developmentId, type: 'filter_used', metadata: { bedrooms, priceMin, priceMax, onlyAvailable } });
+    }, 800);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [developmentId, bedrooms, priceMin, priceMax, onlyAvailable]);
 
   function handleSelectUnit(nextCode: string | null) {
     selectUnit(nextCode);
