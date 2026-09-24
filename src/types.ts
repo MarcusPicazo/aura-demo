@@ -166,6 +166,10 @@ export interface RoofConfig {
   vegetationPotRadius: number;
   vegetationFoliageColor: string;
   vegetationFoliageRadius: number;
+  /** Remate del núcleo: un volumen macizo sobre la huella del núcleo, más alto que el
+   *  pretil — corona el eje de circulaciones para que se lea como parte de un solo
+   *  volumen, no como un corte entre dos torres. */
+  coreCapHeight: number;
 }
 
 /**

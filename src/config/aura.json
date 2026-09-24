@@ -86,7 +86,8 @@
     "vegetationPotHeight": 0.4,
     "vegetationPotRadius": 0.22,
     "vegetationFoliageColor": "#5B7A4F",
-    "vegetationFoliageRadius": 0.5
+    "vegetationFoliageRadius": 0.5,
+    "coreCapHeight": 2.4
   },
   "context": {
     "ground": { "color": "#A29C8E", "noiseColor": "#8A8478", "sizeFactor": 8 },
@@ -153,7 +154,7 @@
       { "type": "PH", "code": "1201", "polygon": [[0, 0], [11, 0], [11, 18], [0, 18]] },
       { "type": "PH", "code": "1202", "polygon": [[13, 0], [24, 0], [24, 18], [13, 18]] }
     ],
-    "core": [[11, 6], [13, 6], [13, 12], [11, 12]]
+    "core": [[11, 0], [13, 0], [13, 18], [11, 18]]
   },
   "unitTypes": {
     "A": { "bedrooms": 2, "bathrooms": 2, "m2": 85, "priceBase": 5600000, "orientation": "Norponiente" },

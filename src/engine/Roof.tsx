@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
-import { computeMullionPointsWithNormal, computePolygonEdges, type PolygonBounds } from '../lib/geometry';
+import { computeMullionPointsWithNormal, computePolygonEdges, polygonBounds, type PolygonBounds } from '../lib/geometry';
 import { createConcreteTexture } from './textures';
-import type { RoofConfig } from '../types';
+import type { Point, RoofConfig } from '../types';
 
 /** Decorativo, no vendible: fuera del raycasting para no interferir con el picking de unidades. */
 const noRaycast = () => null;
 
 interface RoofProps {
   footprint: PolygonBounds;
+  /** Huella del núcleo (mismo polígono que la extrusión de altura completa en Tower.tsx):
+   *  el remate se centra sobre ella, no sobre la huella completa de la torre. */
+  core: Point[];
   roofY: number;
   roof: RoofConfig;
 }
@@ -33,12 +36,25 @@ function useInstanceMatrices(matrices: THREE.Matrix4[]) {
  * madera sobre el centro de la losa, y un volumen de instalaciones en una esquina.
  * Genérico: la huella/altura vienen de `layout`, medidas y colores de `roof` (config).
  */
-export function Roof({ footprint, roofY, roof }: RoofProps) {
+export function Roof({ footprint, core, roofY, roof }: RoofProps) {
   const { minX, maxX, minZ, maxZ } = footprint;
   const centerX = (minX + maxX) / 2;
   const centerZ = (minZ + maxZ) / 2;
   const width = maxX - minX;
   const depth = maxZ - minZ;
+
+  // Remate del núcleo: un bloque macizo centrado en SU huella (no la de toda la torre),
+  // que sobresale del pretil — corona el eje de circulaciones para que la torre se lea
+  // como un solo volumen en vez de dos bloques separados por el hueco del núcleo.
+  const coreBounds = useMemo(() => polygonBounds([core]), [core]);
+  const coreCapWidth = coreBounds.maxX - coreBounds.minX;
+  const coreCapDepth = coreBounds.maxZ - coreBounds.minZ;
+  const coreCapCenterX = (coreBounds.minX + coreBounds.maxX) / 2;
+  const coreCapCenterZ = (coreBounds.minZ + coreBounds.maxZ) / 2;
+  const coreCapGeometry = useMemo(
+    () => new THREE.BoxGeometry(coreCapWidth, roof.coreCapHeight, coreCapDepth),
+    [coreCapWidth, roof.coreCapHeight, coreCapDepth],
+  );
 
   // Pretil: 4 tramos (un box por arista del rectángulo de la huella), no hace falta InstancedMesh.
   const parapetEdges = useMemo(
@@ -192,6 +208,17 @@ export function Roof({ footprint, roofY, roof }: RoofProps) {
           receiveShadow
         />
       ))}
+
+      {/* Mismo material que el pretil (concreto): el remate se lee como parte de la misma
+          familia de elementos macizos de la azotea, no como un volumen aparte. */}
+      <mesh
+        geometry={coreCapGeometry}
+        material={parapetMaterial}
+        position={[coreCapCenterX, roofY + roof.coreCapHeight / 2, coreCapCenterZ]}
+        raycast={noRaycast}
+        castShadow
+        receiveShadow
+      />
 
       <instancedMesh ref={beamRef} args={[beamGeometry, pergolaMaterial, beamMatrices.length]} raycast={noRaycast} castShadow receiveShadow />
 

@@ -456,7 +456,7 @@ export function Tower({
 
       <FacadeMullions geometry={geometry} layout={layout} carpentry={config.carpentry} />
       <Balconies geometry={geometry} layout={layout} balcony={config.balcony} />
-      <Roof footprint={layout.footprint} roofY={layout.totalHeight} roof={config.roof} />
+      <Roof footprint={layout.footprint} core={layout.core} roofY={layout.totalHeight} roof={config.roof} />
     </group>
   );
 }
