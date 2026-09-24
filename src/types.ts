@@ -419,6 +419,25 @@ export interface DevelopmentConfig {
   project: ProjectInfoConfig;
   legal: LegalConfig;
   advisor: AdvisorConfig;
+  seo: SeoConfig;
+}
+
+/** Metadatos para compartir el sitio: favicon, y las etiquetas Open Graph/Twitter Card que
+ *  arman la tarjeta de vista previa al pegar el link (WhatsApp, Facebook, Twitter/X...).
+ *  Se generan en el HTML servido, no con JS del lado del cliente — esos bots no ejecutan
+ *  JavaScript, arman la tarjeta solo con lo que ya viene en el HTML (ver vite.config.ts). */
+export interface SeoConfig {
+  /** URL pública del sitio ya publicado, sin slash final (ej. https://mi-torre.vercel.app)
+   *  — hace falta para que `og:image`/`og:url` sean absolutas; WhatsApp y Facebook no
+   *  resuelven imágenes con ruta relativa. */
+  siteUrl: string;
+  /** Ruta en `public/clients/<slug>/` del ícono cuadrado para favicon (SVG). Distinto del
+   *  logo completo (`brand.logo`, un lockup horizontal con texto) — un favicon necesita
+   *  una marca cuadrada y legible en miniatura. */
+  icon: string;
+  /** Ruta en `public/clients/<slug>/` de la imagen para la tarjeta de vista previa
+   *  (og:image / twitter:image). */
+  ogImage: string;
 }
 
 /** Datos del responsable para el aviso de privacidad (LFPDPPP) — de la config del

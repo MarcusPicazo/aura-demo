@@ -22,6 +22,11 @@
     },
     "brochureUrl": "/clients/aura/brochure.pdf"
   },
+  "seo": {
+    "siteUrl": "https://torre-aura-del-valle.vercel.app",
+    "icon": "/clients/aura/icon.svg",
+    "ogImage": "/clients/aura/facade.jpg"
+  },
   "materials": {
     "concrete": "#D9D2C3",
     "glass": "#B7C7CE",

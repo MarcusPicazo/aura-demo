@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent, type SVGProps } from 'react';
 import { FloorPlanDetailed } from './FloorPlanDetailed';
 import { InteriorGallery } from './InteriorGallery';
 import { PaymentSchedule } from './PaymentSchedule';
@@ -12,6 +12,17 @@ import { useEscapeKey } from '../lib/useEscapeKey';
 import type { FloorPlanConfig, PaymentPlanConfig, Point, Unit } from '../types';
 
 type LeadFormStatus = 'idle' | 'submitting' | 'success' | 'error';
+
+function ShareIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="18" cy="5" r="2.6" />
+      <circle cx="6" cy="12" r="2.6" />
+      <circle cx="18" cy="19" r="2.6" />
+      <path d="M8.3 10.7l7.4-4.4M8.3 13.3l7.4 4.4" />
+    </svg>
+  );
+}
 
 interface UnitPanelProps {
   unit: Unit;
@@ -53,6 +64,7 @@ export function UnitPanel({
   const [phone, setPhone] = useState('');
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [leadStatus, setLeadStatus] = useState<LeadFormStatus>('idle');
+  const [copied, setCopied] = useState(false);
 
   // El panel ya no se remonta al cambiar de unidad (ver Selector3D.tsx — remontarlo ahí
   // cortaba la animación de salida/entrada de golpe cada vez que se elegía otra unidad
@@ -63,7 +75,22 @@ export function UnitPanel({
     setPhone('');
     setConsentAccepted(false);
     setLeadStatus('idle');
+    setCopied(false);
   }, [unit.code]);
+
+  // `window.location.href` (no `config.seo.siteUrl`): ya trae el dominio real donde se está
+  // sirviendo el sitio en este momento (producción, preview de Vercel, localhost al probar)
+  // y la ruta ya apunta a esta unidad (`/aura/unidad/:code`, ver el efecto de selección en
+  // Selector3D.tsx) — no hay que reconstruir nada a mano.
+  async function handleShare() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('No se pudo copiar el link al portapapeles:', error);
+    }
+  }
 
   useEscapeKey(onClose, visible);
   const { dragging, dragY, handlePointerDown, handlePointerMove, handlePointerUp } = useDragToDismiss(onClose, visible);
@@ -150,13 +177,23 @@ export function UnitPanel({
       <p className="mt-1 text-lg font-semibold text-neutral-900">{formatPrice(unit.price)}</p>
       <p className="text-sm text-neutral-500">{STATUS_LABELS[unit.status]}</p>
 
-      <button
-        type="button"
-        onClick={onOpenContact}
-        className="mt-2 text-sm font-medium text-[var(--brand-primary)] underline underline-offset-2"
-      >
-        Hablar con un asesor
-      </button>
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+        <button
+          type="button"
+          onClick={onOpenContact}
+          className="text-sm font-medium text-[var(--brand-primary)] underline underline-offset-2"
+        >
+          Hablar con un asesor
+        </button>
+        <button
+          type="button"
+          onClick={handleShare}
+          className="flex items-center gap-1 text-sm font-medium text-neutral-500 hover:text-neutral-800"
+        >
+          <ShareIcon className="h-4 w-4" />
+          {copied ? '¡Link copiado!' : 'Compartir'}
+        </button>
+      </div>
 
       {polygon && (
         <div className="mt-4">
