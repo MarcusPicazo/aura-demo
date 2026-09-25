@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useThree } from '@react-three/fiber';
 import { PerformanceMonitor } from '@react-three/drei';
 
@@ -14,9 +15,11 @@ interface AdaptivePerformanceProps {
  * fps de PerformanceMonitor. Conectamos `onIncline`/`onDecline` directo a `setDpr`
  * para que la medición de fps sí mueva la resolución de render.
  */
-export function AdaptivePerformance({ dprRange }: AdaptivePerformanceProps) {
+function AdaptivePerformanceComponent({ dprRange }: AdaptivePerformanceProps) {
   const setDpr = useThree((state) => state.setDpr);
   const [min, max] = dprRange;
 
   return <PerformanceMonitor onIncline={() => setDpr(max)} onDecline={() => setDpr(min)} />;
 }
+
+export const AdaptivePerformance = memo(AdaptivePerformanceComponent);

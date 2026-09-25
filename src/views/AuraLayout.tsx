@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Outlet } from 'react-router-dom';
 import { fetchDevelopmentUnits, subscribeToUnitChanges } from '../lib/supabase';
 import { usePresence } from '../lib/usePresence';
@@ -75,11 +75,21 @@ export function AuraLayout() {
   // pestaña (Torre 3D, Fachada, Proyecto), no solo desde el selector 3D — `openContact` se
   // expone por el contexto de ruta para que la ficha de unidad también la dispare.
   const [contactOpen, setContactOpen] = useState(false);
-  const { rendered: presentContact, visible: contactVisible } = usePresence(contactOpen ? true : null, 380);
+  const { rendered: presentContact, visible: contactVisible } = usePresence(contactOpen ? true : null, 300);
   const selectedUnitCode = useSelectionStore((state) => state.selectedUnitCode);
   const selectedUnit = units.find((unit) => unit.code === selectedUnitCode) ?? null;
 
-  const context: AuraOutletContext = { units, developmentId, loadError, openContact: () => setContactOpen(true) };
+  // Memoizado (objeto Y callback): `Selector3D` lee este contexto con `useOutletContext()`
+  // y monta el <Canvas> del selector 3D — un objeto/función NUEVOS aquí en cada render de
+  // AuraLayout (por ejemplo, al abrir la ficha de asesor, que vive en ESTE componente, no
+  // en Selector3D) forzarían que React reconcilie TODO el árbol de Three.js dentro del
+  // Canvas otra vez, aunque `units`/`developmentId`/`loadError` no hayan cambiado en
+  // realidad — el tirón al abrir un panel completamente ajeno al selector 3D.
+  const openContact = useCallback(() => setContactOpen(true), []);
+  const context: AuraOutletContext = useMemo(
+    () => ({ units, developmentId, loadError, openContact }),
+    [units, developmentId, loadError, openContact],
+  );
   const { rendered: presentLoadError, visible: errorBannerVisible } = usePresence(loadError, 300);
 
   // SPEC §3: paleta del cliente aplicada a botones, paneles y acentos. Se define una sola

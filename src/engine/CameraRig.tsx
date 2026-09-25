@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -18,7 +18,7 @@ interface CameraRigProps {
  * (interpola en coordenadas esféricas alrededor de `target`, no en línea recta)
  * hasta llegar exactamente a `intro`. Genérico: solo depende de intro/target por props.
  */
-export function CameraRig({ intro, target, duration = 2.4, onComplete }: CameraRigProps) {
+function CameraRigComponent({ intro, target, duration = 2.4, onComplete }: CameraRigProps) {
   const { camera, invalidate } = useThree();
   const elapsed = useRef(0);
   const done = useRef(false);
@@ -73,3 +73,5 @@ export function CameraRig({ intro, target, duration = 2.4, onComplete }: CameraR
 
   return null;
 }
+
+export const CameraRig = memo(CameraRigComponent);

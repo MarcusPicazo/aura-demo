@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { memo, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import type { CameraCollisionBounds } from '../lib/geometry';
@@ -24,7 +24,7 @@ interface CameraCollisionProps {
  * (`computeCameraLimits`, en `lib/geometry.ts`) y el margen de la config del cliente — este
  * componente no sabe nada de balcones, azoteas, ni de ningún cliente en particular.
  */
-export function CameraCollision({ bounds, target, dampingSpeed = 8 }: CameraCollisionProps) {
+function CameraCollisionComponent({ bounds, target, dampingSpeed = 8 }: CameraCollisionProps) {
   const { camera, invalidate } = useThree();
   const targetVec = useMemo(() => new THREE.Vector3(), []);
   targetVec.set(target[0], target[1], target[2]);
@@ -76,3 +76,5 @@ export function CameraCollision({ bounds, target, dampingSpeed = 8 }: CameraColl
 
   return null;
 }
+
+export const CameraCollision = memo(CameraCollisionComponent);

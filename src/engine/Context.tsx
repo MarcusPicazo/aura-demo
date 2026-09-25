@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import * as THREE from 'three';
 import { type PolygonBounds } from '../lib/geometry';
 import { createGroundTexture } from './textures';
@@ -20,8 +20,13 @@ interface ContextProps {
  * banquetas/guarnición/coches/árboles en `context.street.side`, y edificios vecinos de 3-8
  * niveles con ventanas por textura en el resto del perímetro. No conoce nada del cliente:
  * todo (huella, medidas, colores) llega por props/config.
+ *
+ * `memo`: no depende de nada que cambie por interacción de UI (selección, filtros, paneles
+ * abiertos) — sin esto, React lo vuelve a reconciliar completo (piso + calle + coches +
+ * árboles + vecinos) cada vez que algo AJENO a este componente hace que `Selector3D` se
+ * vuelva a renderizar, con `footprint`/`context` iguales.
  */
-export function Context({ footprint, context }: ContextProps) {
+function ContextComponent({ footprint, context }: ContextProps) {
   const centerX = (footprint.minX + footprint.maxX) / 2;
   const centerZ = (footprint.minZ + footprint.maxZ) / 2;
   const span = Math.max(footprint.maxX - footprint.minX, footprint.maxZ - footprint.minZ);
@@ -63,3 +68,5 @@ export function Context({ footprint, context }: ContextProps) {
     </group>
   );
 }
+
+export const Context = memo(ContextComponent);

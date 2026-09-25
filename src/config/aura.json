@@ -129,8 +129,10 @@
       "minWidth": 10,
       "maxWidth": 20,
       "minClearance": 18,
-      "tones": ["#A8A6A2", "#A2A19D", "#9C9B97", "#ACAAA6", "#969590"],
-      "windowColor": "#8B9298"
+      "tones": ["#5C5954", "#52555A", "#57534B", "#4B4E50", "#504D47", "#494C4E"],
+      "windowColor": "#2E3236",
+      "baseOcclusionOpacity": 0.28,
+      "baseOcclusionMargin": 0.25
     }
   },
   "paymentPlan": {
@@ -473,6 +475,14 @@
     "collisionTopMargin": 4.5,
     "minPolarAngleDeg": 25,
     "maxPolarAngleDeg": 89
+  },
+  "sky": {
+    "cloudCount": 2,
+    "cloudCountMobile": 1,
+    "cloudDistanceMargin": 1.35,
+    "cloudHeightFactor": 2.2,
+    "cloudOpacity": 0.5,
+    "cloudScale": 9
   },
   "facade": { "image": "/clients/aura/facade.jpg", "floors": [] },
   "project": {

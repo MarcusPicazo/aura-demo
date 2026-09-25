@@ -103,7 +103,7 @@ export function ContactCard({ advisor, developmentName, selectedUnit, visible, o
       // sigue siendo hoja inferior a todo lo ancho, con su pestaña de arrastre.
       // `select-none` (solo móvil): un swipe que arranca sobre texto del panel disparaba
       // selección nativa en vez de mover el panel.
-      className={`fixed inset-x-0 bottom-0 z-30 flex max-h-[70dvh] select-none flex-col overflow-hidden rounded-t-2xl border-t-4 border-[var(--brand-accent)] bg-white shadow-2xl transition-[opacity,transform] duration-[380ms] ease-elegant motion-reduce:transition-none sm:inset-x-auto sm:bottom-4 sm:left-4 sm:w-96 sm:max-h-[80dvh] sm:origin-bottom-left sm:select-auto sm:rounded-2xl sm:border-t-0 sm:border-r-4 ${
+      className={`fixed inset-x-0 bottom-0 z-30 flex max-h-[70dvh] select-none flex-col overflow-hidden rounded-t-2xl border-t-4 border-[var(--brand-accent)] bg-white shadow-2xl transition-[opacity,transform] duration-[300ms] ease-elegant motion-reduce:transition-none sm:inset-x-auto sm:bottom-4 sm:left-4 sm:w-96 sm:max-h-[80dvh] sm:origin-bottom-left sm:select-auto sm:rounded-2xl sm:border-t-0 sm:border-r-4 ${
         visible
           ? 'translate-y-0 opacity-100 sm:scale-100'
           : 'translate-y-full opacity-0 sm:translate-y-0 sm:scale-90'
@@ -132,7 +132,7 @@ export function ContactCard({ advisor, developmentName, selectedUnit, visible, o
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5 pt-1 sm:p-5">
         <div
-          className={`transition-opacity duration-[380ms] ease-elegant delay-100 motion-reduce:transition-none motion-reduce:delay-0 ${
+          className={`transition-opacity duration-[300ms] ease-elegant delay-100 motion-reduce:transition-none motion-reduce:delay-0 ${
             visible ? 'opacity-100' : 'opacity-0'
           }`}
         >

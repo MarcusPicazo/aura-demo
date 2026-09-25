@@ -10,6 +10,23 @@ const DASH_GAP = 1.5;
 const DASH_WIDTH = 0.12;
 const CAR_GAP_FROM_CURB = 0.35;
 
+/** Proporciones del "auto de dos volúmenes" (chasis + cabina), como fracción de las medidas
+ *  de `street.car*` de la config — nunca metros fijos, así cualquier tamaño de auto de
+ *  cliente futuro sigue viéndose proporcionado. Una sola caja lisa se leía como una caja;
+ *  un chasis bajo con una cabina más angosta encima ya se lee como auto de un vistazo. */
+const CAR_CHASSIS_HEIGHT_FACTOR = 0.55;
+const CAR_CABIN_HEIGHT_FACTOR = 0.55;
+const CAR_CABIN_LENGTH_FACTOR = 0.55;
+const CAR_CABIN_WIDTH_FACTOR = 0.86;
+/** Hacia atrás del centro (cofre más largo que la cajuela, como en un auto real). */
+const CAR_CABIN_SETBACK_FACTOR = 0.08;
+const CAR_WHEEL_RADIUS_FACTOR = 0.26;
+const CAR_WHEEL_WIDTH_FACTOR = 0.16;
+const CAR_WHEEL_LONG_OFFSET_FACTOR = 0.32;
+const CAR_WHEEL_COLOR = '#1a1a1a';
+
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
+
 /** Piso/coches/línea, no interactivos: fuera del raycasting. */
 const noRaycast = () => null;
 
@@ -88,7 +105,7 @@ export function Street({ footprint, street }: StreetProps) {
     const step = DASH_LENGTH + DASH_GAP;
     const count = Math.max(1, Math.floor(streetLength / step));
     const matrices: THREE.Matrix4[] = [];
-    const quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationY);
+    const quaternion = new THREE.Quaternion().setFromAxisAngle(Y_AXIS, rotationY);
     for (let index = 0; index < count; index += 1) {
       const u = -streetLength / 2 + step * index + step / 2;
       const [x, z] = toWorld(u, vAsphalt);
@@ -101,41 +118,98 @@ export function Street({ footprint, street }: StreetProps) {
   const dashMaterial = useMemo(() => new THREE.MeshStandardMaterial({ color: street.lineColor, roughness: 0.6 }), [street.lineColor]);
   const dashRef = useInstanceMatrices(dashMatrices);
 
-  // Coches estacionados junto a la guarnición cercana, dentro del arroyo. Un InstancedMesh
-  // por color de la paleta (no `vertexColors` con InstancedMesh: en esta versión de three.js
-  // el tinte por instancia se ve negro — ver NeighborBuildings.tsx para el mismo hallazgo).
-  const carsByColor = useMemo(() => {
+  // Coches estacionados junto a la guarnición cercana, dentro del arroyo: chasis + cabina
+  // (dos cajas, no una) más 4 ruedas, para leerse como auto y no como ladrillo de color. Un
+  // InstancedMesh por color de la paleta para chasis/cabina (no `vertexColors` con
+  // InstancedMesh: en esta versión de three.js el tinte por instancia se ve negro — ver
+  // NeighborBuildings.tsx para el mismo hallazgo); las ruedas no dependen del color de la
+  // carrocería, así que van en un solo InstancedMesh compartido por todos los autos.
+  const { carsByColor, wheelMatrices } = useMemo(() => {
     const count = Math.max(0, Math.floor(streetLength / street.carSpacing) - 1);
-    const quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationY);
+    const quaternion = new THREE.Quaternion().setFromAxisAngle(Y_AXIS, rotationY);
     const scale = new THREE.Vector3(1, 1, 1);
     const vCar = street.sidewalkWidth + CURB_WIDTH + CAR_GAP_FROM_CURB + street.carWidth / 2;
-    const groups = new Map<string, THREE.Matrix4[]>();
+
+    const chassisHeight = street.carHeight * CAR_CHASSIS_HEIGHT_FACTOR;
+    const cabinHeight = street.carHeight * CAR_CABIN_HEIGHT_FACTOR;
+    const cabinSetback = street.carLength * CAR_CABIN_SETBACK_FACTOR;
+    const wheelRadius = street.carHeight * CAR_WHEEL_RADIUS_FACTOR;
+    const wheelLongOffset = street.carLength * CAR_WHEEL_LONG_OFFSET_FACTOR;
+    const wheelLatOffset = street.carWidth / 2;
+    // Rueda acostada (eje transversal al auto, no vertical): se acuesta el cilindro -90°
+    // sobre Z en espacio local del auto y LUEGO se orienta con la misma rotación de la
+    // calle — por eso `quaternion` (el del auto) multiplica al giro local, no al revés.
+    const wheelTilt = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
+    const wheelQuaternion = quaternion.clone().multiply(wheelTilt);
+
+    const groups = new Map<string, { chassis: THREE.Matrix4[]; cabin: THREE.Matrix4[] }>();
+    const wheels: THREE.Matrix4[] = [];
+
     for (let index = 0; index < count; index += 1) {
       const u = -streetLength / 2 + street.carSpacing * (index + 1);
       const [x, z] = toWorld(u, vCar);
-      const matrix = new THREE.Matrix4().compose(new THREE.Vector3(x, street.carHeight / 2, z), quaternion, scale);
+      const basePosition = new THREE.Vector3(x, 0, z);
+
+      const chassisMatrix = new THREE.Matrix4().compose(basePosition.clone().setY(chassisHeight / 2), quaternion, scale);
+
+      const cabinOffset = new THREE.Vector3(-cabinSetback, 0, 0).applyQuaternion(quaternion);
+      const cabinPosition = basePosition.clone().add(cabinOffset).setY(chassisHeight + cabinHeight / 2);
+      const cabinMatrix = new THREE.Matrix4().compose(cabinPosition, quaternion, scale);
+
       const color = street.carColors[index % Math.max(1, street.carColors.length)] ?? '#8B8B8B';
-      const list = groups.get(color) ?? [];
-      list.push(matrix);
-      groups.set(color, list);
+      const group = groups.get(color) ?? { chassis: [], cabin: [] };
+      group.chassis.push(chassisMatrix);
+      group.cabin.push(cabinMatrix);
+      groups.set(color, group);
+
+      for (const longSign of [-1, 1]) {
+        for (const latSign of [-1, 1]) {
+          const wheelOffset = new THREE.Vector3(longSign * wheelLongOffset, 0, latSign * wheelLatOffset).applyQuaternion(quaternion);
+          const wheelPosition = basePosition.clone().add(wheelOffset).setY(wheelRadius);
+          wheels.push(new THREE.Matrix4().compose(wheelPosition, wheelQuaternion, scale));
+        }
+      }
     }
-    return Array.from(groups.entries());
+
+    return { carsByColor: Array.from(groups.entries()), wheelMatrices: wheels };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     streetLength,
     street.carSpacing,
     street.sidewalkWidth,
     street.carWidth,
+    street.carLength,
     street.carHeight,
     street.carColors,
     rotationY,
     toWorldRaw,
     street.distanceFromTower,
   ]);
-  const carGeometry = useMemo(
-    () => new THREE.BoxGeometry(street.carLength, street.carHeight, street.carWidth),
+  const chassisGeometry = useMemo(
+    () => new THREE.BoxGeometry(street.carLength, street.carHeight * CAR_CHASSIS_HEIGHT_FACTOR, street.carWidth),
     [street.carLength, street.carHeight, street.carWidth],
   );
+  const cabinGeometry = useMemo(
+    () =>
+      new THREE.BoxGeometry(
+        street.carLength * CAR_CABIN_LENGTH_FACTOR,
+        street.carHeight * CAR_CABIN_HEIGHT_FACTOR,
+        street.carWidth * CAR_CABIN_WIDTH_FACTOR,
+      ),
+    [street.carLength, street.carHeight, street.carWidth],
+  );
+  const wheelGeometry = useMemo(
+    () =>
+      new THREE.CylinderGeometry(
+        street.carHeight * CAR_WHEEL_RADIUS_FACTOR,
+        street.carHeight * CAR_WHEEL_RADIUS_FACTOR,
+        street.carHeight * CAR_WHEEL_WIDTH_FACTOR,
+        12,
+      ),
+    [street.carHeight],
+  );
+  const wheelMaterial = useMemo(() => new THREE.MeshStandardMaterial({ color: CAR_WHEEL_COLOR, roughness: 0.7, metalness: 0.1 }), []);
+  const wheelRef = useInstanceMatrices(wheelMatrices);
 
   return (
     <group>
@@ -146,15 +220,32 @@ export function Street({ footprint, street }: StreetProps) {
       <mesh geometry={sidewalkGeometry} material={sidewalkMaterial} position={[sidewalkFarX, 0.05, sidewalkFarZ]} rotation={[0, rotationY, 0]} raycast={noRaycast} receiveShadow />
 
       <instancedMesh ref={dashRef} args={[dashGeometry, dashMaterial, dashMatrices.length]} raycast={noRaycast} />
-      {carsByColor.map(([color, matrices]) => (
-        <CarGroup key={color} color={color} matrices={matrices} geometry={carGeometry} />
+      <instancedMesh ref={wheelRef} args={[wheelGeometry, wheelMaterial, wheelMatrices.length]} raycast={noRaycast} castShadow receiveShadow />
+      {carsByColor.map(([color, group]) => (
+        <CarGroup key={color} color={color} chassisMatrices={group.chassis} cabinMatrices={group.cabin} chassisGeometry={chassisGeometry} cabinGeometry={cabinGeometry} />
       ))}
     </group>
   );
 }
 
-function CarGroup({ color, matrices, geometry }: { color: string; matrices: THREE.Matrix4[]; geometry: THREE.BoxGeometry }) {
+interface CarGroupProps {
+  color: string;
+  chassisMatrices: THREE.Matrix4[];
+  cabinMatrices: THREE.Matrix4[];
+  chassisGeometry: THREE.BoxGeometry;
+  cabinGeometry: THREE.BoxGeometry;
+}
+
+/** Chasis y cabina del mismo color de carrocería, cada uno su propio InstancedMesh (misma
+ *  restricción de siempre: no se puede tintar por instancia dentro de un solo InstancedMesh). */
+function CarGroup({ color, chassisMatrices, cabinMatrices, chassisGeometry, cabinGeometry }: CarGroupProps) {
   const material = useMemo(() => new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.3 }), [color]);
-  const ref = useInstanceMatrices(matrices);
-  return <instancedMesh ref={ref} args={[geometry, material, matrices.length]} raycast={noRaycast} castShadow receiveShadow />;
+  const chassisRef = useInstanceMatrices(chassisMatrices);
+  const cabinRef = useInstanceMatrices(cabinMatrices);
+  return (
+    <>
+      <instancedMesh ref={chassisRef} args={[chassisGeometry, material, chassisMatrices.length]} raycast={noRaycast} castShadow receiveShadow />
+      <instancedMesh ref={cabinRef} args={[cabinGeometry, material, cabinMatrices.length]} raycast={noRaycast} castShadow receiveShadow />
+    </>
+  );
 }

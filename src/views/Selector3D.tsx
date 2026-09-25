@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import * as THREE from 'three';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { ContactShadows, Environment, OrbitControls, Sky } from '@react-three/drei';
 import { Tower } from '../engine/Tower';
 import { Context } from '../engine/Context';
 import { CameraRig } from '../engine/CameraRig';
 import { CameraCollision } from '../engine/CameraCollision';
+import { WebGLRecovery } from '../engine/WebGLRecovery';
 import { AdaptivePerformance } from '../engine/AdaptivePerformance';
 import { UnitPanel } from './UnitPanel';
 import { Filters } from './Filters';
@@ -64,6 +65,45 @@ const SKY_PARAMS = { distance: 400, turbidity: 2.2, rayleigh: 2.2, mieCoefficien
  *  se sientan del mismo aire. */
 const FOG_COLOR = '#CBDBE8';
 
+/**
+ * Nubes dispersas: sin ellas el cielo es solo el gradiente liso del modelo atmosférico, que
+ * se lee plano por parejo que esté bien calculado — las nubes le dan al ojo algo con qué
+ * medir profundidad y escala. Bajo poligonaje (icosaedros, mismo lenguaje que el follaje de
+ * los árboles y las macetas de balcón) en vez de la textura/sprite que trae `<Cloud>` de
+ * drei por default: esa textura se descarga de un CDN externo en cada carga, justo lo que
+ * este proyecto ya evitó una vez con el HDRI del entorno (ver comentario de `<Environment>`
+ * más abajo) — más lento en 4G y un punto de falla de menos. Con `MeshStandardMaterial`
+ * (reacciona a la luz de la escena, sol + hemisferio ya puestos) cada nube sale más clara
+ * del lado del sol sin configurar nada aparte.
+ *
+ * Cantidad, distancia, altura, opacidad y tamaño salen de `config.sky` (parametrizadas por
+ * cliente); la distancia real se calcula cada vez contra `framing.maxDistance` — ver
+ * `cloudPuffMatrices` más abajo — así que nunca hace falta perseguir a mano "qué tan lejos
+ * es lejos" para la torre de un cliente distinto.
+ */
+/** Forma genérica de una nube en escala unitaria (offset x/y/z, radio): un puñado de
+ *  esferas superpuestas, más anchas que altas — la silueta clásica de cúmulo. Cada nube la
+ *  reusa a su propia escala y posición. */
+const CLOUD_PUFFS: [number, number, number, number][] = [
+  [-1.6, 0, 0.2, 1.1],
+  [-0.7, 0.3, -0.3, 1.5],
+  [0.3, 0.45, 0.1, 1.7],
+  [1.3, 0.2, -0.2, 1.4],
+  [2.1, -0.05, 0.3, 1],
+  [0.2, -0.3, 0.6, 1.2],
+  [-0.5, -0.25, -0.5, 1.1],
+];
+/** Azimuts repartidos uniformemente (360°/cantidad) desde este ángulo base — que no haya
+ *  ninguna justo en el azimut de la cámara de entrada (38°, `CAMERA_AZIMUTH_DEG` en
+ *  geometry.ts) evita que una nube quede pegada al punto exacto donde arranca la vista. */
+const CLOUD_BASE_AZIMUTH_DEG = 195;
+/** Salto de altura entre nubes (encima de `sky.cloudHeightFactor`), determinista por
+ *  índice: no todas flotan exactamente al mismo nivel. */
+const CLOUD_HEIGHT_JITTER = [0, 0.35, 0.15, 0.5];
+/** Breakpoint "sm" de Tailwind — mismo criterio que ya usa el resto de la interfaz para
+ *  distinguir móvil de escritorio. */
+const MOBILE_BREAKPOINT_PX = 640;
+
 // Bajada de 1.05: hace falta para compensar `intensity` del sol mucho más alta (ver abajo)
 // y devolver la escena a un brillo general normal sin perder el contraste que esa
 // intensidad le da a la sombra.
@@ -80,9 +120,41 @@ const CAMERA_NEAR = 1;
  *  geometría justo en el límite de colisión. */
 const CAMERA_COLLISION_COMFORT = 1;
 
+/** Escribe las matrices en el buffer del `InstancedMesh` una sola vez (o cuando cambian) y
+ *  pide un cuadro — mismo patrón que `useInstanceMatrices` en los componentes de `engine/`. */
+function useCloudInstanceMatrices(matrices: THREE.Matrix4[]) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const invalidate = useThree((state) => state.invalidate);
+  useEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    matrices.forEach((matrix, index) => mesh.setMatrixAt(index, matrix));
+    mesh.instanceMatrix.needsUpdate = true;
+    invalidate();
+  }, [matrices, invalidate]);
+  return ref;
+}
+
+/** No son vendibles ni interactivas: fuera del raycasting para no interferir con el picking. */
+const noCloudRaycast = () => null;
+
+/** Todas las esferas de `CLOUDS` en un solo `InstancedMesh` (un puñado de nubes de unas
+ *  pocas esferas cada una — nunca son cientos de instancias, no hace falta más de uno). */
+const CloudPuffs = memo(function CloudPuffs({ matrices, opacity }: { matrices: THREE.Matrix4[]; opacity: number }) {
+  const geometry = useMemo(() => new THREE.IcosahedronGeometry(1, 1), []);
+  const material = useMemo(
+    () => new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.95, metalness: 0, transparent: true, opacity }),
+    [opacity],
+  );
+  const ref = useCloudInstanceMatrices(matrices);
+  if (matrices.length === 0) return null;
+  return <instancedMesh ref={ref} args={[geometry, material, matrices.length]} raycast={noCloudRaycast} />;
+});
+
 export function Selector3D() {
-  const { geometry, brand, balcony, roof, camera: cameraConfig, name: developmentName, whatsapp } = auraConfig;
+  const { geometry, brand, balcony, roof, camera: cameraConfig, sky: skyConfig, name: developmentName, whatsapp } = auraConfig;
   const [introDone, setIntroDone] = useState(false);
+  const handleIntroComplete = useCallback(() => setIntroDone(true), []);
   const { units, developmentId, loadError, openContact } = useOutletContext<AuraOutletContext>();
 
   const { code } = useParams<{ code?: string }>();
@@ -97,7 +169,13 @@ export function Selector3D() {
   const priceMax = useFiltersStore((state) => state.priceMax);
   const onlyAvailable = useFiltersStore((state) => state.onlyAvailable);
   const showAvailability = useFiltersStore((state) => state.showAvailability);
-  const filters = { bedrooms, priceMin, priceMax, onlyAvailable };
+  // Memoizado: un objeto nuevo en cada render (aunque los VALORES no cambien) le llega a
+  // <Tower> como "prop distinta" y, si Tower está en React.memo, invalida esa memoización
+  // sin razón — por ejemplo, cada vez que se abre/cierra un panel que no toca filtros.
+  const filters = useMemo(
+    () => ({ bedrooms, priceMin, priceMax, onlyAvailable }),
+    [bedrooms, priceMin, priceMax, onlyAvailable],
+  );
   // Cualquier filtro activo implica "ver disponibilidad" aunque el toggle manual esté apagado.
   const availabilityMode = showAvailability || hasActiveFilters(filters);
 
@@ -153,10 +231,15 @@ export function Selector3D() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [developmentId, bedrooms, priceMin, priceMax, onlyAvailable]);
 
-  function handleSelectUnit(nextCode: string | null) {
-    selectUnit(nextCode);
-    navigate(nextCode ? `/aura/unidad/${nextCode}` : '/aura', { replace: true });
-  }
+  // useCallback (no una función declarada a secas): se pasa a <Tower>, que ahora está en
+  // React.memo — una referencia nueva en cada render invalidaría esa memoización sin razón.
+  const handleSelectUnit = useCallback(
+    (nextCode: string | null) => {
+      selectUnit(nextCode);
+      navigate(nextCode ? `/aura/unidad/${nextCode}` : '/aura', { replace: true });
+    },
+    [selectUnit, navigate],
+  );
 
   // Solo para pasarle la huella y la altura total al contexto urbano y a las sombras;
   // Tower calcula su propio layout internamente a partir de `geometry`.
@@ -172,6 +255,9 @@ export function Selector3D() {
   // celular vertical de escritorio — el encuadre de entrada solo se calcula una vez, igual
   // que antes cuando `camera.intro` era un vector fijo.
   const aspect = useMemo(() => (typeof window === 'undefined' ? 16 / 9 : window.innerWidth / window.innerHeight), []);
+  // Mismo criterio que `aspect`: se calcula una vez al montar, no reactivo a resize — un
+  // giro de orientación a medio uso no debería hacer aparecer/desaparecer nubes de golpe.
+  const isMobile = useMemo(() => typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT_PX, []);
   const framing = useMemo(
     () => computeCameraFraming(layout.footprint, layout.totalHeight, aspect, CAMERA_FOV),
     [layout.footprint, layout.totalHeight, aspect],
@@ -211,7 +297,7 @@ export function Selector3D() {
   // juega la transición de salida) — se dispara con el código (string estable), no con el
   // objeto `Unit` completo: ese objeto cambia de referencia en cada actualización de
   // Realtime aunque sea la misma unidad, y reiniciaría la animación de entrada sin motivo.
-  const { rendered: presentUnitCode, visible: unitPanelVisible } = usePresence(selectedUnitCode, 350);
+  const { rendered: presentUnitCode, visible: unitPanelVisible } = usePresence(selectedUnitCode, 280);
   const [lastUnitPanelData, setLastUnitPanelData] = useState<{
     unit: Unit;
     polygon: Point[] | undefined;
@@ -249,6 +335,37 @@ export function Selector3D() {
     footprintCenterZ + SUN_DIRECTION[2] * sunDistance,
   ];
 
+  // Una matriz por esfera de nube (todas las nubes comparten un solo InstancedMesh). El
+  // radio de cada nube es SIEMPRE `framing.maxDistance` (la distancia máxima a la que
+  // `OrbitControls` deja alejar la cámara — ver más abajo) por `sky.cloudDistanceMargin`:
+  // más allá de eso la cámara nunca puede llegar, así que las nubes quedan fuera del
+  // volumen de espacio que la cámara puede ocupar, sin importar el ángulo o el zoom — nunca
+  // pueden quedar entre la cámara y la torre. El conteo baja en móvil (`cloudCountMobile`).
+  const cloudPuffMatrices = useMemo(() => {
+    const count = isMobile ? skyConfig.cloudCountMobile : skyConfig.cloudCount;
+    if (count <= 0) return [];
+    const matrices: THREE.Matrix4[] = [];
+    const cloudRadius = framing.maxDistance * skyConfig.cloudDistanceMargin;
+    for (let index = 0; index < count; index += 1) {
+      const azimuthDeg = CLOUD_BASE_AZIMUTH_DEG + (360 / count) * index;
+      const azimuthRad = (azimuthDeg * Math.PI) / 180;
+      const heightFactor = skyConfig.cloudHeightFactor + CLOUD_HEIGHT_JITTER[index % CLOUD_HEIGHT_JITTER.length];
+      const centerX = footprintCenterX + cloudRadius * Math.cos(azimuthRad);
+      const centerY = layout.totalHeight * heightFactor;
+      const centerZ = footprintCenterZ + cloudRadius * Math.sin(azimuthRad);
+      for (const [dx, dy, dz, puffRadius] of CLOUD_PUFFS) {
+        const position = new THREE.Vector3(
+          centerX + dx * skyConfig.cloudScale,
+          centerY + dy * skyConfig.cloudScale,
+          centerZ + dz * skyConfig.cloudScale,
+        );
+        const scale = puffRadius * skyConfig.cloudScale;
+        matrices.push(new THREE.Matrix4().compose(position, new THREE.Quaternion(), new THREE.Vector3(scale, scale, scale)));
+      }
+    }
+    return matrices;
+  }, [isMobile, skyConfig, framing.maxDistance, footprintCenterX, footprintCenterZ, layout.totalHeight]);
+
   return (
     // `select-none`: arrastrar para orbitar la torre (escritorio) podía iniciar una
     // selección de texto nativa del navegador si el gesto pasaba cerca de la leyenda o
@@ -283,6 +400,12 @@ export function Selector3D() {
             torre): da profundidad sin necesitar postprocesado. */}
         <fog attach="fog" args={[FOG_COLOR, sunDistance * 0.45, sunDistance * 1.4]} />
         <Sky sunPosition={sunPosition} {...SKY_PARAMS} />
+
+        {/* Nubes: `MeshStandardMaterial` reacciona a la luz de la escena (sol +
+            hemisferio ya puestos para la sombra), así que sin configurar nada aparte salen
+            más claras del lado del sol. Estáticas (nunca cambian tras el primer cuadro), así
+            que no pelean con `frameloop="demand"` — se pintan una vez y ya. */}
+        <CloudPuffs matrices={cloudPuffMatrices} opacity={skyConfig.cloudOpacity} />
 
         {/* Hemisferio (cielo arriba, rebote de piso abajo) en vez de ambiental plano:
             así la sombra del sol tiene con qué contrastar sin que la escena se vea gris.
@@ -367,7 +490,7 @@ export function Selector3D() {
           far={geometry.groundFloorHeight}
         />
 
-        <CameraRig intro={framing.intro} target={framing.target} onComplete={() => setIntroDone(true)} />
+        <CameraRig intro={framing.intro} target={framing.target} onComplete={handleIntroComplete} />
 
         {/* `enablePan={false}`: pan (clic derecho o dos dedos) desplaza `target`, y una vez
             desplazado, la órbita ya no gira alrededor de la torre sino de donde haya
@@ -392,6 +515,7 @@ export function Selector3D() {
         <CameraCollision bounds={cameraLimits.bounds} target={framing.target} />
 
         <AdaptivePerformance dprRange={DPR_RANGE} />
+        <WebGLRecovery />
       </Canvas>
 
       {/* "Ver disponibilidad" antes iba junto a Legend en la misma fila y quedaba muy

@@ -1,6 +1,7 @@
 import { useEffect, useState, type SVGProps } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { AmenityIcon } from './AmenityIcons';
+import { useDragToDismiss } from '../lib/useDragToDismiss';
 import { useEscapeKey } from '../lib/useEscapeKey';
 import { usePresence } from '../lib/usePresence';
 import { trackEvent } from '../lib/analytics';
@@ -44,10 +45,12 @@ interface AmenityLightboxProps {
  * aparece un poco después con su propio desvanecido (`delay-100`), en vez de saltar junto
  * con el marco. Altura de imagen fija (`h-56`/`h-72`, no `max-h`+`object-cover` variable):
  * así la tarjeta no cambia de tamaño al pasar de una amenidad a otra con foto más alta o
- * más ancha. Escape cierra, igual que el resto de los paneles.
+ * más ancha. Escape cierra, igual que el resto de los paneles; en móvil también se cierra
+ * arrastrando hacia abajo (misma pestaña que `UnitPanel`/`ContactCard`).
  */
 function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, onClose }: AmenityLightboxProps) {
   useEscapeKey(onClose, visible);
+  const { dragging, dragY, handlePointerDown, handlePointerMove, handlePointerUp } = useDragToDismiss(onClose, visible);
 
   return (
     <div
@@ -57,53 +60,67 @@ function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, o
       onClick={onClose}
     >
       <div
-        className={`max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white shadow-2xl transition-[opacity,transform] duration-[350ms] ease-elegant motion-reduce:transition-none sm:rounded-2xl ${
+        className={`flex max-h-[85dvh] w-full max-w-lg select-none flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl transition-[opacity,transform] duration-[300ms] ease-elegant motion-reduce:transition-none sm:select-auto sm:rounded-2xl ${
           visible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 sm:translate-y-4'
         }`}
+        style={dragging ? { transform: `translateY(${dragY}px)`, transition: 'none' } : undefined}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="relative">
-          <img src={amenity.image} alt={amenity.label} className="block h-56 w-full object-cover sm:h-72 sm:rounded-t-2xl" />
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar"
-            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-xl leading-none text-neutral-600 shadow hover:text-neutral-900"
-          >
-            &times;
-          </button>
-          {hasPrev && (
-            <button
-              type="button"
-              onClick={onPrev}
-              aria-label="Amenidad anterior"
-              className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-xl leading-none text-neutral-700 shadow hover:text-neutral-900"
-            >
-              &lsaquo;
-            </button>
-          )}
-          {hasNext && (
-            <button
-              type="button"
-              onClick={onNext}
-              aria-label="Siguiente amenidad"
-              className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-xl leading-none text-neutral-700 shadow hover:text-neutral-900"
-            >
-              &rsaquo;
-            </button>
-          )}
-        </div>
         <div
-          className={`p-5 transition-opacity duration-[350ms] ease-elegant delay-100 motion-reduce:transition-none motion-reduce:delay-0 ${
-            visible ? 'opacity-100' : 'opacity-0'
-          }`}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          className="flex shrink-0 touch-none cursor-grab justify-center bg-white pb-1 pt-2.5 active:cursor-grabbing sm:hidden"
         >
-          <div className="flex items-center gap-2">
-            <AmenityIcon name={amenity.icon} className="h-5 w-5 shrink-0 text-[var(--brand-primary)]" />
-            <p className="font-serif text-lg text-neutral-900">{amenity.label}</p>
+          <span className="h-1.5 w-10 rounded-full bg-neutral-300" aria-hidden="true" />
+          <span className="sr-only">Deslizar o tocar para cerrar</span>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="relative">
+            <img src={amenity.image} alt={amenity.label} className="block h-56 w-full object-cover sm:h-72 sm:rounded-t-2xl" />
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Cerrar"
+              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-xl leading-none text-neutral-600 shadow hover:text-neutral-900"
+            >
+              &times;
+            </button>
+            {hasPrev && (
+              <button
+                type="button"
+                onClick={onPrev}
+                aria-label="Amenidad anterior"
+                className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-xl leading-none text-neutral-700 shadow hover:text-neutral-900"
+              >
+                &lsaquo;
+              </button>
+            )}
+            {hasNext && (
+              <button
+                type="button"
+                onClick={onNext}
+                aria-label="Siguiente amenidad"
+                className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-xl leading-none text-neutral-700 shadow hover:text-neutral-900"
+              >
+                &rsaquo;
+              </button>
+            )}
           </div>
-          {amenity.description && <p className="mt-2 text-sm leading-relaxed text-neutral-600">{amenity.description}</p>}
-          <p className="mt-4 text-xs text-neutral-400">Imágenes conceptuales ilustrativas</p>
+          <div
+            className={`p-5 transition-opacity duration-[300ms] ease-elegant delay-100 motion-reduce:transition-none motion-reduce:delay-0 ${
+              visible ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <AmenityIcon name={amenity.icon} className="h-5 w-5 shrink-0 text-[var(--brand-primary)]" />
+              <p className="font-serif text-lg text-neutral-900">{amenity.label}</p>
+            </div>
+            {amenity.description && <p className="mt-2 text-sm leading-relaxed text-neutral-600">{amenity.description}</p>}
+            <p className="mt-4 text-xs text-neutral-400">Imágenes conceptuales ilustrativas</p>
+          </div>
         </div>
       </div>
     </div>
@@ -134,7 +151,7 @@ export function ProjectView() {
   // sin imagen (`amenity.image` ausente) se queda como tarjeta de solo ícono, sin romperse.
   const amenitiesWithImage = amenities.filter((amenity) => amenity.image);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const { rendered: presentIndex, visible: lightboxVisible } = usePresence(openIndex, 350);
+  const { rendered: presentIndex, visible: lightboxVisible } = usePresence(openIndex, 300);
   const presentAmenity = presentIndex !== null ? amenitiesWithImage[presentIndex] : null;
 
   const [mapResetToken, setMapResetToken] = useState(0);

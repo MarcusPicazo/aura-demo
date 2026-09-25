@@ -71,13 +71,44 @@ function ToneGroup({ buildings, wallColor, windowColor, repeat }: ToneGroupProps
   return <instancedMesh ref={ref} args={[geometry, material, matrices.length]} raycast={noRaycast} castShadow receiveShadow />;
 }
 
+/** Mancha oscura y plana en la base de cada vecino (oclusión ambiental falsa, misma idea
+ *  que `<ContactShadows>` de la torre pero sin el costo de una pasada de render aparte —
+ *  aquí basta un plano semitransparente por edificio, todos en un solo `InstancedMesh`):
+ *  sin esto, los vecinos se veían flotando sobre el piso en vez de asentados en él. */
+function BuildingOcclusion({ buildings, opacity, margin }: { buildings: NeighborBuilding[]; opacity: number; margin: number }) {
+  const geometry = useMemo(() => new THREE.PlaneGeometry(1, 1), []);
+  const material = useMemo(
+    () => new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity, depthWrite: false }),
+    [opacity],
+  );
+  const rotation = useMemo(() => new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)), []);
+  const matrices = useMemo(
+    () =>
+      buildings.map(
+        (building) =>
+          new THREE.Matrix4().compose(
+            // Un poco por encima del piso (`Context.tsx` lo pone en y=-0.02): si quedara a
+            // la misma altura, el z-fighting la haría parpadear en vez de verse sólida.
+            new THREE.Vector3(building.x, 0.015, building.z),
+            rotation,
+            new THREE.Vector3(building.width * (1 + margin), building.depth * (1 + margin), 1),
+          ),
+      ),
+    [buildings, rotation, margin],
+  );
+  const ref = useInstanceMatrices(matrices);
+
+  if (buildings.length === 0 || opacity <= 0) return null;
+  return <instancedMesh ref={ref} args={[geometry, material, matrices.length]} raycast={noRaycast} />;
+}
+
 /**
  * Edificios vecinos: antes, cajas grises semitransparentes en posiciones fijas. Ahora son
  * masas opacas de 3-8 niveles con tono variado y cuadrícula de ventanas por textura,
  * repartidas de forma determinista en un anillo que evita el lado de la calle, a una
- * distancia mínima garantizada del pie de la torre. Un `InstancedMesh` por tono de la
- * paleta (no uno por edificio): sigue siendo un puñado de llamadas de dibujo sin importar
- * cuántos vecinos haya.
+ * distancia mínima garantizada del pie de la torre, con una mancha de oclusión en su base
+ * para que se asienten en el piso. Un `InstancedMesh` por tono de la paleta (no uno por
+ * edificio): sigue siendo un puñado de llamadas de dibujo sin importar cuántos vecinos haya.
  */
 export function NeighborBuildings({ footprint, streetSide, config }: NeighborBuildingsProps) {
   const buildings = useMemo(
@@ -117,6 +148,7 @@ export function NeighborBuildings({ footprint, streetSide, config }: NeighborBui
 
   return (
     <>
+      <BuildingOcclusion buildings={buildings} opacity={config.baseOcclusionOpacity} margin={config.baseOcclusionMargin} />
       {groups.map(([toneIndex, group]) => (
         <ToneGroup
           key={toneIndex}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Edges, Outlines } from '@react-three/drei';
 import { useThree, type ThreeEvent } from '@react-three/fiber';
@@ -253,8 +253,14 @@ interface TowerProps {
  * hover o tap, y atenúa las que no coinciden con `filters`. No conoce nombres, colores de
  * marca ni datos de negocio propios del cliente: todo (geometría, materiales, unidades,
  * filtros, selección) llega por props.
+ *
+ * `memo`: es, con mucho, el componente más pesado dentro del `<Canvas>` (una malla por
+ * unidad — 46 en la demo — más núcleo, losas, forro interior...). Sin esto, React lo vuelve
+ * a reconciliar completo cada vez que `Selector3D` se re-renderiza por CUALQUIER motivo
+ * (abrir el panel de asesor, expandir filtros), aunque ninguna de estas props haya
+ * cambiado — el llamador ya memoiza `filters`/`onSelectUnit` para que esto de verdad sirva.
  */
-export function Tower({
+function TowerComponent({
   config,
   units,
   filters,
@@ -460,3 +466,5 @@ export function Tower({
     </group>
   );
 }
+
+export const Tower = memo(TowerComponent);

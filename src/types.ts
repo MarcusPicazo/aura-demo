@@ -157,6 +157,24 @@ export interface CameraConfig {
 }
 
 /**
+ * Nubes del cielo del selector 3D. `cloudDistanceMargin` es la pieza que de verdad importa:
+ * multiplica a `framing.maxDistance` (la distancia máxima a la que `OrbitControls` deja
+ * alejar la cámara, calculada de la geometría real de la torre) para plantar las nubes
+ * siempre MÁS ALLÁ de cualquier punto que la cámara pueda ocupar — así, sin importar el
+ * ángulo o el zoom, nunca quedan entre la cámara y la torre.
+ */
+export interface SkyConfig {
+  cloudCount: number;
+  /** Cuántas nubes se muestran en pantallas angostas (móvil) — menos costo de relleno. */
+  cloudCountMobile: number;
+  cloudDistanceMargin: number;
+  /** Múltiplo de la altura total de la torre. */
+  cloudHeightFactor: number;
+  cloudOpacity: number;
+  cloudScale: number;
+}
+
+/**
  * Azotea: pretil perimetral (para que no se vea "cortada"), pérgola de madera sobre parte
  * de la losa de azotea, y un volumen pequeño de instalaciones.
  */
@@ -310,9 +328,18 @@ export interface NeighborBuildingsConfig {
   maxWidth: number;
   /** Separación mínima entre el pie de la torre y la cara más cercana de cualquier vecino. */
   minClearance: number;
-  /** Paleta de tonos de fachada; se reparte determinísticamente por índice de edificio. */
+  /** Paleta de tonos de fachada; se reparte determinísticamente por índice de edificio. Más
+   *  oscura y con algo más de saturación que el cielo/niebla — si quedan casi del mismo
+   *  valor tonal, se pierden contra el fondo sin importar qué tan bien esté calculada la
+   *  niebla. */
   tones: string[];
   windowColor: string;
+  /** Opacidad de la mancha oscura (oclusión ambiental falsa) en la base de cada vecino —
+   *  0 la desactiva. */
+  baseOcclusionOpacity: number;
+  /** Cuánto más ancha que la huella del edificio es esa mancha, como fracción extra (0.2 =
+   *  20% más ancha por lado). */
+  baseOcclusionMargin: number;
 }
 
 export interface GroundConfig {
@@ -424,6 +451,7 @@ export interface DevelopmentConfig {
   paymentPlan: PaymentPlanConfig;
   geometry: TowerGeometryConfig;
   camera: CameraConfig;
+  sky: SkyConfig;
   /** Ficha de negocio por tipo (A, B, C, D...), aplica a las unidades de `geometry.plate`. */
   unitTypes: Record<string, UnitTypeSpec>;
   /** Ficha de negocio por código, para los penthouses únicos de `geometry.penthousePlate`. */
