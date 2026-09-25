@@ -94,6 +94,27 @@ export function Balconies({ geometry, layout, balcony }: BalconiesProps) {
       }
     }
 
+    // Puente de canto de losa sobre el núcleo (SPEC: la torre debe leerse como un solo
+    // volumen, no dos separados por el hueco de circulaciones): cada unidad, arriba, generó
+    // su propia banda hasta su propio borde — en el frente y el fondo de la torre, donde el
+    // núcleo separa una unidad de la de junto, eso deja sin banda justo el ancho del núcleo,
+    // en cada piso. Se rellena con las aristas del propio núcleo que caen exactamente sobre
+    // el frente o el fondo de la huella completa (`footprint.minZ`/`maxZ`): son las únicas
+    // aristas del núcleo que de verdad dan a una fachada — las laterales corren en el mismo
+    // sentido que el pasillo entre las unidades de enfrente y las de atrás, no cruzan nada.
+    // Sin barandal/pasamanos aquí: no es un balcón, es una franja de concreto ciego sobre el
+    // propio núcleo, igual que su remate en azotea (`Roof.tsx`, `coreCapGeometry`).
+    const coreBridgeEdges = computePolygonEdges(layout.core).filter(
+      (edge) =>
+        Math.abs(edge.midpoint[1] - layout.footprint.minZ) < 1e-6 || Math.abs(edge.midpoint[1] - layout.footprint.maxZ) < 1e-6,
+    );
+    for (const level of layout.levels) {
+      for (const edge of coreBridgeEdges) {
+        slabEdgeMatrices.push(edgeBandMatrix(edge, balcony.depth / 2, level.y));
+        soffitMatrices.push(edgeBandMatrix(edge, balcony.depth / 2, level.y + soffitOffsetY));
+      }
+    }
+
     return {
       slabEdge: slabEdgeMatrices,
       railing: railingMatrices,

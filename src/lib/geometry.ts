@@ -242,6 +242,58 @@ export function computeCameraFraming(footprint: PolygonBounds, totalHeight: numb
   };
 }
 
+/** Caja alineada a los ejes: volumen de colisión de la cámara alrededor de la torre. */
+export interface CameraCollisionBounds {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+  minZ: number;
+  maxZ: number;
+}
+
+export interface CameraLimits {
+  bounds: CameraCollisionBounds;
+  /** Distancia mínima "segura" en cualquier dirección desde `target` a la cara más cercana
+   *  de `bounds` — límite grueso y barato para el propio `minDistance` de OrbitControls.
+   *  El límite fino (por dirección, con la caja real) lo aplica `CameraCollision` cada
+   *  cuadro; este solo evita que el usuario llegue ahí sintiendo que "no pasa nada". */
+  minDistance: number;
+}
+
+/**
+ * Volumen de colisión de la cámara: la huella real expandida `horizontalMargin` metros
+ * (cubre balcones y dan colchón) y la altura real expandida `topMargin` metros hacia
+ * arriba (cubre pérgola/equipo de azotea), ambos desde la config del cliente — el motor no
+ * asume ningún tamaño de balcón o remate de azotea en particular.
+ */
+export function computeCameraLimits(
+  footprint: PolygonBounds,
+  totalHeight: number,
+  target: [number, number, number],
+  horizontalMargin: number,
+  topMargin: number,
+): CameraLimits {
+  const [targetX, targetY, targetZ] = target;
+  const bounds: CameraCollisionBounds = {
+    minX: footprint.minX - horizontalMargin,
+    maxX: footprint.maxX + horizontalMargin,
+    minZ: footprint.minZ - horizontalMargin,
+    maxZ: footprint.maxZ + horizontalMargin,
+    minY: -horizontalMargin,
+    maxY: totalHeight + topMargin,
+  };
+  const minDistance = Math.min(
+    targetX - bounds.minX,
+    bounds.maxX - targetX,
+    targetY - bounds.minY,
+    bounds.maxY - targetY,
+    targetZ - bounds.minZ,
+    bounds.maxZ - targetZ,
+  );
+  return { bounds, minDistance };
+}
+
 /**
  * Código de unidad regular por piso, SPEC §3: `{piso}{nn}` → 101,102,103,104…1101…1104.
  * `orderInFloor` es la posición dentro de `geometry.plate` (0=A, 1=B, 2=C, 3=D). Vive aquí

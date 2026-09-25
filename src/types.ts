@@ -141,6 +141,22 @@ export interface LobbyConfig {
 }
 
 /**
+ * Límites de órbita de la cámara del selector 3D: qué tanto margen darle a la caja de
+ * colisión alrededor de la torre (para no depender de a mano de balcones/remates de azotea
+ * de este cliente en particular) y qué tan cenital o rasante puede llegar a verse.
+ */
+export interface CameraConfig {
+  /** Margen horizontal (m) más allá de la huella real — cubre balcones y da colchón. */
+  collisionHorizontalMargin: number;
+  /** Margen (m) por encima de la altura total — cubre pérgola/equipo de azotea. */
+  collisionTopMargin: number;
+  /** Ángulo polar mínimo: qué tan cenital (vista de pájaro) se permite llegar a ver. */
+  minPolarAngleDeg: number;
+  /** Ángulo polar máximo: qué tan rasante (nivel de piso o por debajo) se permite llegar a ver. */
+  maxPolarAngleDeg: number;
+}
+
+/**
  * Azotea: pretil perimetral (para que no se vea "cortada"), pérgola de madera sobre parte
  * de la losa de azotea, y un volumen pequeño de instalaciones.
  */
@@ -407,6 +423,7 @@ export interface DevelopmentConfig {
   context: ContextConfig;
   paymentPlan: PaymentPlanConfig;
   geometry: TowerGeometryConfig;
+  camera: CameraConfig;
   /** Ficha de negocio por tipo (A, B, C, D...), aplica a las unidades de `geometry.plate`. */
   unitTypes: Record<string, UnitTypeSpec>;
   /** Ficha de negocio por código, para los penthouses únicos de `geometry.penthousePlate`. */

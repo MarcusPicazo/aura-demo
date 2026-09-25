@@ -6,6 +6,7 @@ import { ContactShadows, Environment, OrbitControls, Sky } from '@react-three/dr
 import { Tower } from '../engine/Tower';
 import { Context } from '../engine/Context';
 import { CameraRig } from '../engine/CameraRig';
+import { CameraCollision } from '../engine/CameraCollision';
 import { AdaptivePerformance } from '../engine/AdaptivePerformance';
 import { UnitPanel } from './UnitPanel';
 import { Filters } from './Filters';
@@ -13,7 +14,7 @@ import { Legend } from './Legend';
 import { AvailabilityToggle } from './AvailabilityToggle';
 import { LoadingScreen } from './LoadingScreen';
 import type { AuraOutletContext } from './AuraLayout';
-import { buildTowerLayout, computeCameraFraming, findUnitPolygon, floorPlanKey } from '../lib/geometry';
+import { buildTowerLayout, computeCameraFraming, computeCameraLimits, findUnitPolygon, floorPlanKey } from '../lib/geometry';
 import { hasActiveFilters } from '../lib/filters';
 import { trackEvent } from '../lib/analytics';
 import { usePresence } from '../lib/usePresence';
@@ -71,9 +72,16 @@ const TONE_MAPPING_EXPOSURE = 0.7;
 /** FOV vertical de la cámara — una sola constante, la usan tanto el `Canvas` como el
  *  cálculo de encuadre (`computeCameraFraming`), para que nunca queden desincronizados. */
 const CAMERA_FOV = 50;
+/** Plano cercano de la cámara — misma razón que `CAMERA_FOV`: también la usa el cálculo
+ *  del margen de colisión (abajo), para que nunca quede más corto que lo que la cámara
+ *  puede en verdad acercarse sin recortar geometría. */
+const CAMERA_NEAR = 1;
+/** Colchón extra más allá del plano cercano, para que la cámara nunca quede recortando la
+ *  geometría justo en el límite de colisión. */
+const CAMERA_COLLISION_COMFORT = 1;
 
 export function Selector3D() {
-  const { geometry, brand, name: developmentName, whatsapp } = auraConfig;
+  const { geometry, brand, balcony, roof, camera: cameraConfig, name: developmentName, whatsapp } = auraConfig;
   const [introDone, setIntroDone] = useState(false);
   const { units, developmentId, loadError, openContact } = useOutletContext<AuraOutletContext>();
 
@@ -169,6 +177,30 @@ export function Selector3D() {
     [layout.footprint, layout.totalHeight, aspect],
   );
 
+  // Volumen de colisión de la cámara (SPEC: nunca debe quedar dentro de la torre) — huella y
+  // altura reales expandidas por los márgenes del cliente (`cameraConfig`, pensados para
+  // "se ve bien"). Pero el margen también tiene que ganarle a lo que de verdad sobresale del
+  // volumen nominal (balcones, pérgola de azotea) MÁS el propio plano cercano de la cámara:
+  // si el margen es menor a eso, la cámara puede quedar a menos de `CAMERA_NEAR` de un
+  // balcón o la pérgola y esa geometría se recorta (se ve "sin textura", plana). Por eso es
+  // el máximo entre lo que pide la config y ese piso de seguridad, no la config a secas.
+  // `OrbitControls.minDistance` usa el límite grueso (`minDistance`, la cara más cercana);
+  // `CameraCollision` aplica el límite fino por dirección cada cuadro.
+  const horizontalCollisionMargin = Math.max(
+    cameraConfig.collisionHorizontalMargin,
+    balcony.depth + CAMERA_NEAR + CAMERA_COLLISION_COMFORT,
+  );
+  const topCollisionMargin = Math.max(
+    cameraConfig.collisionTopMargin,
+    roof.pergolaHeight + CAMERA_NEAR + CAMERA_COLLISION_COMFORT,
+  );
+  const cameraLimits = useMemo(
+    () => computeCameraLimits(layout.footprint, layout.totalHeight, framing.target, horizontalCollisionMargin, topCollisionMargin),
+    [layout.footprint, layout.totalHeight, framing.target, horizontalCollisionMargin, topCollisionMargin],
+  );
+  const minPolarAngle = (cameraConfig.minPolarAngleDeg * Math.PI) / 180;
+  const maxPolarAngle = (cameraConfig.maxPolarAngleDeg * Math.PI) / 180;
+
   const selectedUnit = units.find((unit) => unit.code === selectedUnitCode) ?? null;
   const selectedUnitPolygon = selectedUnit ? findUnitPolygon(geometry, selectedUnit) : undefined;
   const selectedUnitPlanKey = selectedUnit ? floorPlanKey(selectedUnit, geometry.levels) : null;
@@ -227,15 +259,22 @@ export function Selector3D() {
         // shadow map de three.js se recalcula en cada render (autoUpdate por default),
         // y bajo "demand" solo hay render cuando algo realmente invalida la escena.
         frameloop="demand"
-        shadows="soft"
+        // `"soft"` (y también `true`) le piden a R3F `PCFSoftShadowMap` — tipo que la
+        // versión de three.js instalada (0.186) ya no soporta: el renderer lo detecta en
+        // el primer frame y lo sustituye por PCFShadowMap con un warning en consola. El
+        // pedido de la SPEC siempre fue sombra DURA y bien definida (ver `shadow-radius={1}`
+        // abajo), así que `"percentage"` —que R3F mapea directo a PCFShadowMap— pide
+        // exactamente eso desde el inicio, sin pasar por el tipo eliminado ni su warning.
+        shadows="percentage"
         // `near` antes era 0.1: junto con `far=500` da una proporción far/near de 5000:1,
         // que deja muy poca precisión de profundidad disponible para la escena real (todo
         // pasa a metros del target, nunca a centímetros de la cámara). A poca distancia esa
         // falta de precisión se nota grueso (no como un parpadeo de un píxel): el vidrio y
         // lo que tiene detrás (mullions, forro interior) compiten por el mismo valor de
-        // profundidad y el más cercano "gana" de forma inestable. 1 sigue siendo mucho más
-        // cerca de lo que la cámara puede llegar (`minDistance` en OrbitControls, abajo).
-        camera={{ position: framing.intro, fov: CAMERA_FOV, near: 1, far: 500 }}
+        // profundidad y el más cercano "gana" de forma inestable. El margen de colisión de
+        // la cámara (`horizontalCollisionMargin`/`topCollisionMargin`, arriba) ya garantiza
+        // que la cámara nunca quede más cerca de la torre que `CAMERA_NEAR`.
+        camera={{ position: framing.intro, fov: CAMERA_FOV, near: CAMERA_NEAR, far: 500 }}
         onPointerMissed={() => handleSelectUnit(null)}
         dpr={DPR_RANGE}
         gl={{ toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: TONE_MAPPING_EXPOSURE }}
@@ -334,16 +373,23 @@ export function Selector3D() {
             desplazado, la órbita ya no gira alrededor de la torre sino de donde haya
             quedado ese nuevo punto — se sentía como "gira alrededor de donde toco", no
             alrededor del edificio. Sin pan, `target` se queda fijo en el centro de la
-            torre siempre; solo quedan órbita (arrastrar) y zoom (rueda/pellizco), que es
-            lo único que pedía el SPEC. */}
+            torre siempre (la torre nunca se sale del encuadre); solo quedan órbita
+            (arrastrar) y zoom (rueda/pellizco), que es lo único que pedía el SPEC.
+            `minDistance`/`minPolarAngle`/`maxPolarAngle`: límite grueso y barato (esférico
+            en distancia, angular en altura) contra entrar al edificio o llegar a una vista
+            cenital plana o por debajo del piso — todo derivado de la geometría real de la
+            torre y la config del cliente, nunca hardcoded. El límite fino por dirección
+            (la torre no es una esfera) lo aplica `CameraCollision`, justo abajo. */}
         <OrbitControls
           enabled={introDone}
           target={framing.target}
           enablePan={false}
-          minDistance={20}
+          minDistance={cameraLimits.minDistance}
           maxDistance={framing.maxDistance}
-          maxPolarAngle={Math.PI / 2 - 0.02}
+          minPolarAngle={minPolarAngle}
+          maxPolarAngle={maxPolarAngle}
         />
+        <CameraCollision bounds={cameraLimits.bounds} target={framing.target} />
 
         <AdaptivePerformance dprRange={DPR_RANGE} />
       </Canvas>
