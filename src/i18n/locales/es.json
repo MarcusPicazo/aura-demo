@@ -20,13 +20,13 @@
   },
   "tabs": {
     "tower3d": "Torre 3D",
-    "render": "Render",
+    "render": "Vistas",
     "project": "Proyecto",
-    "label": "Vistas del proyecto"
+    "label": "Secciones del proyecto"
   },
   "mode": {
     "viewIn3d": "Ver en 3D",
-    "viewInRender": "Ver en render"
+    "viewInRender": "Ver vistas"
   },
   "breadcrumbs": {
     "aria": "Ubicación en el conjunto"
@@ -45,7 +45,7 @@
     "view": "Ver imagen {n}"
   },
   "renderNav": {
-    "views": "Vistas del render",
+    "views": "Ángulos de la vista",
     "selectFloor": "Seleccionar piso",
     "floor": "Piso {floor}"
   },

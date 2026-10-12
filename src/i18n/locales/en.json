@@ -20,13 +20,13 @@
   },
   "tabs": {
     "tower3d": "3D Tower",
-    "render": "Renders",
+    "render": "Views",
     "project": "Project",
-    "label": "Project views"
+    "label": "Project sections"
   },
   "mode": {
     "viewIn3d": "View in 3D",
-    "viewInRender": "View renders"
+    "viewInRender": "See views"
   },
   "breadcrumbs": {
     "aria": "Location in the development"
@@ -45,7 +45,7 @@
     "view": "View image {n}"
   },
   "renderNav": {
-    "views": "Render views",
+    "views": "View angles",
     "selectFloor": "Select floor",
     "floor": "Floor {floor}"
   },

@@ -46,7 +46,7 @@ export default function AdminPage() {
               Unidades
             </NavLink>
             <NavLink to="/admin/render" className={navLinkClass}>
-              Render
+              Vistas
             </NavLink>
             <NavLink to="/admin/plantas" className={navLinkClass}>
               Plantas

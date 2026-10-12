@@ -63,7 +63,7 @@ Si una funcionalidad no ayuda a estos tres momentos, no es prioridad.
   de estado y precio editable. Los cambios se reflejan en tiempo real en el selector.
 - **Mobile-first**: se diseña primero para celular vertical.
 
-### 4.2 Modo render (segunda pestaña)
+### 4.2 Modo render: la pestaña «Vistas» (antes «Render»)
 Navegación por imágenes (renders) con el mismo inventario de Supabase que el selector 3D. Debe
 funcionar igual si el cliente solo entrega renders y no hay modelo 3D (en ese caso la pestaña
 "Torre 3D" no aparece y `/aura` abre el render).
@@ -78,10 +78,15 @@ funcionar igual si el cliente solo entrega renders y no hay modelo 3D (en ese ca
   decodificada), **precarga** de las imágenes a las que puede llegar el usuario y **versiones
   responsivas** (`srcset` WebP 800/1600/2400 + JPG de respaldo, generadas con
   `scripts/build-render-images.ts`). Imágenes marcadas como "conceptuales ilustrativas".
-- **Cambio de modo**: un botón arriba a la derecha ("Ver en 3D" / "Ver en render") y las pestañas
-  "Torre 3D" y "Render" conservan la unidad o el piso que el usuario traía. Solo aparecen los
+- **Cambio de modo**: un botón arriba a la derecha ("Ver en 3D" / "Ver vistas") y las pestañas
+  "Torre 3D" y "Vistas" conservan la unidad o el piso que el usuario traía. Solo aparecen los
   modos que el desarrollo tiene. URL: `/aura/render/:viewId?piso=<n>&unidad=<código>`.
-- Las zonas se dibujan con el editor de `/admin/render` y se pegan en `config.render`.
+- Las zonas se dibujan con el editor de `/admin/render` (enlace «Vistas» del panel; sirve para cualquier vista, no solo la fachada)
+  y se pegan en `config.render`. La URL sigue siendo `/aura/render/...`: cambia el nombre de la pestaña, no las direcciones.
+- **Recorrido de la demo**: la foto aérea (`public/clients/aura/views/aerial.jpg`, 1920 px, < 400 KB) tiene una zona sobre la torre que
+  lleva a la fachada frontal; en la fachada cada piso lleva a su planta (la planta generada por el motor). Las demás vistas (fachada
+  posterior, plantas de cada edificio) se alcanzan con los ángulos de arriba. Con "Ver disponibilidad" las zonas de piso y de unidad se
+  colorean por estado; la zona de la torre en la aérea solo navega (no tiene piso ni unidad).
 - **Planta generada por el motor** (`kind: "generatedPlan"`, sin imágenes externas): cámara ortográfica
   cenital sobre el nivel elegido, con losa, muros, ventanas, puertas y mobiliario (los mismos
   símbolos que el plano SVG de la ficha), el código de cada unidad y el color por estado del

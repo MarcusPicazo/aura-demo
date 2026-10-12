@@ -57,7 +57,7 @@ supabase/migrations/   SQL
 scripts/                Seed de datos y generación de imágenes del modo render
 ```
 
-## Modo render
+## Modo render (pestaña «Vistas»)
 
 Imágenes con zonas clicables (aérea, fachadas, plantas por nivel) que usan el mismo inventario
 que el 3D. Se define en `render` dentro de `src/config/<cliente>.json`.
@@ -66,6 +66,10 @@ que el 3D. Se define en `render` dentro de `src/config/<cliente>.json`.
 2. Genera las versiones responsivas: `npx tsx scripts/build-render-images.ts <cliente>`. Imprime
    el bloque `image` (ruta, anchos, tamaño) de cada imagen para pegar en el config.
 3. Dibuja las zonas en `/admin/render` y pega el JSON exportado como `render` en el config.
+
+Si la imagen ya está lista dentro de `public/clients/<cliente>/` (por ejemplo `views/aerial.jpg`, comprimida a su tamaño final), no necesita
+`render-src/`: `npx tsx scripts/build-render-images.ts <cliente> --in-place views/aerial.jpg` genera solo las variantes WebP
+(`aerial-800.webp`, `-1600`, `-1920`) junto a ella y deja el JPG como respaldo.
 
 **Plantas por nivel:** una vista `{ "kind": "generatedPlan" }` las dibuja el motor desde `geometry` y
 `floorPlans` (cámara ortográfica cenital, muros, mobiliario, códigos y color por estado), siempre
