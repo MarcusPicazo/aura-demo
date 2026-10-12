@@ -171,8 +171,20 @@ Todo en el cliente: no hay backend ni cuenta; lo que la persona arma vive en su 
   WhatsApp**: en celular usa el menú de compartir del sistema con el PDF adjunto; si el dispositivo no puede compartir
   archivos, descarga el PDF y abre el chat del asesor con el mensaje prellenado para que lo adjunte (un enlace de WhatsApp
   no puede adjuntar archivos). Una unidad vendida no se cotiza.
+- **Brochure en PDF** ("Descargar brochure", en la ficha del asesor): se arma en el navegador con jsPDF (`lib/brochurePdf.ts`, con las piezas
+  compartidas con la cotización en `lib/pdfKit.ts`) y se descarga de un clic ("Preparando brochure…" mientras tanto; si falla, un aviso).
+  4 páginas carta: **portada** con la fachada (la vista `facade` del modo render) y la marca, **el proyecto** (descripción, foto
+  aérea si hay vista `aerial`, ubicación), **tipologías** (una por tipo del inventario: plano, recámaras, baños, superficie y precio
+  "desde" de la unidad disponible más barata; sin inventario se usan las de `unitTypes` de la config), **amenidades** con su foto,
+  **esquema de pagos** (rango de enganche, mensualidades, saldo y entrega), datos del asesor y aviso. Sale en el idioma y la moneda
+  elegidos (en dólares, con la nota del tipo de cambio). Pesa ~1 MB. Si el cliente trae su propio PDF, `advisor.brochureUrl` lo usa
+  en lugar del generado.
+- **"Agendar visita"** (ficha del asesor) abre WhatsApp con el mensaje "Hola, quiero agendar una visita a <desarrollo>" (o, con una
+  unidad seleccionada, "…para ver <unidad>").
+- **Aviso de privacidad**: el enlace del formulario de contacto (`PrivacyNoticeLink`) abre `/aviso-de-privacidad` en una pestaña
+  aparte; si el navegador no deja abrirla (panel integrado, app instalada, kiosco), la abre en la misma ventana.
 - **Rendimiento**: las hojas (favoritos, comparador, cotización) se cargan la primera vez que se abren; jsPDF y
-  `react-dom/server` (para dibujar el plano en el PDF) solo se bajan al pedir una cotización.
+  `react-dom/server` (para dibujar el plano en el PDF) solo se bajan al pedir una cotización o el brochure.
 
 ### 4.9 Idiomas (es/en) y moneda (MXN/USD)
 Aplica al sitio público (selector 3D, render, proyecto, fichas, comparador, favoritos, cotización PDF, mensajes de

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { PrivacyNoticeLink } from './PrivacyNoticeLink';
 import { lazy, Suspense, useEffect, useState, type FormEvent, type SVGProps } from 'react';
 import { FloorPlanDetailed } from './FloorPlanDetailed';
 import { InteriorGallery } from './InteriorGallery';
@@ -381,9 +381,7 @@ export function UnitPanel({
             />
             <span>
               {t('unit.consent')}{' '}
-              <Link to="/aviso-de-privacidad" target="_blank" rel="noreferrer" className="underline">
-                {t('unit.privacyLink')}
-              </Link>
+              <PrivacyNoticeLink className="underline">{t('unit.privacyLink')}</PrivacyNoticeLink>
               .
             </span>
           </label>

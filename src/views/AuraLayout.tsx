@@ -249,6 +249,7 @@ export function AuraLayout() {
           advisor={auraConfig.advisor}
           developmentName={messageDevelopmentName(i18n, selectedUnit?.buildingId)}
           selectedUnit={selectedUnit}
+          units={units}
           visible={contactVisible}
           onClose={() => setContactOpen(false)}
         />

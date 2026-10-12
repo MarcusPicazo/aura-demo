@@ -146,6 +146,22 @@ Los textos de la interfaz están en `src/i18n/locales/`; los del cliente, en `sr
 El tipo de cambio MXN/USD (referencial) está en `currency` de ese mismo archivo: actualízalo a mano. Revisa que las traducciones
 estén completas con `npx tsx scripts/check-i18n.ts`.
 
+## Publicar (Vercel)
+
+Antes de publicar, en este orden:
+
+1. **Variables en Vercel** (Production y Preview): `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`. Nunca la *service role key*.
+2. **Base de datos:** corre `node scripts/check-db.cjs`: dice qué migraciones de `supabase/migrations/` faltan en la base real. Las del sitio
+   público (`…add_lead_consent_and_origin`, `…add_events_table`, `…add_units_building`) se pegan, en ese orden, en Supabase → SQL Editor →
+   New query → Run; sin la primera **los leads del formulario no se guardan**. La del portal (`…portal_comercial_schema`) solo si se usa el portal.
+   Vuelve a correr el script hasta que diga que no falta nada.
+3. **Datos del cliente:** reemplaza los ficticios de `src/config/<cliente>.json`: teléfono, correo y sala de ventas del `advisor`, `legal`
+   (responsable y domicilio del aviso de privacidad), `seo.siteUrl` (la dirección final) y los textos marcados como ilustrativos.
+4. **Verificación:** `npm run build`, `npm run lint` y `npx tsx scripts/check-i18n.ts` deben pasar; abre `npm run preview` y revisa los tres momentos de
+   SPEC §2. `vercel.json` ya reescribe las rutas de la app y cachea por un año los archivos con huella.
+5. **Después de publicar:** abre el sitio en un celular, presiona "Me interesa" y confirma que el lead aparece en Supabase, instala la app y
+   ábrela sin conexión.
+
 ## Otros comandos
 
 ```bash

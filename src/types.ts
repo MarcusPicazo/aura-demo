@@ -276,8 +276,11 @@ export interface AdvisorConfig {
   email: string;
   hours: LocalizedText;
   salesOffice: ProjectLocationConfig;
-  /** Ruta del PDF del brochure en `public/clients/<slug>/`. */
-  brochureUrl: string;
+  /**
+   * Brochure propio del cliente (ruta del PDF en `public/clients/<slug>/`). Opcional: sin él, "Descargar brochure" arma uno en el
+   * navegador con la fachada, las tipologías, las amenidades, los pagos y los datos del asesor (`lib/brochurePdf.ts`).
+   */
+  brochureUrl?: string;
 }
 
 /** Lado de la huella (bounding box) de la torre: hacia dónde da la calle o la marquesina. */

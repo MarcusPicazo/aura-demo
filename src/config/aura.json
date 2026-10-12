@@ -19,8 +19,7 @@
       "lat": 19.3838,
       "lng": -99.1677,
       "address": { "es": "Insurgentes Sur 1234, Col. Del Valle Centro, Benito Juárez, CDMX (sala de ventas, dirección ilustrativa)", "en": "Insurgentes Sur 1234, Col. Del Valle Centro, Benito Juárez, CDMX (sales office, illustrative address)" }
-    },
-    "brochureUrl": "/clients/aura/brochure.pdf"
+    }
   },
   "seo": {
     "siteUrl": "https://torre-aura-del-valle.vercel.app",

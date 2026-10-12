@@ -2,6 +2,7 @@ import type { SVGProps } from 'react';
 import { useDragToDismiss } from '../lib/useDragToDismiss';
 import { useEscapeKey } from '../lib/useEscapeKey';
 import { buildAdvisorMessage, buildScheduleVisitMessage, buildWhatsappLink } from '../lib/whatsapp';
+import { BrochureButton } from './BrochureButton';
 import { useI18n } from '../i18n/useI18n';
 import type { AdvisorConfig, Unit } from '../types';
 
@@ -11,6 +12,8 @@ interface ContactCardProps {
   /** Si hay una unidad seleccionada en el selector 3D, los mensajes de WhatsApp la
    *  incluyen — así el asesor no tiene que preguntar de cuál departamento se trata. */
   selectedUnit: Unit | null;
+  /** Inventario actual: el brochure arma sus tipologías con él. */
+  units: Unit[];
   visible: boolean;
   onClose: () => void;
 }
@@ -86,7 +89,7 @@ function initials(name: string): string {
  * descargar brochure. Mismo estilo y animación de apertura que `UnitPanel` — hoja inferior
  * en móvil (con su propia pestaña de arrastre), panel a la derecha en escritorio.
  */
-export function ContactCard({ advisor, developmentName, selectedUnit, visible, onClose }: ContactCardProps) {
+export function ContactCard({ advisor, developmentName, selectedUnit, units, visible, onClose }: ContactCardProps) {
   useEscapeKey(onClose, visible);
   const { dragging, dragY, handlePointerDown, handlePointerMove, handlePointerUp } = useDragToDismiss(onClose, visible);
   const i18n = useI18n();
@@ -201,13 +204,7 @@ export function ContactCard({ advisor, developmentName, selectedUnit, visible, o
             >
               {t('contact.schedule')}
             </a>
-            <a
-              href={advisor.brochureUrl}
-              download
-              className="rounded-full border border-neutral-300 py-2 text-center text-sm font-medium text-neutral-700"
-            >
-              {t('contact.brochure')}
-            </a>
+            <BrochureButton units={units} />
           </div>
         </div>
       </div>

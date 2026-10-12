@@ -115,7 +115,9 @@
     "onUnit": "Sobre la unidad {code}",
     "whatsapp": "Escribir por WhatsApp",
     "schedule": "Agendar visita",
-    "brochure": "Descargar brochure"
+    "brochure": "Descargar brochure",
+    "brochurePreparing": "Preparando brochure…",
+    "brochureError": "No se pudo generar el brochure. Intenta de nuevo."
   },
   "project": {
     "amenities": "Amenidades",
@@ -392,5 +394,29 @@
   },
   "selector": {
     "canvasLabel": "Modelo 3D interactivo de {name}: gira, acerca y toca un piso o una unidad para ver su ficha."
+  },
+  "brochure": {
+    "filePrefix": "brochure",
+    "label": "BROCHURE",
+    "title": "Brochure — {development}",
+    "subject": "Brochure de {development}",
+    "project": "El proyecto",
+    "location": "Ubicación",
+    "typologies": "Tipologías",
+    "bedrooms_one": "{count} recámara",
+    "bedrooms_other": "{count} recámaras",
+    "bathrooms_one": "{count} baño",
+    "bathrooms_other": "{count} baños",
+    "area": "{m2} m²",
+    "areaRange": "{min} a {max} m²",
+    "fromPrice": "Desde {price}",
+    "noUnits": "Sin unidades disponibles por ahora",
+    "amenities": "Amenidades",
+    "downPayment": "Enganche",
+    "downPaymentRange": "de {min}% a {max}%",
+    "months": "Mensualidades durante la obra",
+    "balance": "Saldo contra entrega",
+    "page": "Página {n} de {total}",
+    "disclaimer": "Brochure informativo generado el {date}. Imágenes, planos y renders ilustrativos. Los precios, la disponibilidad y el esquema de pagos están sujetos a cambio sin previo aviso, y este documento no constituye una oferta ni el apartado de ninguna unidad."
   }
 }

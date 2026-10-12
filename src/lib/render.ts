@@ -131,6 +131,16 @@ export function buildImageSources(image: RenderImage): ImageSources {
 }
 
 /**
+ * La variante WebP más chica que llega a `targetWidth` (o la más grande si ninguna llega): lo que se usa donde no hay `srcset`,
+ * como al incrustar la foto en un PDF. Son las variantes que el service worker guarda para usar sin conexión (el JPG de respaldo no).
+ */
+export function imageUrlForWidth(image: RenderImage, targetWidth: number): string {
+  const widths = [...image.widths].sort((a, b) => a - b);
+  const width = widths.find((candidate) => candidate >= targetWidth) ?? widths[widths.length - 1];
+  return width === undefined ? `${image.base}.jpg` : `${image.base}-${width}.webp`;
+}
+
+/**
  * Ancho que ocupa la imagen en pantalla, para que el navegador elija la variante correcta
  * del `srcset` sin descargar de más: la imagen se ajusta (contain) al área libre, así que
  * mide lo que quepa a lo ancho o lo que dé la altura disponible multiplicada por su proporción.

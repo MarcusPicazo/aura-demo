@@ -115,7 +115,9 @@
     "onUnit": "About unit {code}",
     "whatsapp": "Message on WhatsApp",
     "schedule": "Schedule a visit",
-    "brochure": "Download brochure"
+    "brochure": "Download brochure",
+    "brochurePreparing": "Preparing brochure…",
+    "brochureError": "The brochure couldn't be generated. Please try again."
   },
   "project": {
     "amenities": "Amenities",
@@ -392,5 +394,29 @@
   },
   "selector": {
     "canvasLabel": "Interactive 3D model of {name}: rotate, zoom and tap a floor or a unit to see its details."
+  },
+  "brochure": {
+    "filePrefix": "brochure",
+    "label": "BROCHURE",
+    "title": "Brochure — {development}",
+    "subject": "Brochure of {development}",
+    "project": "The project",
+    "location": "Location",
+    "typologies": "Floor plans",
+    "bedrooms_one": "{count} bedroom",
+    "bedrooms_other": "{count} bedrooms",
+    "bathrooms_one": "{count} bathroom",
+    "bathrooms_other": "{count} bathrooms",
+    "area": "{m2} m²",
+    "areaRange": "{min} to {max} m²",
+    "fromPrice": "From {price}",
+    "noUnits": "No units available at the moment",
+    "amenities": "Amenities",
+    "downPayment": "Down payment",
+    "downPaymentRange": "{min}% to {max}%",
+    "months": "Monthly payments during construction",
+    "balance": "Balance on delivery",
+    "page": "Page {n} of {total}",
+    "disclaimer": "Informational brochure generated on {date}. Images, plans and renders are illustrative. Prices, availability and the payment plan are subject to change without notice, and this document is not an offer or a reservation of any unit."
   }
 }
