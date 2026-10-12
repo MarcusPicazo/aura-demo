@@ -33,22 +33,33 @@ export function ApartadoDrawer({ unit, onClose, onCreated }: ApartadoDrawerProps
   const selectedProspecto = myProspectos.find((p) => p.id === selectedProspectoId);
   const canSubmit = mode === 'existente' ? Boolean(selectedProspecto) : newName.trim().length > 2 && newPhone.trim().length > 6;
 
-  function handleConfirm() {
+  async function handleConfirm() {
     if (!canSubmit) return;
     setSubmitting(true);
 
-    window.setTimeout(() => {
+    try {
       const prospectoId =
         mode === 'existente'
           ? selectedProspecto!.id
-          : addProspecto({ name: newName.trim(), phone: newPhone.trim(), origin: newOrigin, advisorId: currentUser.id, interestedUnitCodes: [unit.code] }).id;
+          : (
+              await addProspecto({
+                name: newName.trim(),
+                phone: newPhone.trim(),
+                origin: newOrigin,
+                advisorId: currentUser.id,
+                interestedUnitCodes: [unit.code],
+              })
+            ).id;
 
-      createHold({ unitCode: unit.code, prospectoId, advisorId: currentUser.id, amount, holdHours, notes: notes || undefined });
+      await createHold({ unitCode: unit.code, prospectoId, advisorId: currentUser.id, amount, holdHours, notes: notes || undefined });
 
       setSubmitting(false);
       setDone(true);
       window.setTimeout(onCreated, 1000);
-    }, 700);
+    } catch (error) {
+      setSubmitting(false);
+      window.alert(error instanceof Error ? error.message : 'No se pudo registrar el apartado.');
+    }
   }
 
   const expiresLabel = useMemo(

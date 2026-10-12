@@ -5,13 +5,19 @@ import { PortalSidebar } from './PortalSidebar';
 import { PortalHeader } from './PortalHeader';
 import { PortalBottomNav } from './PortalBottomNav';
 import { Icon } from '../components/Icon';
+import { loadPortalFonts } from '../lib/portalFonts';
+import { RouteFallback } from '../../views/RouteFallback';
 import '../portal-theme.css';
+
+// Tipografía e iconos del portal: se piden al entrar aquí, no en el HTML del sitio público.
+loadPortalFonts();
 
 /** Shell de rutas autenticadas: si no hay sesión mock, manda a /portal/login.
  *  Header y acciones rápidas cambian según el rol (admin vs asesor), igual que en el
  *  export de Stitch — dos experiencias, un solo layout. */
 export function PortalLayout() {
   const currentUser = usePortalStore((state) => state.currentUser);
+  const authReady = usePortalStore((state) => state.authReady);
   const logout = usePortalStore((state) => state.logout);
   const units = usePortalStore((state) => state.units);
   const approvals = usePortalStore((state) => state.approvals);
@@ -19,6 +25,10 @@ export function PortalLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  // Mientras se revisa si ya había sesión de Supabase guardada, no renderiza nada en vez
+  // de mandar a /portal/login por un instante y luego saltar de vuelta al recargar.
+  if (!authReady) return <RouteFallback />;
 
   if (!currentUser) {
     return <Navigate to="/portal/login" replace />;
@@ -60,7 +70,7 @@ export function PortalLayout() {
               type="button"
               onClick={() => {
                 setUserMenuOpen(false);
-                logout();
+                void logout();
               }}
               className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left font-ui text-body-sm text-on-surface transition-colors hover:bg-surface-container-high"
             >

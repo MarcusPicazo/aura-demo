@@ -13,6 +13,19 @@
   --ease-elegant: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Showroom (pantalla táctil de sala de ventas): toda la interfaz crece (los tamaños de Tailwind son en rem), sin selección de
+   texto ni gestos de navegador que saquen al visitante de la página. */
+html[data-kiosk] {
+  font-size: 125%;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+html[data-kiosk] body {
+  -webkit-tap-highlight-color: transparent;
+}
+
 html,
 body,
 #root {
@@ -29,6 +42,13 @@ body {
    mano, y quedaba inconsistente entre botones. Uno solo, global, para toda la app. */
 button:not(:disabled) {
   cursor: pointer;
+}
+
+/* Foco visible para quien navega con teclado (o con un interruptor): un mismo anillo en toda la interfaz, con el acento de la marca
+   (y un respaldo si la paleta aún no está puesta). `:where` no suma especificidad, así que cualquier clase de Tailwind lo sobrescribe. */
+:where(a, button, input, select, textarea, summary, [tabindex]:not([tabindex='-1'])):focus-visible {
+  outline: 2px solid var(--brand-accent, #b08d57);
+  outline-offset: 2px;
 }
 
 /* Entrada para vistas de ruta completa (sección de Proyecto): no necesitan animación de

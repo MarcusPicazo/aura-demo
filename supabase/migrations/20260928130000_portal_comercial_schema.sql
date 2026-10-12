@@ -153,14 +153,17 @@ create policy "Solo admin actualiza miembros del equipo"
   with check (is_admin());
 
 -- ============================================================================
--- 3. `leads` pasa a ser también el "prospecto" del CRM: etapa del embudo y asesor
---    asignado. `advisor_id` nace nulo (un lead del selector público no tiene asesor
---    hasta que alguien del equipo lo toma).
+-- 3. `leads` pasa a ser también el "prospecto" del CRM: etapa del embudo, asesor
+--    asignado y correo (el formulario original de SPEC §4.1 solo pedía nombre y
+--    teléfono; el portal sí lo captura al dar de alta un prospecto). `advisor_id`
+--    nace nulo (un lead del selector público no tiene asesor hasta que alguien del
+--    equipo lo toma).
 -- ============================================================================
 alter table leads
   add column stage text not null default 'nuevo'
     check (stage in ('nuevo', 'contactado', 'cita', 'seguimiento', 'cerrado', 'perdido')),
-  add column advisor_id uuid references team_members(id);
+  add column advisor_id uuid references team_members(id),
+  add column email text;
 
 -- Reemplaza la política de lectura original (cualquier autenticado veía todos los
 -- leads) por una que respeta la cartera de cada asesor, salvo que sea admin o tenga

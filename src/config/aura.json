@@ -1,24 +1,24 @@
 {
   "slug": "aura",
   "name": "Torre Aura Del Valle",
-  "tagline": "Vivir en la luz de Del Valle",
+  "tagline": { "es": "Vivir en la luz de Del Valle", "en": "Living in the light of Del Valle" },
   "whatsapp": "5215500000000",
   "brand": { "primary": "#2B2B2B", "accent": "#C8A27A", "background": "#F4EFE8", "logo": "/clients/aura/logo.svg" },
   "legal": {
-    "privacyResponsibleParty": "Desarrolladora Aura del Valle, S.A. de C.V. (nombre ilustrativo)",
-    "privacyAddress": "Insurgentes Sur 1234, Col. Del Valle Centro, Benito Juárez, CDMX, C.P. 03100 (dirección ilustrativa)",
+    "privacyResponsibleParty": { "es": "Desarrolladora Aura del Valle, S.A. de C.V. (nombre ilustrativo)", "en": "Desarrolladora Aura del Valle, S.A. de C.V. (illustrative name)" },
+    "privacyAddress": { "es": "Insurgentes Sur 1234, Col. Del Valle Centro, Benito Juárez, CDMX, C.P. 03100 (dirección ilustrativa)", "en": "Insurgentes Sur 1234, Col. Del Valle Centro, Benito Juárez, CDMX, C.P. 03100 (illustrative address)" },
     "privacyContactEmail": "privacidad@torreauradelvalle.mx"
   },
   "advisor": {
     "name": "Andrea Martínez",
-    "role": "Asesora comercial",
+    "role": { "es": "Asesora comercial", "en": "Sales advisor" },
     "phone": "5215500000001",
     "email": "andrea.martinez@torreauradelvalle.mx",
-    "hours": "Lunes a viernes 9:00–18:00 · Sábado 10:00–14:00",
+    "hours": { "es": "Lunes a viernes 9:00–18:00 · Sábado 10:00–14:00", "en": "Monday to Friday 9:00 am–6:00 pm · Saturday 10:00 am–2:00 pm" },
     "salesOffice": {
       "lat": 19.3838,
       "lng": -99.1677,
-      "address": "Insurgentes Sur 1234, Col. Del Valle Centro, Benito Juárez, CDMX (sala de ventas, dirección ilustrativa)"
+      "address": { "es": "Insurgentes Sur 1234, Col. Del Valle Centro, Benito Juárez, CDMX (sala de ventas, dirección ilustrativa)", "en": "Insurgentes Sur 1234, Col. Del Valle Centro, Benito Juárez, CDMX (sales office, illustrative address)" }
     },
     "brochureUrl": "/clients/aura/brochure.pdf"
   },
@@ -143,26 +143,74 @@
     "constructionMonths": 18,
     "deliveryDate": "2028-03-01"
   },
-  "geometry": {
-    "floorHeight": 3.2,
-    "slabThickness": 0.3,
-    "groundFloorHeight": 4.5,
-    "levels": 12,
-    "plate": [
-      { "type": "A", "polygon": [[0, 0], [11, 0], [11, 8], [0, 8]] },
-      { "type": "B", "polygon": [[13, 0], [24, 0], [24, 8], [13, 8]] },
-      {
-        "type": "C",
-        "polygon": [[0, 10], [11, 10], [11, 18], [6, 18], [6, 14], [0, 14]]
-      },
-      { "type": "D", "polygon": [[13, 10], [24, 10], [24, 18], [13, 18]] }
-    ],
-    "penthousePlate": [
-      { "type": "PH", "code": "1201", "polygon": [[0, 0], [11, 0], [11, 18], [0, 18]] },
-      { "type": "PH", "code": "1202", "polygon": [[13, 0], [24, 0], [24, 18], [13, 18]] }
-    ],
-    "core": [[11, 0], [13, 0], [13, 18], [11, 18]]
-  },
+  "buildings": [
+    {
+      "id": "torre-aura",
+      "name": "Torre Aura",
+      "kind": "tower",
+      "position": [0, 0],
+      "rotationDeg": 0,
+      "geometry": {
+        "floorHeight": 3.2,
+        "slabThickness": 0.3,
+        "groundFloorHeight": 4.5,
+        "levels": 12,
+        "plate": [
+          { "type": "A", "polygon": [[0, 0], [11, 0], [11, 8], [0, 8]] },
+          { "type": "B", "polygon": [[13, 0], [24, 0], [24, 8], [13, 8]] },
+          {
+            "type": "C",
+            "polygon": [[0, 10], [11, 10], [11, 18], [6, 18], [6, 14], [0, 14]]
+          },
+          { "type": "D", "polygon": [[13, 10], [24, 10], [24, 18], [13, 18]] }
+        ],
+        "penthousePlate": [
+          { "type": "PH", "code": "1201", "polygon": [[0, 0], [11, 0], [11, 18], [0, 18]] },
+          { "type": "PH", "code": "1202", "polygon": [[13, 0], [24, 0], [24, 18], [13, 18]] }
+        ],
+        "core": [[11, 0], [13, 0], [13, 18], [11, 18]]
+      }
+    },
+    {
+      "id": "torre-jacaranda",
+      "name": "Torre Jacaranda",
+      "kind": "tower",
+      "position": [38, 2],
+      "rotationDeg": -90,
+      "geometry": {
+        "floorHeight": 3.2,
+        "slabThickness": 0.3,
+        "groundFloorHeight": 4.5,
+        "levels": 7,
+        "plate": [
+          { "type": "A", "polygon": [[0, 0], [11, 0], [11, 8], [0, 8]] },
+          { "type": "B", "polygon": [[13, 0], [24, 0], [24, 8], [13, 8]] }
+        ],
+        "penthousePlate": [
+          { "type": "A", "code": "701", "polygon": [[0, 0], [11, 0], [11, 8], [0, 8]] },
+          { "type": "B", "code": "702", "polygon": [[13, 0], [24, 0], [24, 8], [13, 8]] }
+        ],
+        "core": [[11, 0], [13, 0], [13, 8], [11, 8]]
+      }
+    },
+    {
+      "id": "casa-club",
+      "name": { "es": "Casa Club", "en": "Clubhouse" },
+      "kind": "clubhouse",
+      "position": [14, 28],
+      "rotationDeg": 0,
+      "description": { "es": "Alberca climatizada, gimnasio, salón de usos múltiples y terraza para los residentes del conjunto.", "en": "Heated pool, gym, multipurpose room and terrace for the development's residents." },
+      "geometry": {
+        "floorHeight": 3.4,
+        "slabThickness": 0.3,
+        "groundFloorHeight": 5,
+        "levels": 2,
+        "plate": [{ "type": "CC", "polygon": [[0, 0], [16, 0], [16, 10], [0, 10]] }],
+        "penthousePlate": [{ "type": "CC", "code": "CC2", "polygon": [[0, 0], [10, 0], [10, 10], [0, 10]] }],
+        "core": [[6, 3], [8, 3], [8, 7], [6, 7]]
+      }
+    }
+  ],
   "unitTypes": {
     "A": { "bedrooms": 2, "bathrooms": 2, "m2": 85, "priceBase": 5600000, "orientation": "Norponiente" },
     "B": { "bedrooms": 1, "bathrooms": 1, "m2": 62, "priceBase": 4300000, "orientation": "Nororiente" },
@@ -200,12 +248,12 @@
         { "from": [7, 0], "to": [9, 0] }
       ],
       "rooms": [
-        { "label": "Sala-comedor", "polygon": [[0, 0], [11, 0], [11, 3.4], [0, 3.4]] },
-        { "label": "Cocina", "polygon": [[0, 3.4], [3.2, 3.4], [3.2, 8], [0, 8]] },
-        { "label": "Recámara principal", "polygon": [[3.2, 3.4], [7.0, 3.4], [7.0, 8], [3.2, 8]] },
-        { "label": "Baño principal", "polygon": [[7.0, 3.4], [8.6, 3.4], [8.6, 5.7], [7.0, 5.7]] },
-        { "label": "Baño 2", "polygon": [[7.0, 5.7], [8.6, 5.7], [8.6, 8], [7.0, 8]] },
-        { "label": "Recámara 2", "polygon": [[8.6, 3.4], [11, 3.4], [11, 8], [8.6, 8]] }
+        { "label": { "es": "Sala-comedor", "en": "Living-dining room" }, "polygon": [[0, 0], [11, 0], [11, 3.4], [0, 3.4]] },
+        { "label": { "es": "Cocina", "en": "Kitchen" }, "polygon": [[0, 3.4], [3.2, 3.4], [3.2, 8], [0, 8]] },
+        { "label": { "es": "Recámara principal", "en": "Primary bedroom" }, "polygon": [[3.2, 3.4], [7.0, 3.4], [7.0, 8], [3.2, 8]] },
+        { "label": { "es": "Baño principal", "en": "Primary bathroom" }, "polygon": [[7.0, 3.4], [8.6, 3.4], [8.6, 5.7], [7.0, 5.7]] },
+        { "label": { "es": "Baño 2", "en": "Bathroom 2" }, "polygon": [[7.0, 5.7], [8.6, 5.7], [8.6, 8], [7.0, 8]] },
+        { "label": { "es": "Recámara 2", "en": "Bedroom 2" }, "polygon": [[8.6, 3.4], [11, 3.4], [11, 8], [8.6, 8]] }
       ],
       "furniture": [
         { "type": "sofa", "position": [5.5, 1.4] },
@@ -246,12 +294,12 @@
         { "from": [7, 0], "to": [9, 0] }
       ],
       "rooms": [
-        { "label": "Sala-comedor", "polygon": [[0, 0], [11, 0], [11, 3.4], [0, 3.4]] },
-        { "label": "Cocina", "polygon": [[7.8, 3.4], [11, 3.4], [11, 8], [7.8, 8]] },
-        { "label": "Recámara principal", "polygon": [[4.0, 3.4], [7.8, 3.4], [7.8, 8], [4.0, 8]] },
-        { "label": "Baño principal", "polygon": [[2.4, 3.4], [4.0, 3.4], [4.0, 5.7], [2.4, 5.7]] },
-        { "label": "Baño 2", "polygon": [[2.4, 5.7], [4.0, 5.7], [4.0, 8], [2.4, 8]] },
-        { "label": "Recámara 2", "polygon": [[0, 3.4], [2.4, 3.4], [2.4, 8], [0, 8]] }
+        { "label": { "es": "Sala-comedor", "en": "Living-dining room" }, "polygon": [[0, 0], [11, 0], [11, 3.4], [0, 3.4]] },
+        { "label": { "es": "Cocina", "en": "Kitchen" }, "polygon": [[7.8, 3.4], [11, 3.4], [11, 8], [7.8, 8]] },
+        { "label": { "es": "Recámara principal", "en": "Primary bedroom" }, "polygon": [[4.0, 3.4], [7.8, 3.4], [7.8, 8], [4.0, 8]] },
+        { "label": { "es": "Baño principal", "en": "Primary bathroom" }, "polygon": [[2.4, 3.4], [4.0, 3.4], [4.0, 5.7], [2.4, 5.7]] },
+        { "label": { "es": "Baño 2", "en": "Bathroom 2" }, "polygon": [[2.4, 5.7], [4.0, 5.7], [4.0, 8], [2.4, 8]] },
+        { "label": { "es": "Recámara 2", "en": "Bedroom 2" }, "polygon": [[0, 3.4], [2.4, 3.4], [2.4, 8], [0, 8]] }
       ],
       "furniture": [
         { "type": "sofa", "position": [5.5, 1.4] },
@@ -283,10 +331,10 @@
       ],
       "windows": [{ "from": [2, 0], "to": [9, 0] }],
       "rooms": [
-        { "label": "Sala-comedor", "polygon": [[0, 0], [7, 0], [7, 4.5], [0, 4.5]] },
-        { "label": "Cocina", "polygon": [[7, 0], [11, 0], [11, 4.5], [7, 4.5]] },
-        { "label": "Recámara", "polygon": [[0, 4.5], [7.5, 4.5], [7.5, 8], [0, 8]] },
-        { "label": "Baño", "polygon": [[7.5, 4.5], [11, 4.5], [11, 8], [7.5, 8]] }
+        { "label": { "es": "Sala-comedor", "en": "Living-dining room" }, "polygon": [[0, 0], [7, 0], [7, 4.5], [0, 4.5]] },
+        { "label": { "es": "Cocina", "en": "Kitchen" }, "polygon": [[7, 0], [11, 0], [11, 4.5], [7, 4.5]] },
+        { "label": { "es": "Recámara", "en": "Bedroom" }, "polygon": [[0, 4.5], [7.5, 4.5], [7.5, 8], [0, 8]] },
+        { "label": { "es": "Baño", "en": "Bathroom" }, "polygon": [[7.5, 4.5], [11, 4.5], [11, 8], [7.5, 8]] }
       ],
       "furniture": [
         { "type": "sofa", "position": [3.5, 2] },
@@ -330,14 +378,14 @@
         { "from": [8.5, 0], "to": [10.5, 0] }
       ],
       "rooms": [
-        { "label": "Sala-comedor", "polygon": [[0, 0], [6, 0], [6, 4], [0, 4]] },
-        { "label": "Cocina", "polygon": [[6, 0], [8.5, 0], [8.5, 4], [6, 4]] },
-        { "label": "Medio baño", "polygon": [[8.5, 0], [11, 0], [11, 1], [8.5, 1]] },
-        { "label": "Recámara 3", "polygon": [[8.5, 1], [11, 1], [11, 4], [8.5, 4]] },
-        { "label": "Recámara principal", "polygon": [[0, 4], [3, 4], [3, 8], [0, 8]] },
-        { "label": "Baño principal", "polygon": [[3, 4], [4.2, 4], [4.2, 6], [3, 6]] },
-        { "label": "Recámara 2", "polygon": [[4.2, 4], [6, 4], [6, 8], [4.2, 8]] },
-        { "label": "Baño 2", "polygon": [[3, 6], [4.2, 6], [4.2, 8], [3, 8]] }
+        { "label": { "es": "Sala-comedor", "en": "Living-dining room" }, "polygon": [[0, 0], [6, 0], [6, 4], [0, 4]] },
+        { "label": { "es": "Cocina", "en": "Kitchen" }, "polygon": [[6, 0], [8.5, 0], [8.5, 4], [6, 4]] },
+        { "label": { "es": "Medio baño", "en": "Half bath" }, "polygon": [[8.5, 0], [11, 0], [11, 1], [8.5, 1]] },
+        { "label": { "es": "Recámara 3", "en": "Bedroom 3" }, "polygon": [[8.5, 1], [11, 1], [11, 4], [8.5, 4]] },
+        { "label": { "es": "Recámara principal", "en": "Primary bedroom" }, "polygon": [[0, 4], [3, 4], [3, 8], [0, 8]] },
+        { "label": { "es": "Baño principal", "en": "Primary bathroom" }, "polygon": [[3, 4], [4.2, 4], [4.2, 6], [3, 6]] },
+        { "label": { "es": "Recámara 2", "en": "Bedroom 2" }, "polygon": [[4.2, 4], [6, 4], [6, 8], [4.2, 8]] },
+        { "label": { "es": "Baño 2", "en": "Bathroom 2" }, "polygon": [[3, 6], [4.2, 6], [4.2, 8], [3, 8]] }
       ],
       "furniture": [
         { "type": "sofa", "position": [3, 1.6] },
@@ -382,14 +430,14 @@
         { "from": [0, 1], "to": [0, 4] }
       ],
       "rooms": [
-        { "label": "Sala-comedor", "polygon": [[0, 0], [11, 0], [11, 6], [0, 6]] },
-        { "label": "Cocina", "polygon": [[0, 6], [11, 6], [11, 9], [0, 9]] },
-        { "label": "Recámara principal", "polygon": [[0, 9], [3.8, 9], [3.8, 15], [0, 15]] },
-        { "label": "Recámara 2", "polygon": [[3.8, 9], [7.3, 9], [7.3, 15], [3.8, 15]] },
-        { "label": "Recámara 3", "polygon": [[7.3, 9], [11, 9], [11, 15], [7.3, 15]] },
-        { "label": "Baño principal", "polygon": [[0, 15], [3.8, 15], [3.8, 18], [0, 18]] },
-        { "label": "Baño 2", "polygon": [[3.8, 15], [7.3, 15], [7.3, 18], [3.8, 18]] },
-        { "label": "Medio baño", "polygon": [[7.3, 15], [11, 15], [11, 18], [7.3, 18]] }
+        { "label": { "es": "Sala-comedor", "en": "Living-dining room" }, "polygon": [[0, 0], [11, 0], [11, 6], [0, 6]] },
+        { "label": { "es": "Cocina", "en": "Kitchen" }, "polygon": [[0, 6], [11, 6], [11, 9], [0, 9]] },
+        { "label": { "es": "Recámara principal", "en": "Primary bedroom" }, "polygon": [[0, 9], [3.8, 9], [3.8, 15], [0, 15]] },
+        { "label": { "es": "Recámara 2", "en": "Bedroom 2" }, "polygon": [[3.8, 9], [7.3, 9], [7.3, 15], [3.8, 15]] },
+        { "label": { "es": "Recámara 3", "en": "Bedroom 3" }, "polygon": [[7.3, 9], [11, 9], [11, 15], [7.3, 15]] },
+        { "label": { "es": "Baño principal", "en": "Primary bathroom" }, "polygon": [[0, 15], [3.8, 15], [3.8, 18], [0, 18]] },
+        { "label": { "es": "Baño 2", "en": "Bathroom 2" }, "polygon": [[3.8, 15], [7.3, 15], [7.3, 18], [3.8, 18]] },
+        { "label": { "es": "Medio baño", "en": "Half bath" }, "polygon": [[7.3, 15], [11, 15], [11, 18], [7.3, 18]] }
       ],
       "furniture": [
         { "type": "sofa", "position": [4, 2] },
@@ -436,14 +484,14 @@
         { "from": [11, 1], "to": [11, 4] }
       ],
       "rooms": [
-        { "label": "Sala-comedor", "polygon": [[0, 0], [11, 0], [11, 6], [0, 6]] },
-        { "label": "Cocina", "polygon": [[0, 6], [11, 6], [11, 9], [0, 9]] },
-        { "label": "Recámara principal", "polygon": [[7.2, 9], [11, 9], [11, 15], [7.2, 15]] },
-        { "label": "Recámara 2", "polygon": [[3.7, 9], [7.2, 9], [7.2, 15], [3.7, 15]] },
-        { "label": "Recámara 3", "polygon": [[0, 9], [3.7, 9], [3.7, 15], [0, 15]] },
-        { "label": "Baño principal", "polygon": [[7.2, 15], [11, 15], [11, 18], [7.2, 18]] },
-        { "label": "Baño 2", "polygon": [[3.7, 15], [7.2, 15], [7.2, 18], [3.7, 18]] },
-        { "label": "Medio baño", "polygon": [[0, 15], [3.7, 15], [3.7, 18], [0, 18]] }
+        { "label": { "es": "Sala-comedor", "en": "Living-dining room" }, "polygon": [[0, 0], [11, 0], [11, 6], [0, 6]] },
+        { "label": { "es": "Cocina", "en": "Kitchen" }, "polygon": [[0, 6], [11, 6], [11, 9], [0, 9]] },
+        { "label": { "es": "Recámara principal", "en": "Primary bedroom" }, "polygon": [[7.2, 9], [11, 9], [11, 15], [7.2, 15]] },
+        { "label": { "es": "Recámara 2", "en": "Bedroom 2" }, "polygon": [[3.7, 9], [7.2, 9], [7.2, 15], [3.7, 15]] },
+        { "label": { "es": "Recámara 3", "en": "Bedroom 3" }, "polygon": [[0, 9], [3.7, 9], [3.7, 15], [0, 15]] },
+        { "label": { "es": "Baño principal", "en": "Primary bathroom" }, "polygon": [[7.2, 15], [11, 15], [11, 18], [7.2, 18]] },
+        { "label": { "es": "Baño 2", "en": "Bathroom 2" }, "polygon": [[3.7, 15], [7.2, 15], [7.2, 18], [3.7, 18]] },
+        { "label": { "es": "Medio baño", "en": "Half bath" }, "polygon": [[0, 15], [3.7, 15], [3.7, 18], [0, 18]] }
       ],
       "furniture": [
         { "type": "sofa", "position": [7, 2] },
@@ -463,12 +511,12 @@
     }
   },
   "interiors": {
-    "A": ["/clients/aura/interiors/a/sala.jpg", "/clients/aura/interiors/a/recamara.jpg"],
-    "B": ["/clients/aura/interiors/b/sala.jpg", "/clients/aura/interiors/b/recamara.jpg"],
-    "C": ["/clients/aura/interiors/c/sala.jpg", "/clients/aura/interiors/c/recamara.jpg"],
-    "D": ["/clients/aura/interiors/d/sala.jpg", "/clients/aura/interiors/d/cocina.jpg"],
-    "1201": ["/clients/aura/interiors/ph/sala.jpg", "/clients/aura/interiors/ph/terraza.jpg"],
-    "1202": ["/clients/aura/interiors/ph/sala.jpg", "/clients/aura/interiors/ph/terraza.jpg"]
+    "A": ["/clients/aura/interiors/a/sala.webp", "/clients/aura/interiors/a/recamara.webp"],
+    "B": ["/clients/aura/interiors/b/sala.webp", "/clients/aura/interiors/b/recamara.webp"],
+    "C": ["/clients/aura/interiors/c/sala.webp", "/clients/aura/interiors/c/recamara.webp"],
+    "D": ["/clients/aura/interiors/d/sala.webp", "/clients/aura/interiors/d/cocina.webp"],
+    "1201": ["/clients/aura/interiors/ph/sala.webp", "/clients/aura/interiors/ph/terraza.webp"],
+    "1202": ["/clients/aura/interiors/ph/sala.webp", "/clients/aura/interiors/ph/terraza.webp"]
   },
   "camera": {
     "collisionHorizontalMargin": 3.5,
@@ -484,70 +532,881 @@
     "cloudOpacity": 0.5,
     "cloudScale": 9
   },
-  "facade": { "image": "/clients/aura/facade.jpg", "floors": [] },
+  "i18n": {
+    "languages": ["es", "en"],
+    "defaultLanguage": "es"
+  },
+  "currency": {
+    "usdRate": 18,
+    "asOf": "2026-10-01"
+  },
+  "pwa": {
+    "shortName": "Torre Aura",
+    "display": "standalone"
+  },
+  "presentation": {
+    "tourSeconds": 45,
+    "idleSeconds": 120,
+    "sunSweepHours": [7, 18]
+  },
+  "solar": {
+    "latitude": 19.43,
+    "longitude": -99.13,
+    "utcOffsetHours": -6,
+    "northAngleDeg": 0,
+    "defaultDate": "03-20",
+    "defaultHour": 16.5,
+    "hourRange": [6, 19],
+    "minSunElevationDeg": 5,
+    "sampleMinutes": 15,
+    "afternoonFromHour": 13,
+    "afternoonMinHours": 2,
+    "presets": [
+      { "label": { "es": "Solsticio de verano", "en": "Summer solstice" }, "date": "06-21" },
+      { "label": { "es": "Equinoccio", "en": "Equinox" }, "date": "03-20" },
+      { "label": { "es": "Solsticio de invierno", "en": "Winter solstice" }, "date": "12-21" }
+    ]
+  },
+  "unitView": {
+    "eyeHeight": 1.6,
+    "wallInset": 1.2,
+    "fov": 72,
+    "yawLimitDeg": 80,
+    "pitchUpDeg": 30,
+    "pitchDownDeg": 35,
+    "flightSeconds": 1.8
+  },
+  "render": {
+    "defaultViewId": "fachada-frontal",
+    "views": [
+      {
+        "id": "aerea",
+        "label": { "es": "Aérea", "en": "Aerial" },
+        "kind": "aerial",
+        "image": {
+          "base": "/clients/aura/render/vista-aerea",
+          "widths": [
+            800,
+            1600,
+            2400
+          ],
+          "width": 2400,
+          "height": 1800,
+          "alt": { "es": "Vista aérea de Torre Aura Del Valle (imagen provisional)", "en": "Aerial view of Torre Aura Del Valle (provisional image)" }
+        },
+        "hotspots": [
+          {
+            "id": "fachada-frontal",
+            "label": { "es": "Fachada frontal", "en": "Front facade" },
+            "polygon": [
+              [
+                0.2075,
+                0.1916
+              ],
+              [
+                0.4675,
+                0.1916
+              ],
+              [
+                0.4675,
+                0.256
+              ],
+              [
+                0.2075,
+                0.256
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "fachada-frontal"
+            }
+          },
+          {
+            "id": "torre-torre-aura",
+            "label": "Torre Aura",
+            "polygon": [
+              [
+                0.2075,
+                0.2571
+              ],
+              [
+                0.4675,
+                0.2571
+              ],
+              [
+                0.4675,
+                0.5171
+              ],
+              [
+                0.2075,
+                0.5171
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas"
+            }
+          },
+          {
+            "id": "torre-torre-jacaranda",
+            "label": "Torre Jacaranda",
+            "polygon": [
+              [
+                0.7058,
+                0.5893
+              ],
+              [
+                0.7058,
+                0.2427
+              ],
+              [
+                0.7925,
+                0.2427
+              ],
+              [
+                0.7925,
+                0.5893
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas-torre-jacaranda"
+            }
+          },
+          {
+            "id": "fachada-posterior",
+            "label": { "es": "Fachada posterior", "en": "Rear facade" },
+            "polygon": [
+              [
+                0.2075,
+                0.5182
+              ],
+              [
+                0.4675,
+                0.5182
+              ],
+              [
+                0.4675,
+                0.5649
+              ],
+              [
+                0.2075,
+                0.5649
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "fachada-posterior"
+            }
+          }
+        ]
+      },
+      {
+        "id": "fachada-frontal",
+        "label": { "es": "Frontal", "en": "Front" },
+        "kind": "facade",
+        "image": {
+          "base": "/clients/aura/render/fachada-frontal",
+          "widths": [
+            800,
+            1600
+          ],
+          "width": 1600,
+          "height": 2142,
+          "alt": { "es": "Fachada frontal de Torre Aura Del Valle (imagen conceptual)", "en": "Front facade of Torre Aura Del Valle (conceptual image)" }
+        },
+        "hotspots": [
+          {
+            "id": "piso-12",
+            "label": { "es": "Piso 12", "en": "Floor 12" },
+            "polygon": [
+              [
+                0.186,
+                0.1215
+              ],
+              [
+                0.818,
+                0.1215
+              ],
+              [
+                0.818,
+                0.181
+              ],
+              [
+                0.186,
+                0.181
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 12
+            }
+          },
+          {
+            "id": "piso-11",
+            "label": { "es": "Piso 11", "en": "Floor 11" },
+            "polygon": [
+              [
+                0.186,
+                0.184
+              ],
+              [
+                0.818,
+                0.184
+              ],
+              [
+                0.818,
+                0.2435
+              ],
+              [
+                0.186,
+                0.2435
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 11
+            }
+          },
+          {
+            "id": "piso-10",
+            "label": { "es": "Piso 10", "en": "Floor 10" },
+            "polygon": [
+              [
+                0.186,
+                0.2465
+              ],
+              [
+                0.818,
+                0.2465
+              ],
+              [
+                0.818,
+                0.3085
+              ],
+              [
+                0.186,
+                0.3085
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 10
+            }
+          },
+          {
+            "id": "piso-9",
+            "label": { "es": "Piso 9", "en": "Floor 9" },
+            "polygon": [
+              [
+                0.186,
+                0.3115
+              ],
+              [
+                0.818,
+                0.3115
+              ],
+              [
+                0.818,
+                0.3725
+              ],
+              [
+                0.186,
+                0.3725
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 9
+            }
+          },
+          {
+            "id": "piso-8",
+            "label": { "es": "Piso 8", "en": "Floor 8" },
+            "polygon": [
+              [
+                0.186,
+                0.3755
+              ],
+              [
+                0.818,
+                0.3755
+              ],
+              [
+                0.818,
+                0.4365
+              ],
+              [
+                0.186,
+                0.4365
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 8
+            }
+          },
+          {
+            "id": "piso-7",
+            "label": { "es": "Piso 7", "en": "Floor 7" },
+            "polygon": [
+              [
+                0.186,
+                0.4395
+              ],
+              [
+                0.818,
+                0.4395
+              ],
+              [
+                0.818,
+                0.5005
+              ],
+              [
+                0.186,
+                0.5005
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 7
+            }
+          },
+          {
+            "id": "piso-6",
+            "label": { "es": "Piso 6", "en": "Floor 6" },
+            "polygon": [
+              [
+                0.186,
+                0.5035
+              ],
+              [
+                0.818,
+                0.5035
+              ],
+              [
+                0.818,
+                0.5645
+              ],
+              [
+                0.186,
+                0.5645
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 6
+            }
+          },
+          {
+            "id": "piso-5",
+            "label": { "es": "Piso 5", "en": "Floor 5" },
+            "polygon": [
+              [
+                0.186,
+                0.5675
+              ],
+              [
+                0.818,
+                0.5675
+              ],
+              [
+                0.818,
+                0.6275
+              ],
+              [
+                0.186,
+                0.6275
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 5
+            }
+          },
+          {
+            "id": "piso-4",
+            "label": { "es": "Piso 4", "en": "Floor 4" },
+            "polygon": [
+              [
+                0.186,
+                0.6305
+              ],
+              [
+                0.818,
+                0.6305
+              ],
+              [
+                0.818,
+                0.691
+              ],
+              [
+                0.186,
+                0.691
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 4
+            }
+          },
+          {
+            "id": "piso-3",
+            "label": { "es": "Piso 3", "en": "Floor 3" },
+            "polygon": [
+              [
+                0.186,
+                0.694
+              ],
+              [
+                0.818,
+                0.694
+              ],
+              [
+                0.818,
+                0.754
+              ],
+              [
+                0.186,
+                0.754
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 3
+            }
+          }
+        ]
+      },
+      {
+        "id": "fachada-posterior",
+        "label": { "es": "Posterior", "en": "Rear" },
+        "kind": "facade",
+        "image": {
+          "base": "/clients/aura/render/fachada-posterior",
+          "widths": [
+            800,
+            1600,
+            2400
+          ],
+          "width": 2400,
+          "height": 3200,
+          "alt": { "es": "Fachada posterior de Torre Aura Del Valle (imagen provisional)", "en": "Rear facade of Torre Aura Del Valle (provisional image)" }
+        },
+        "hotspots": [
+          {
+            "id": "piso-1",
+            "label": { "es": "Piso 1", "en": "Floor 1" },
+            "polygon": [
+              [
+                0.225,
+                0.7936
+              ],
+              [
+                0.775,
+                0.7936
+              ],
+              [
+                0.775,
+                0.8467
+              ],
+              [
+                0.225,
+                0.8467
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 1
+            }
+          },
+          {
+            "id": "piso-2",
+            "label": { "es": "Piso 2", "en": "Floor 2" },
+            "polygon": [
+              [
+                0.225,
+                0.7386
+              ],
+              [
+                0.775,
+                0.7386
+              ],
+              [
+                0.775,
+                0.7917
+              ],
+              [
+                0.225,
+                0.7917
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 2
+            }
+          },
+          {
+            "id": "piso-3",
+            "label": { "es": "Piso 3", "en": "Floor 3" },
+            "polygon": [
+              [
+                0.225,
+                0.6836
+              ],
+              [
+                0.775,
+                0.6836
+              ],
+              [
+                0.775,
+                0.7367
+              ],
+              [
+                0.225,
+                0.7367
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 3
+            }
+          },
+          {
+            "id": "piso-4",
+            "label": { "es": "Piso 4", "en": "Floor 4" },
+            "polygon": [
+              [
+                0.225,
+                0.6286
+              ],
+              [
+                0.775,
+                0.6286
+              ],
+              [
+                0.775,
+                0.6817
+              ],
+              [
+                0.225,
+                0.6817
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 4
+            }
+          },
+          {
+            "id": "piso-5",
+            "label": { "es": "Piso 5", "en": "Floor 5" },
+            "polygon": [
+              [
+                0.225,
+                0.5736
+              ],
+              [
+                0.775,
+                0.5736
+              ],
+              [
+                0.775,
+                0.6267
+              ],
+              [
+                0.225,
+                0.6267
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 5
+            }
+          },
+          {
+            "id": "piso-6",
+            "label": { "es": "Piso 6", "en": "Floor 6" },
+            "polygon": [
+              [
+                0.225,
+                0.5186
+              ],
+              [
+                0.775,
+                0.5186
+              ],
+              [
+                0.775,
+                0.5717
+              ],
+              [
+                0.225,
+                0.5717
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 6
+            }
+          },
+          {
+            "id": "piso-7",
+            "label": { "es": "Piso 7", "en": "Floor 7" },
+            "polygon": [
+              [
+                0.225,
+                0.4636
+              ],
+              [
+                0.775,
+                0.4636
+              ],
+              [
+                0.775,
+                0.5167
+              ],
+              [
+                0.225,
+                0.5167
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 7
+            }
+          },
+          {
+            "id": "piso-8",
+            "label": { "es": "Piso 8", "en": "Floor 8" },
+            "polygon": [
+              [
+                0.225,
+                0.4086
+              ],
+              [
+                0.775,
+                0.4086
+              ],
+              [
+                0.775,
+                0.4617
+              ],
+              [
+                0.225,
+                0.4617
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 8
+            }
+          },
+          {
+            "id": "piso-9",
+            "label": { "es": "Piso 9", "en": "Floor 9" },
+            "polygon": [
+              [
+                0.225,
+                0.3536
+              ],
+              [
+                0.775,
+                0.3536
+              ],
+              [
+                0.775,
+                0.4067
+              ],
+              [
+                0.225,
+                0.4067
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 9
+            }
+          },
+          {
+            "id": "piso-10",
+            "label": { "es": "Piso 10", "en": "Floor 10" },
+            "polygon": [
+              [
+                0.225,
+                0.2986
+              ],
+              [
+                0.775,
+                0.2986
+              ],
+              [
+                0.775,
+                0.3517
+              ],
+              [
+                0.225,
+                0.3517
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 10
+            }
+          },
+          {
+            "id": "piso-11",
+            "label": { "es": "Piso 11", "en": "Floor 11" },
+            "polygon": [
+              [
+                0.225,
+                0.2436
+              ],
+              [
+                0.775,
+                0.2436
+              ],
+              [
+                0.775,
+                0.2967
+              ],
+              [
+                0.225,
+                0.2967
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 11
+            }
+          },
+          {
+            "id": "piso-12",
+            "label": { "es": "Piso 12", "en": "Floor 12" },
+            "polygon": [
+              [
+                0.225,
+                0.1886
+              ],
+              [
+                0.775,
+                0.1886
+              ],
+              [
+                0.775,
+                0.2417
+              ],
+              [
+                0.225,
+                0.2417
+              ]
+            ],
+            "target": {
+              "type": "view",
+              "viewId": "plantas",
+              "floor": 12
+            }
+          }
+        ]
+      },
+      {
+        "id": "plantas",
+        "label": { "es": "Plantas Aura", "en": "Aura floor plans" },
+        "kind": "generatedPlan",
+        "buildingId": "torre-aura"
+      },
+      {
+        "id": "plantas-torre-jacaranda",
+        "label": { "es": "Plantas Jacaranda", "en": "Jacaranda floor plans" },
+        "kind": "generatedPlan",
+        "buildingId": "torre-jacaranda"
+      }
+    ]
+  },
   "project": {
-    "description": "Torre Aura Del Valle combina arquitectura contemporánea con la vida de barrio de una de las colonias más consolidadas de la Ciudad de México: calles arboladas, comercio de cercanía y conexión inmediata con Insurgentes y el resto de la ciudad.",
+    "description": { "es": "Torre Aura Del Valle combina arquitectura contemporánea con la vida de barrio de una de las colonias más consolidadas de la Ciudad de México: calles arboladas, comercio de cercanía y conexión inmediata con Insurgentes y el resto de la ciudad.", "en": "Torre Aura Del Valle blends contemporary architecture with the neighborhood life of one of Mexico City's most established districts: tree-lined streets, nearby shops and immediate access to Insurgentes and the rest of the city." },
     "amenities": [
       {
         "icon": "pool",
-        "label": "Alberca climatizada",
-        "image": "/clients/aura/amenities/alberca.jpg",
-        "description": "Alberca climatizada techada, para nadar todo el año, con área de camastros y sombra."
+        "label": { "es": "Alberca climatizada", "en": "Heated pool" },
+        "image": "/clients/aura/amenities/alberca.webp",
+        "description": { "es": "Alberca climatizada techada, para nadar todo el año, con área de camastros y sombra.", "en": "Covered heated pool for year-round swimming, with a lounge-chair area and shade." }
       },
       {
         "icon": "gym",
-        "label": "Gimnasio equipado",
-        "image": "/clients/aura/amenities/gimnasio.jpg",
-        "description": "Gimnasio totalmente equipado con máquinas de cardio y pesas libres, disponible las 24 horas."
+        "label": { "es": "Gimnasio equipado", "en": "Equipped gym" },
+        "image": "/clients/aura/amenities/gimnasio.webp",
+        "description": { "es": "Gimnasio totalmente equipado con máquinas de cardio y pesas libres, disponible las 24 horas.", "en": "Fully equipped gym with cardio machines and free weights, open 24 hours." }
       },
       {
         "icon": "coworking",
-        "label": "Sala de coworking",
-        "image": "/clients/aura/amenities/coworking.jpg",
-        "description": "Espacio de coworking con internet de alta velocidad, salas de juntas y área de café."
+        "label": { "es": "Sala de coworking", "en": "Coworking lounge" },
+        "image": "/clients/aura/amenities/coworking.webp",
+        "description": { "es": "Espacio de coworking con internet de alta velocidad, salas de juntas y área de café.", "en": "Coworking space with high-speed internet, meeting rooms and a coffee area." }
       },
       {
         "icon": "rooftop",
-        "label": "Roof garden con asadores",
-        "image": "/clients/aura/amenities/roof-garden.jpg",
-        "description": "Roof garden con asadores, terraza y vista panorámica de la ciudad."
+        "label": { "es": "Roof garden con asadores", "en": "Roof garden with grills" },
+        "image": "/clients/aura/amenities/roof-garden.webp",
+        "description": { "es": "Roof garden con asadores, terraza y vista panorámica de la ciudad.", "en": "Roof garden with grills, a terrace and panoramic city views." }
       },
       {
         "icon": "kids",
-        "label": "Salón de juegos infantil",
-        "image": "/clients/aura/amenities/ludoteca.jpg",
-        "description": "Ludoteca segura y luminosa para los más pequeños de la casa."
+        "label": { "es": "Salón de juegos infantil", "en": "Kids' game room" },
+        "image": "/clients/aura/amenities/ludoteca.webp",
+        "description": { "es": "Ludoteca segura y luminosa para los más pequeños de la casa.", "en": "A safe, bright playroom for the little ones." }
       },
       {
         "icon": "security",
-        "label": "Seguridad 24/7 con acceso controlado",
-        "image": "/clients/aura/amenities/seguridad.jpg",
-        "description": "Vigilancia las 24 horas, acceso controlado y circuito cerrado de cámaras."
+        "label": { "es": "Seguridad 24/7 con acceso controlado", "en": "24/7 security with controlled access" },
+        "image": "/clients/aura/amenities/seguridad.webp",
+        "description": { "es": "Vigilancia las 24 horas, acceso controlado y circuito cerrado de cámaras.", "en": "24-hour surveillance, controlled access and a closed-circuit camera system." }
       },
       {
         "icon": "parking",
-        "label": "Estacionamiento para visitas",
-        "image": "/clients/aura/amenities/estacionamiento.jpg",
-        "description": "Estacionamiento techado con cajones adicionales para visitas."
+        "label": { "es": "Estacionamiento para visitas", "en": "Visitor parking" },
+        "image": "/clients/aura/amenities/estacionamiento.webp",
+        "description": { "es": "Estacionamiento techado con cajones adicionales para visitas.", "en": "Covered parking with additional spaces for visitors." }
       },
       {
         "icon": "pets",
-        "label": "Área pet friendly",
-        "image": "/clients/aura/amenities/pet-friendly.jpg",
-        "description": "Área pet friendly con juegos y estación de limpieza para tu mascota."
+        "label": { "es": "Área pet friendly", "en": "Pet-friendly area" },
+        "image": "/clients/aura/amenities/pet-friendly.webp",
+        "description": { "es": "Área pet friendly con juegos y estación de limpieza para tu mascota.", "en": "Pet-friendly area with play equipment and a cleaning station for your pet." }
       }
     ],
     "location": {
       "lat": 19.3838,
       "lng": -99.1677,
-      "address": "Calle Ficticia 123, Del Valle Centro, Benito Juárez, CDMX (dirección ilustrativa)"
+      "address": { "es": "Calle Ficticia 123, Del Valle Centro, Benito Juárez, CDMX (dirección ilustrativa)", "en": "Calle Ficticia 123, Del Valle Centro, Benito Juárez, CDMX (illustrative address)" }
     },
     "pointsOfInterest": [
       { "name": "Parque Hundido", "distanceMinutes": 6 },
-      { "name": "Avenida Insurgentes", "distanceMinutes": 4 },
-      { "name": "Metro Etiopía (Línea 3)", "distanceMinutes": 8 },
+      { "name": { "es": "Avenida Insurgentes", "en": "Insurgentes Avenue" }, "distanceMinutes": 4 },
+      { "name": { "es": "Metro Etiopía (Línea 3)", "en": "Etiopía Metro Station (Line 3)" }, "distanceMinutes": 8 },
       { "name": "Plaza Del Valle", "distanceMinutes": 5 },
-      { "name": "WTC Ciudad de México", "distanceMinutes": 10 }
+      { "name": { "es": "WTC Ciudad de México", "en": "WTC Mexico City" }, "distanceMinutes": 10 }
     ]
   }
 }

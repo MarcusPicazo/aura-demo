@@ -126,7 +126,7 @@ export function UnitDetail() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <MetricTile label="Nivel / Piso" value={`Piso ${unit.floor}`} hint={unit.tower} />
+        <MetricTile label="Nivel / Piso" value={`Piso ${unit.floor}`} hint={`Orientación ${unit.orientation}`} />
         <MetricTile label="Área Interior" value={`${unit.m2.toFixed(2)} m²`} hint="Habitables techados" />
         <MetricTile label="Terraza" value={unit.terraceM2 > 0 ? `${unit.terraceM2.toFixed(2)} m²` : 'Sin terraza'} hint="Frontal + lateral" />
         <MetricTile label="Recámaras" value={`${unit.bedrooms} Recámaras`} hint="Principal con W.I.C." />

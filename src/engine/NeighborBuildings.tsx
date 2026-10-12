@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
-import { buildNeighborBuildings, type NeighborBuilding, type PolygonBounds } from '../lib/geometry';
+import { neighborBuildingsFor, type NeighborBuilding, type PolygonBounds } from '../lib/geometry';
 import { createWindowGridTexture } from './textures';
 import type { NeighborBuildingsConfig } from '../types';
 
@@ -22,6 +22,9 @@ function useInstanceMatrices(matrices: THREE.Matrix4[]) {
     if (!mesh) return;
     matrices.forEach((matrix, index) => mesh.setMatrixAt(index, matrix));
     mesh.instanceMatrix.needsUpdate = true;
+    // La esfera envolvente se calcula al primer dibujo y no cuenta las instancias: sin recalcularla, la malla se descarta
+    // (frustum culling) en cuanto la cámara deja de mirar hacia el origen, p. ej. desde adentro de una unidad.
+    mesh.computeBoundingSphere();
     invalidate();
   }, [matrices, invalidate]);
   return ref;
@@ -111,21 +114,7 @@ function BuildingOcclusion({ buildings, opacity, margin }: { buildings: Neighbor
  * edificio): sigue siendo un puñado de llamadas de dibujo sin importar cuántos vecinos haya.
  */
 export function NeighborBuildings({ footprint, streetSide, config }: NeighborBuildingsProps) {
-  const buildings = useMemo(
-    () =>
-      buildNeighborBuildings(footprint, {
-        count: config.count,
-        minLevels: config.minLevels,
-        maxLevels: config.maxLevels,
-        levelHeight: config.levelHeight,
-        minWidth: config.minWidth,
-        maxWidth: config.maxWidth,
-        minClearance: config.minClearance,
-        toneCount: config.tones.length,
-        streetSide,
-      }),
-    [footprint, streetSide, config],
-  );
+  const buildings = useMemo(() => neighborBuildingsFor(footprint, streetSide, config), [footprint, streetSide, config]);
 
   // Repeat calibrado para un edificio "típico" (promedio de min/max niveles y ancho de
   // config) — cada vecino mide distinto, así que no es exacto piso por piso en todos, pero

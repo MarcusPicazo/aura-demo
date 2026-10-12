@@ -31,10 +31,6 @@ export function applyUnitFilters(units: PortalUnit[], filters: UnitFilters): Por
     if (filters.bedrooms !== 'all' && unit.bedrooms !== filters.bedrooms) return false;
     if (!matchesFloorRange(unit.floor, filters.floorRange)) return false;
     if (!term) return true;
-    return (
-      unit.code.toLowerCase().includes(term) ||
-      unit.typeLabel.toLowerCase().includes(term) ||
-      unit.tower.toLowerCase().includes(term)
-    );
+    return unit.code.toLowerCase().includes(term) || unit.typeLabel.toLowerCase().includes(term);
   });
 }

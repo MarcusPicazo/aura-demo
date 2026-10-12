@@ -1,0 +1,396 @@
+{
+  "common": {
+    "close": "Close",
+    "dragToClose": "Swipe or tap to close",
+    "illustrativeImages": "Conceptual illustrative images",
+    "loadingUnits": "Loading units…",
+    "loading": "Loading…"
+  },
+  "status": {
+    "available": "Available",
+    "reserved": "Reserved",
+    "sold": "Sold"
+  },
+  "legend": {
+    "count": "{available} of {total} available",
+    "loadError": "Couldn't load units"
+  },
+  "availability": {
+    "toggle": "Show availability"
+  },
+  "tabs": {
+    "tower3d": "3D Tower",
+    "render": "Renders",
+    "project": "Project",
+    "label": "Project views"
+  },
+  "mode": {
+    "viewIn3d": "View in 3D",
+    "viewInRender": "View renders"
+  },
+  "breadcrumbs": {
+    "aria": "Location in the development"
+  },
+  "buildingLabels": {
+    "noUnits": "No units registered",
+    "loading": "Loading…"
+  },
+  "dock": {
+    "favorites": "My favorites ({count})",
+    "compare": "Compare units ({count})"
+  },
+  "interiors": {
+    "title": "Interior renders",
+    "alt": "Interior render {n}",
+    "view": "View image {n}"
+  },
+  "renderNav": {
+    "views": "Render views",
+    "selectFloor": "Select floor",
+    "floor": "Floor {floor}"
+  },
+  "filters": {
+    "title": "Filters",
+    "bedrooms": "Bedrooms",
+    "all": "All",
+    "price": "Price",
+    "priceMin": "Minimum price",
+    "priceMax": "Maximum price",
+    "onlyAvailable": "Available only",
+    "clear": "Clear filters"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "body": "There was a problem displaying the page. Reload to keep exploring the tower.",
+    "reload": "Reload"
+  },
+  "buildingInfo": {
+    "noUnits": "This building has no units for sale."
+  },
+  "kind": {
+    "tower": "Tower",
+    "clubhouse": "Clubhouse",
+    "amenity": "Amenity"
+  },
+  "unit": {
+    "label": "Unit {code}",
+    "type": "Type {type}",
+    "talkToAdvisor": "Talk to an advisor",
+    "share": "Share",
+    "linkCopied": "Link copied!",
+    "save": "Save",
+    "saved": "Saved",
+    "compare": "Compare",
+    "comparing": "Comparing",
+    "quote": "Quote",
+    "soldNoQuote": "This unit is already sold",
+    "compareFull": "You can compare up to {max} units.",
+    "viewComparison": "View comparison ({count})",
+    "viewFrom": "View from this unit",
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "area": "m²",
+    "floor": "Floor",
+    "orientation": "Orientation",
+    "interested": "I'm interested",
+    "contactPrompt": "Prefer that we contact you?",
+    "name": "Name",
+    "phone": "Phone",
+    "consent": "I agree to the processing of my personal data in accordance with the",
+    "privacyLink": "privacy notice",
+    "submit": "Send my details",
+    "sending": "Sending…",
+    "sendError": "Couldn't send. Please try again.",
+    "thanks": "Thank you! We'll be in touch soon."
+  },
+  "payment": {
+    "title": "Payment plan",
+    "downPayment": "Down payment ({percent}%)",
+    "monthly": "{count} monthly payments",
+    "each": "{amount} each",
+    "balance": "Balance on delivery",
+    "delivery": "Estimated delivery: {date}"
+  },
+  "contact": {
+    "onUnit": "About unit {code}",
+    "whatsapp": "Message on WhatsApp",
+    "schedule": "Schedule a visit",
+    "brochure": "Download brochure"
+  },
+  "project": {
+    "amenities": "Amenities",
+    "location": "Location",
+    "mapTitle": "Location of {name}",
+    "recenter": "Re-center the map on the location",
+    "nearby": "Nearby points of interest",
+    "walkMinutes": "{minutes} min walk",
+    "prevAmenity": "Previous amenity",
+    "nextAmenity": "Next amenity"
+  },
+  "floorPlan": {
+    "alt": "Unit floor plan"
+  },
+  "privacy": {
+    "back": "← Back to {name}",
+    "title": "Privacy notice",
+    "subtitle": "Base text in accordance with the Mexican Federal Law on the Protection of Personal Data Held by Private Parties (LFPDPPP). It does not replace legal advice: have your lawyer review it before using it in production. This English version is a courtesy translation; the Spanish version prevails.",
+    "s1": {
+      "title": "1. Data controller",
+      "body": ", located at {address}, is responsible for the processing of your personal data in accordance with this privacy notice."
+    },
+    "s2": {
+      "title": "2. Personal data we collect",
+      "body": "We collect your name and phone number when you provide them voluntarily through the contact form or the \"I'm interested\" button of {name}. We do not collect sensitive personal data."
+    },
+    "s3": {
+      "title": "3. Purposes of the processing",
+      "primary": "Primary purposes, necessary to handle your request:",
+      "primary1": "To contact you to follow up on your interest in a unit at {name}.",
+      "primary2": "To share information, quotes and availability of the units in the development.",
+      "secondary": "Secondary purposes, which you may refuse without affecting how your request is handled:",
+      "secondary1": "To send you promotions and news about the development."
+    },
+    "s4": {
+      "title": "4. Data transfers",
+      "body": "We do not transfer your personal data to third parties, unless a competent authority requires it in accordance with the law."
+    },
+    "s5": {
+      "title": "5. ARCO rights",
+      "body": "You have the right to Access, Rectify and Cancel your personal data, as well as to Object to its processing (ARCO rights), and to withdraw your consent at any time. To exercise them, write to us at"
+    },
+    "s6": {
+      "title": "6. Changes to this privacy notice",
+      "body": "Any change to this privacy notice will be published on this same page."
+    }
+  },
+  "currency": {
+    "note": "USD prices are for reference only, at an exchange rate of {rate} pesos per dollar as of {date}. The official price is in Mexican pesos (MXN).",
+    "noteShort": "Reference · {rate} MXN per USD"
+  },
+  "whatsapp": {
+    "interest": "Hello, I'm interested in apartment {code} (Type {type}, {m2} m², {price}) at {development}.",
+    "unitRef": "apartment {code} (Type {type}, {m2} m², {price})",
+    "advisorUnit": "Hello, I'd like more information about {unit} at {development}.",
+    "advisorGeneral": "Hello, I'd like more information about {development}.",
+    "visitUnit": "Hello, I'd like to schedule a visit to see {unit} at {development}.",
+    "visitGeneral": "Hello, I'd like to schedule a visit to {development}.",
+    "priceReferential": "{amount} (reference; official price {mxn})",
+    "quote": "Hello, I'm sharing the quote for apartment {code} (Type {type}, {m2} m², {price}) at {development}.",
+    "quoteAttach": "I've attached the PDF I just downloaded."
+  },
+  "compass": {
+    "n": "north",
+    "nne": "north-northeast",
+    "ne": "northeast",
+    "ene": "east-northeast",
+    "e": "east",
+    "ese": "east-southeast",
+    "se": "southeast",
+    "sse": "south-southeast",
+    "s": "south",
+    "ssw": "south-southwest",
+    "sw": "southwest",
+    "wsw": "west-southwest",
+    "w": "west",
+    "wnw": "west-northwest",
+    "nw": "northwest",
+    "nnw": "north-northwest"
+  },
+  "orientation": {
+    "norte": "North",
+    "sur": "South",
+    "oriente": "East",
+    "poniente": "West",
+    "nororiente": "Northeast",
+    "norponiente": "Northwest",
+    "suroriente": "Southeast",
+    "surponiente": "Southwest",
+    "dobleorientacion": "Dual orientation"
+  },
+  "sun": {
+    "button": "Sunlight",
+    "hour": "Time",
+    "date": "Date",
+    "position": "Sun at {elevation}° elevation, toward the {direction}.",
+    "belowHorizon": "The sun is below the horizon.",
+    "daylight": "Sunrise {sunrise} · sunset {sunset}.",
+    "afternoonMap": "Highlight units with afternoon sun",
+    "legendAfternoon": "Get afternoon sun ({hours} h or more after {from})",
+    "legendNone": "Don't get it",
+    "off": "Turn off sunlight and return to the default lighting"
+  },
+  "sunHours": {
+    "aria": "Hours of direct sun",
+    "title": "Estimated direct sun",
+    "none": "No direct sun",
+    "onDate": "on {date}",
+    "strip": "Direct sun across the day, from {from} to {to}",
+    "morning": "Morning",
+    "afternoon": "Afternoon (from {from})",
+    "afternoonSun": "Afternoon sun",
+    "yes": "Yes",
+    "noLess": "No (less than {hours} h)",
+    "hours": "{hours} h",
+    "disclaimer": "Estimate based on the 3D model of the development and its surroundings; it does not account for trees, clouds or balcony overhangs. Change the date with the sunlight control."
+  },
+  "unitView": {
+    "back": "Back to the exterior view",
+    "where": "Floor {floor} · Unit {code}",
+    "looking": "Facing {direction} · {degrees}°",
+    "hint": "Drag to look around"
+  },
+  "errors": {
+    "loadUnits": "Couldn't load the units: {detail}",
+    "retry": "Retry",
+    "notFoundTitle": "We couldn't find this page",
+    "notFoundBody": "The address does not exist or has changed. Go back to the start to keep exploring the project.",
+    "notFoundHome": "Back to the start",
+    "noWebglTitle": "This device can't show the 3D model",
+    "noWebglBody": "Your browser doesn't have 3D graphics (WebGL) available. Try another browser or update the current one."
+  },
+  "crumbs": {
+    "masterplan": "Masterplan",
+    "floorUnit": "Floor {floor} · Unit {code}"
+  },
+  "masterplan": {
+    "enter": "Enter {name}"
+  },
+  "pdf": {
+    "filePrefix": "quote",
+    "quote": "QUOTE",
+    "apartment": "Apartment {code}",
+    "typeLine": "Type {type}",
+    "floorLine": "Floor {floor}",
+    "listPrice": "List price ({currency}) · {status}",
+    "officialPrice": "Official price: {amount}",
+    "features": "Features",
+    "area": "Area",
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "floor": "Floor",
+    "orientation": "Orientation",
+    "pricePerM2": "Price per m²",
+    "planTitle": "Unit floor plan",
+    "planNote": "Illustrative plan; measurements may vary.",
+    "payments": "Payment plan",
+    "priceRow": "List price",
+    "downPayment": "Down payment ({percent}%)",
+    "monthly": "{count} monthly payments during construction",
+    "each": "{amount} each",
+    "balance": "Balance on delivery ({percent}%)",
+    "delivery": "Estimated delivery",
+    "advisor": "Your advisor",
+    "whatsappPhone": "WhatsApp and phone: +{phone}",
+    "salesOffice": "Sales office: {address}",
+    "disclaimer": "Informational quote generated on {date}. Prices, payment plan and availability are subject to change without notice, and this quote is neither an offer nor a reservation of the unit. Images and plans are illustrative.",
+    "title": "Quote — Apartment {code} — {development}",
+    "subject": "Quote for apartment {code}"
+  },
+  "quoteSheet": {
+    "title": "PDF quote",
+    "summary": "Type {type} · {m2} m² · {bedrooms} bd · Floor {floor}",
+    "scheme": "Plan with a {percent}% down payment, with the floor plan and the details of {advisor}.",
+    "preparing": "Preparing your quote…",
+    "error": "The quote couldn't be generated. Please try again.",
+    "download": "Download PDF ({size})",
+    "whatsapp": "Send via WhatsApp",
+    "shared": "Done! You chose how to send it.",
+    "fallback": "We downloaded the PDF and opened your advisor's chat: attach it to the message to send it.",
+    "openChat": "Open chat with {name}",
+    "privacy": "The quote is generated on your device; it is not stored or sent to any server. Prices and availability are subject to change."
+  },
+  "compare": {
+    "title": "Compare units",
+    "empty": "Mark units with \"Compare\" on their detail card to see them side by side.",
+    "addAnother": "Add another unit (up to {max}) from its detail card to compare them.",
+    "remove": "Remove unit {code} from the comparison",
+    "plan": "Floor plan",
+    "noPlan": "No plan",
+    "area": "Area",
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "floor": "Floor",
+    "orientation": "Orientation",
+    "price": "Price",
+    "pricePerM2": "Price per m²",
+    "monthly": "Estimated monthly payment",
+    "viewUnit": "View unit",
+    "footnote": "Highlighted: the best value in each row. Estimated monthly payment: {months} payments during construction with a {percent}% down payment; your advisor confirms the final plan.",
+    "clear": "Clear comparison"
+  },
+  "favorites": {
+    "title": "My favorites",
+    "sharedTitle": "Shared list",
+    "sharedIntro_one": "Someone shared {count} unit from {name} with you.",
+    "sharedIntro_other": "Someone shared {count} units from {name} with you.",
+    "saveShared": "Save to my favorites",
+    "viewMine": "View mine ({count})",
+    "savedNotice": "Saved to your favorites.",
+    "empty": "You haven't saved any units yet. Tap the heart on a unit's detail card to save it here.",
+    "gone": "{unit} — no longer in the inventory",
+    "removeShort": "Remove",
+    "summary": "Type {type} · {m2} m² · {bedrooms} bd · {bathrooms} ba · Floor {floor}",
+    "unsaveAria": "Remove unit {code} from favorites",
+    "saveAria": "Save unit {code} to favorites",
+    "compareAria": "Compare unit {code}",
+    "uncompareAria": "Remove unit {code} from the comparison",
+    "viewUnit": "View unit",
+    "share": "Share my list",
+    "viewComparison": "View comparison ({count})",
+    "clear": "Clear favorites",
+    "copyFailed": "Couldn't copy the link.",
+    "shareTitle": "My favorites at {name}",
+    "shareText_one": "{title}: {count} unit.",
+    "shareText_other": "{title}: {count} units."
+  },
+  "locale": {
+    "button": "Language and currency",
+    "language": "Language",
+    "currency": "Currency"
+  },
+  "render": {
+    "imageError": "The image couldn't be loaded"
+  },
+  "tour": {
+    "start": "Presentation",
+    "startAria": "Start the automatic presentation",
+    "stopHint": "Touch the screen to stop",
+    "levels": "{levels} floors",
+    "windowTitle": "This is your view",
+    "facing": "Facing {direction}",
+    "sunTitle": "Light throughout the day",
+    "sunHours": "About {hours} hours of direct sun in this unit",
+    "sunGeneric": "From sunrise to sunset",
+    "outroTitle": "Find yours",
+    "touch": "Touch the screen to explore"
+  },
+  "kiosk": {
+    "enter": "Showroom mode (full screen)",
+    "hint": "Large buttons and an automatic tour after {seconds} s of inactivity. To exit: press and hold the logo, or press Esc.",
+    "exit": "Exit showroom",
+    "tapToStart": "Touch to enter full screen"
+  },
+  "offline": {
+    "notice": "Offline · data from {age} ago",
+    "reconnecting": "Data from {age} ago · reconnecting…",
+    "ageMoment": "a moment",
+    "ageMinutes": "{count} min",
+    "ageHours": "{count} h",
+    "ageDays": "{count} d",
+    "saving": "Saving for offline use… {percent}%",
+    "ready": "Ready to use offline",
+    "updateReady": "A new version is available",
+    "update": "Update",
+    "install": "Install app"
+  },
+  "loading": {
+    "inventory": "Loading the inventory…",
+    "building": "Preparing the building…",
+    "scene": "Building the scene…",
+    "camera": "Almost ready…",
+    "percent": "{percent}%"
+  },
+  "selector": {
+    "canvasLabel": "Interactive 3D model of {name}: rotate, zoom and tap a floor or a unit to see its details."
+  }
+}

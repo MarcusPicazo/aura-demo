@@ -2,7 +2,10 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePortalStore } from '../store/portalStore';
 import { Icon } from '../components/Icon';
+import { loadPortalFonts } from '../lib/portalFonts';
 import '../portal-theme.css';
+
+loadPortalFonts();
 
 export function PortalLogin() {
   const login = usePortalStore((state) => state.login);
@@ -11,25 +14,21 @@ export function PortalLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [unauthorized, setUnauthorized] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setSubmitting(true);
-    setUnauthorized(false);
+    setErrorMessage(null);
 
-    // Mock: sin backend todavía (Fase 1), cualquier contraseña sirve — el correo es lo
-    // que decide sesión y rol. Se simula una validación breve para que el botón anime.
-    window.setTimeout(() => {
-      const user = login(email);
-      if (!user) {
-        setUnauthorized(true);
-        setSubmitting(false);
-        return;
-      }
-      navigate('/portal/resumen', { replace: true });
-    }, 500);
+    const { user, error } = await login(email, password);
+    if (!user) {
+      setErrorMessage(error);
+      setSubmitting(false);
+      return;
+    }
+    navigate('/portal/resumen', { replace: true });
   }
 
   return (
@@ -79,19 +78,17 @@ export function PortalLogin() {
               </p>
             </div>
 
-            {unauthorized && (
+            {errorMessage && (
               <div className="mb-6 rounded-xl bg-surface-container-high p-4 transition-all duration-300">
                 <div className="flex items-start gap-3">
                   <Icon name="error" className="mt-0.5 shrink-0 text-xl text-error" />
                   <div className="flex-1">
                     <h2 className="text-label-md font-ui font-semibold text-primary">Credenciales no autorizadas</h2>
-                    <p className="mt-0.5 text-body-sm font-ui text-on-surface-variant">
-                      Verifica tu correo institucional o solicita reactivación al área directiva.
-                    </p>
+                    <p className="mt-0.5 text-body-sm font-ui text-on-surface-variant">{errorMessage}</p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setUnauthorized(false)}
+                    onClick={() => setErrorMessage(null)}
                     className="text-on-surface-variant hover:text-primary"
                   >
                     <Icon name="close" className="text-base" />
@@ -179,10 +176,11 @@ export function PortalLogin() {
             </div>
 
             <div className="mt-6 rounded-xl border border-dashed border-outline-variant p-3.5">
-              <p className="text-label-sm font-ui uppercase tracking-wider text-on-surface-variant">Modo de prueba</p>
+              <p className="text-label-sm font-ui uppercase tracking-wider text-on-surface-variant">Cuentas de prueba</p>
               <p className="mt-1 text-body-sm font-ui text-on-surface-variant">
                 <span className="font-semibold text-on-surface">valeria@aura.com.mx</span> — Admin Comercial ·{' '}
-                <span className="font-semibold text-on-surface">rodrigo@aura.com.mx</span> — Asesor (cualquier contraseña)
+                <span className="font-semibold text-on-surface">rodrigo@aura.com.mx</span> — Asesor. Contraseña: la que
+                les hayas puesto en Authentication → Users del dashboard de Supabase.
               </p>
             </div>
           </div>

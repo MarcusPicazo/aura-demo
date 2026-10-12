@@ -9,6 +9,8 @@ interface CameraCollisionProps {
   /** Qué tan rápido se amortigua la corrección hacia la superficie segura — 1/segundos:
    *  más alto pega más rápido a la superficie, más bajo se siente más "cojín". */
   dampingSpeed?: number;
+  /** Apagada, no corrige nada (p. ej. durante un vuelo de cámara entre edificios). */
+  enabled?: boolean;
 }
 
 /**
@@ -24,7 +26,7 @@ interface CameraCollisionProps {
  * (`computeCameraLimits`, en `lib/geometry.ts`) y el margen de la config del cliente — este
  * componente no sabe nada de balcones, azoteas, ni de ningún cliente en particular.
  */
-function CameraCollisionComponent({ bounds, target, dampingSpeed = 8 }: CameraCollisionProps) {
+function CameraCollisionComponent({ bounds, target, dampingSpeed = 8, enabled = true }: CameraCollisionProps) {
   const { camera, invalidate } = useThree();
   const targetVec = useMemo(() => new THREE.Vector3(), []);
   targetVec.set(target[0], target[1], target[2]);
@@ -32,6 +34,7 @@ function CameraCollisionComponent({ bounds, target, dampingSpeed = 8 }: CameraCo
   const safePosition = useRef(new THREE.Vector3());
 
   useFrame((_, delta) => {
+    if (!enabled) return;
     offset.current.copy(camera.position).sub(targetVec);
 
     // El `target` (centro de la torre) cae DENTRO del volumen por construcción, así que

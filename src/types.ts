@@ -1,3 +1,5 @@
+import type { LocalizedText } from './i18n/localized';
+import type { Language } from './i18n/translate';
 /** Punto 2D en metros, sobre el plano de planta: [x, z]. */
 export type Point = [number, number];
 
@@ -228,18 +230,18 @@ export interface PaymentPlanConfig {
  *  no una URL ni un componente — así la config sigue siendo JSON plano. */
 export interface AmenityConfig {
   icon: string;
-  label: string;
+  label: LocalizedText;
   /** Ruta en `public/clients/<slug>/amenities/`. Opcional: si falta, la tarjeta se queda
    *  solo con ícono y no abre la vista en grande. */
   image?: string;
   /** Texto para la vista en grande; sin esto solo se muestra el nombre. */
-  description?: string;
+  description?: LocalizedText;
 }
 
 /** Punto de interés cercano al desarrollo (sin coordenadas propias: solo se lista, no se
  *  marca en el mapa individualmente). */
 export interface PointOfInterestConfig {
-  name: string;
+  name: LocalizedText;
   /** Minutos aproximados a pie; si no se da, se omite el badge de distancia. */
   distanceMinutes?: number;
 }
@@ -247,13 +249,13 @@ export interface PointOfInterestConfig {
 export interface ProjectLocationConfig {
   lat: number;
   lng: number;
-  address: string;
+  address: LocalizedText;
 }
 
 /** Sección de proyecto: descripción corta, amenidades, ubicación y puntos de interés —
  *  todo dato de negocio del cliente, nada de esto vive en `engine/`. */
 export interface ProjectInfoConfig {
-  description: string;
+  description: LocalizedText;
   amenities: AmenityConfig[];
   location: ProjectLocationConfig;
   pointsOfInterest: PointOfInterestConfig[];
@@ -264,7 +266,7 @@ export interface ProjectInfoConfig {
  *  fijo en el código, todo sale de la config del cliente. */
 export interface AdvisorConfig {
   name: string;
-  role: string;
+  role: LocalizedText;
   /** Ruta en `public/clients/<slug>/`. Opcional: sin ella, la ficha muestra un avatar con
    *  las iniciales del nombre en vez de romperse (mismo patrón que `AmenityConfig.image`). */
   photo?: string;
@@ -272,7 +274,7 @@ export interface AdvisorConfig {
    *  WhatsApp del asesor. */
   phone: string;
   email: string;
-  hours: string;
+  hours: LocalizedText;
   salesOffice: ProjectLocationConfig;
   /** Ruta del PDF del brochure en `public/clients/<slug>/`. */
   brochureUrl: string;
@@ -357,14 +359,85 @@ export interface ContextConfig {
   neighborBuildings: NeighborBuildingsConfig;
 }
 
-export interface FacadeFloorConfig {
-  floor: number;
-  polygon: Point[];
+/**
+ * Imagen del modo render. Los archivos los genera `scripts/build-render-images.ts` a partir
+ * del original del cliente: `<base>-<ancho>.webp` por cada ancho de `widths` (para `srcset`)
+ * y `<base>.jpg` como respaldo. Mientras `width`/`height` coincidan con el original, la capa
+ * de zonas clicables queda alineada con la imagen sin importar qué variante descargue el
+ * navegador.
+ */
+export interface RenderImage {
+  /** Ruta bajo `public/`, sin ancho ni extensión (p. ej. `/clients/<slug>/render/frente`). */
+  base: string;
+  /** Anchos (px) generados, de menor a mayor. */
+  widths: number[];
+  /** Tamaño en px de la imagen original: fija la proporción y el viewBox de las zonas. */
+  width: number;
+  height: number;
+  alt: LocalizedText;
 }
 
-export interface FacadeConfig {
-  image: string;
-  floors: FacadeFloorConfig[];
+/** A dónde lleva una zona: a otra vista (opcionalmente a un nivel de planta) o a la ficha de una unidad. */
+export type RenderHotspotTarget =
+  | { type: 'view'; viewId: string; floor?: number }
+  /** `buildingId` solo hace falta en un conjunto cuyos edificios repiten códigos (101 en cada torre). */
+  | { type: 'unit'; code: string; buildingId?: string };
+
+/** Zona clicable sobre una imagen. `polygon` va en fracciones 0–1 de la imagen (x a la derecha, y hacia abajo). */
+export interface RenderHotspot {
+  id: string;
+  label: LocalizedText;
+  polygon: Point[];
+  target: RenderHotspotTarget;
+}
+
+/** Un nivel de una vista de planta: su imagen y las zonas (normalmente una por unidad). */
+export interface RenderLevelConfig {
+  floor: number;
+  label: LocalizedText;
+  image: RenderImage;
+  hotspots: RenderHotspot[];
+}
+
+export interface RenderImageViewConfig {
+  id: string;
+  label: LocalizedText;
+  /** `aerial` = vista del conjunto; `facade` = alzado de una fachada. Solo cambia el rótulo; se comportan igual. */
+  kind: 'aerial' | 'facade';
+  image: RenderImage;
+  hotspots: RenderHotspot[];
+}
+
+/** Planta por nivel: el selector lateral de piso recorre `levels`. */
+export interface RenderPlanViewConfig {
+  id: string;
+  label: LocalizedText;
+  kind: 'plan';
+  levels: RenderLevelConfig[];
+}
+
+/**
+ * Planta por nivel dibujada por el motor (cámara ortográfica cenital sobre el nivel), sin
+ * imágenes externas: sale de `geometry` y `floorPlans`, así que siempre coincide con el
+ * inventario. Solo está disponible si el desarrollo tiene modelo 3D (necesita `geometry`).
+ */
+export interface RenderGeneratedPlanViewConfig {
+  id: string;
+  label: LocalizedText;
+  kind: 'generatedPlan';
+  /** Edificio cuyas plantas dibuja. Por omisión, el primero con unidades a la venta. */
+  buildingId?: string;
+}
+
+/** Vistas que se muestran con una imagen (y sus zonas); la planta generada no tiene imagen. */
+export type RenderImageBackedViewConfig = RenderImageViewConfig | RenderPlanViewConfig;
+
+export type RenderViewConfig = RenderImageBackedViewConfig | RenderGeneratedPlanViewConfig;
+
+/** Modo render (imágenes con zonas clicables): alternativa o complemento del selector 3D. */
+export interface RenderConfig {
+  defaultViewId: string;
+  views: RenderViewConfig[];
 }
 
 /** Ficha de negocio de un tipo de unidad (recámaras, m², precio base, orientación). */
@@ -397,7 +470,7 @@ export interface DoorSymbol {
 
 /** Espacio con nombre: el m² se calcula del polígono (shoelace), no se captura a mano. */
 export interface RoomLabel {
-  label: string;
+  label: LocalizedText;
   polygon: Point[];
 }
 
@@ -436,22 +509,158 @@ export type FloorPlanConfig =
       furniture: FurniturePiece[];
     };
 
-export interface DevelopmentConfig {
-  slug: string;
-  name: string;
-  tagline: string;
-  whatsapp: string;
-  brand: BrandConfig;
+/**
+ * Todo lo que solo existe para dibujar el modelo 3D. Un cliente que entrega únicamente
+ * renders no tiene nada de esto, por eso `DevelopmentConfig` lo declara opcional (ver
+ * `lib/modes.ts`); el selector 3D y el motor trabajan con `TowerDevelopmentConfig`.
+ */
+export interface Tower3DConfig {
   materials: MaterialsConfig;
   carpentry: CarpentryConfig;
   balcony: BalconyConfig;
   lobby: LobbyConfig;
   roof: RoofConfig;
   context: ContextConfig;
-  paymentPlan: PaymentPlanConfig;
-  geometry: TowerGeometryConfig;
   camera: CameraConfig;
   sky: SkyConfig;
+}
+
+/** Qué es un edificio del conjunto; solo cambia cómo se rotula y si lleva unidades a la venta. */
+export type BuildingKind = 'tower' | 'clubhouse' | 'amenity';
+
+/**
+ * Un edificio de un conjunto: su propia geometría (niveles, plantas, núcleo) puesta en el
+ * conjunto con una posición y un giro. Materiales, carpintería, balcones, entorno y cámara
+ * son compartidos por todo el conjunto (`Tower3DConfig`).
+ */
+export interface BuildingConfig {
+  /** Identificador estable: va en la URL (`/aura/edificio/<id>`) y en `units.building_id`. */
+  id: string;
+  name: LocalizedText;
+  kind: BuildingKind;
+  /** Dónde queda el centro de su huella en el conjunto: [x, z] en metros. */
+  position: Point;
+  /** Giro de su huella, en grados, sentido horario visto desde arriba. */
+  rotationDeg: number;
+  geometry: TowerGeometryConfig;
+  /** Tiene unidades en el inventario. Por omisión solo las torres (`kind: "tower"`) las tienen. */
+  sellable?: boolean;
+  /** Texto breve del panel de un edificio sin unidades (casa club, amenidades). */
+  description?: LocalizedText;
+}
+
+/**
+ * Asoleamiento: dónde está el desarrollo y cómo se analiza el sol. Con esto el sol de la escena sigue la
+ * posición solar real (hora del día y fecha del año) y cada unidad sabe cuántas horas de sol directo recibe.
+ * Sin esta sección el selector conserva su sol fijo y no ofrece el control ni el indicador.
+ */
+export interface SolarConfig {
+  latitude: number;
+  /** Longitud en grados; negativa al oeste de Greenwich (CDMX: -99.13). */
+  longitude: number;
+  /** Diferencia con UTC en horas, la de la hora local que muestra el control (CDMX: -6, sin horario de verano desde 2022). */
+  utcOffsetHours: number;
+  /** Hacia dónde queda el norte en el plano de planta: grados en sentido horario desde "arriba" (el eje -z). 0 = el norte está arriba. */
+  northAngleDeg: number;
+  /** Fecha inicial del control (MM-DD) y hora local inicial (decimal: 16.5 = 4:30 pm). */
+  defaultDate: string;
+  defaultHour: number;
+  /** Rango de horas locales del control de hora. */
+  hourRange: [number, number];
+  /** Elevación mínima del sol (grados) para contarlo como sol directo; bajo ese ángulo casi no calienta ni ilumina. */
+  minSunElevationDeg: number;
+  /** Cada cuántos minutos se muestrea el día al estimar las horas de sol de una unidad. */
+  sampleMinutes: number;
+  /** "Sol de tarde": desde qué hora local cuenta como tarde y cuántas horas mínimas hacen falta. */
+  afternoonFromHour: number;
+  afternoonMinHours: number;
+  /** Fechas rápidas del control (MM-DD). */
+  presets: { label: LocalizedText; date: string }[];
+}
+
+/** Vista desde la unidad: la cámara dentro del departamento, mirando hacia afuera. */
+export interface UnitViewConfig {
+  /** Altura de los ojos sobre el piso del nivel, en metros. */
+  eyeHeight: number;
+  /** Cuánto se separa la cámara del vidrio, hacia adentro, en metros. */
+  wallInset: number;
+  /** Campo de visión vertical dentro de la unidad (más abierto que el de la vista exterior). */
+  fov: number;
+  /** Cuánto se puede girar la cabeza a cada lado, hacia arriba y hacia abajo, en grados. */
+  yawLimitDeg: number;
+  pitchUpDeg: number;
+  pitchDownDeg: number;
+  /** Duración del vuelo de entrada y de regreso, en segundos. */
+  flightSeconds: number;
+}
+
+/**
+ * Idiomas de la interfaz que ofrece el desarrollo. La interfaz abre en el idioma del navegador si está entre estos; si
+ * no, en `defaultLanguage`. Con un solo idioma no aparece el selector. Los textos de la config (`LocalizedText`) sin
+ * versión en el idioma elegido caen al `defaultLanguage`.
+ */
+export interface I18nConfig {
+  languages: Language[];
+  defaultLanguage: Language;
+}
+
+/**
+ * Cambio de moneda MXN/USD. El precio oficial es en pesos; el dólar es una conversión referencial con este tipo de
+ * cambio, que el cliente actualiza a mano aquí (no se consulta ningún servicio). Sin esta sección solo hay pesos.
+ */
+export interface CurrencyConfig {
+  /** Pesos por un dólar (por ejemplo 18.5). */
+  usdRate: number;
+  /** Fecha del tipo de cambio (ISO `YYYY-MM-DD`): se muestra en la nota "referencial". */
+  asOf: string;
+}
+
+/**
+ * Modo presentación (recorrido automático) y modo showroom (pantalla de kiosco). Sin esta sección el desarrollo usa los
+ * valores por omisión de abajo.
+ */
+export interface PresentationConfig {
+  /** Duración del recorrido, en segundos (por omisión 45). */
+  tourSeconds?: number;
+  /** Unidad que visita el recorrido: `edificio:código` (o el código en una torre). Sin ella, la disponible más alta con vista. */
+  featuredUnit?: string;
+  /** Segundos sin uso para que el showroom arranque el recorrido solo (por omisión 120). */
+  idleSeconds?: number;
+  /** Horas locales entre las que el recorrido barre el asoleamiento (por omisión 7 → 18); requiere `solar`. */
+  sunSweepHours?: [number, number];
+}
+
+/** App instalable (PWA). Todo opcional: el manifiesto toma el resto de la marca del desarrollo. */
+export interface PwaConfig {
+  /** Nombre bajo el ícono de la pantalla de inicio (≤ 12 caracteres); por omisión, las primeras palabras del nombre. */
+  shortName?: string;
+  /** Cómo abre la app instalada; `fullscreen` para una pantalla de showroom. */
+  display?: 'standalone' | 'fullscreen' | 'minimal-ui';
+}
+
+export interface DevelopmentConfig extends Partial<Tower3DConfig> {
+  /** App instalable y sin conexión. */
+  pwa?: PwaConfig;
+  /** Recorrido automático y showroom. */
+  presentation?: PresentationConfig;
+  /** Idiomas de la interfaz. Sin esto solo hay español. */
+  i18n?: I18nConfig;
+  /** Moneda: tipo de cambio para ver los precios en dólares. Sin esto solo hay pesos. */
+  currency?: CurrencyConfig;
+  /** Geometría de un desarrollo de una sola torre. Un conjunto la omite y declara `buildings`. */
+  geometry?: TowerGeometryConfig;
+  /** Varios edificios (torres, casa club, amenidades), cada uno con su posición, giro y geometría. */
+  buildings?: BuildingConfig[];
+  /** Asoleamiento (control de hora y fecha, horas de sol por unidad). Sin esto no hay. */
+  solar?: SolarConfig;
+  /** Vista desde la unidad. Sin esto no hay botón. */
+  unitView?: UnitViewConfig;
+  slug: string;
+  name: string;
+  tagline: LocalizedText;
+  whatsapp: string;
+  brand: BrandConfig;
+  paymentPlan: PaymentPlanConfig;
   /** Ficha de negocio por tipo (A, B, C, D...), aplica a las unidades de `geometry.plate`. */
   unitTypes: Record<string, UnitTypeSpec>;
   /** Ficha de negocio por código, para los penthouses únicos de `geometry.penthousePlate`. */
@@ -460,12 +669,16 @@ export interface DevelopmentConfig {
   floorPlans: Record<string, FloorPlanConfig>;
   /** Rutas de renders interiores por tipo/código, en `public/clients/<slug>/interiors/<clave>/`. */
   interiors: Record<string, string[]>;
-  facade: FacadeConfig;
+  /** Modo render. Sin esto el cliente no tiene pestaña de render. */
+  render?: RenderConfig;
   project: ProjectInfoConfig;
   legal: LegalConfig;
   advisor: AdvisorConfig;
   seo: SeoConfig;
 }
+
+/** Cliente con modelo 3D: `DevelopmentConfig` con todas las secciones de `Tower3DConfig` presentes. */
+export type TowerDevelopmentConfig = DevelopmentConfig & Tower3DConfig;
 
 /** Metadatos para compartir el sitio: favicon, y las etiquetas Open Graph/Twitter Card que
  *  arman la tarjeta de vista previa al pegar el link (WhatsApp, Facebook, Twitter/X...).
@@ -488,16 +701,39 @@ export interface SeoConfig {
 /** Datos del responsable para el aviso de privacidad (LFPDPPP) — de la config del
  *  cliente, nunca fijos en el texto de la página. */
 export interface LegalConfig {
-  privacyResponsibleParty: string;
-  privacyAddress: string;
+  privacyResponsibleParty: LocalizedText;
+  privacyAddress: LocalizedText;
   privacyContactEmail: string;
 }
 
 export type UnitStatus = 'available' | 'reserved' | 'sold';
 
+/** Colores de la planta. Llegan por props: el motor no trae ninguna paleta de un cliente. */
+export interface FloorPlanStyle {
+  paper: string;
+  /** Losa del nivel (se ve en los vestíbulos entre unidades). */
+  slab: string;
+  /** Piso de una unidad cuando no se pinta por estado. */
+  unitFill: string;
+  /** Piso de una unidad por estado de disponibilidad (se mezcla con `unitFill`). */
+  statusFill: Record<UnitStatus, string>;
+  core: string;
+  outline: string;
+  wall: string;
+  window: string;
+  door: string;
+  furniture: string;
+  codeText: string;
+  codeHalo: string;
+  /** Contorno de la unidad seleccionada. */
+  selected: string;
+}
+
 /** Unidad de negocio, tal como vive en la tabla `units` de Supabase. */
 export interface Unit {
   id: string;
+  /** A qué edificio del conjunto pertenece (`BuildingConfig.id`); en un desarrollo de una torre, `principal`. */
+  buildingId: string;
   code: string;
   floor: number;
   type: string;

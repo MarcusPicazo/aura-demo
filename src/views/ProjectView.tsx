@@ -7,6 +7,7 @@ import { usePresence } from '../lib/usePresence';
 import { trackEvent } from '../lib/analytics';
 import type { AuraOutletContext } from './AuraLayout';
 import auraConfigJson from '../config/aura.json';
+import { useI18n } from '../i18n/useI18n';
 import type { AmenityConfig, DevelopmentConfig } from '../types';
 
 const auraConfig = auraConfigJson as unknown as DevelopmentConfig;
@@ -49,6 +50,7 @@ interface AmenityLightboxProps {
  * arrastrando hacia abajo (misma pestaña que `UnitPanel`/`ContactCard`).
  */
 function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, onClose }: AmenityLightboxProps) {
+  const { t, text } = useI18n();
   useEscapeKey(onClose, visible);
   const { dragging, dragY, handlePointerDown, handlePointerMove, handlePointerUp } = useDragToDismiss(onClose, visible);
 
@@ -74,16 +76,16 @@ function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, o
           className="flex shrink-0 touch-none cursor-grab justify-center bg-white pb-1 pt-2.5 active:cursor-grabbing sm:hidden"
         >
           <span className="h-1.5 w-10 rounded-full bg-neutral-300" aria-hidden="true" />
-          <span className="sr-only">Deslizar o tocar para cerrar</span>
+          <span className="sr-only">{t('common.dragToClose')}</span>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="relative">
-            <img src={amenity.image} alt={amenity.label} className="block h-56 w-full object-cover sm:h-72 sm:rounded-t-2xl" />
+            <img src={amenity.image} alt={text(amenity.label)} className="block h-56 w-full object-cover sm:h-72 sm:rounded-t-2xl" />
             <button
               type="button"
               onClick={onClose}
-              aria-label="Cerrar"
+              aria-label={t('common.close')}
               className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-xl leading-none text-neutral-600 shadow hover:text-neutral-900"
             >
               &times;
@@ -92,7 +94,7 @@ function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, o
               <button
                 type="button"
                 onClick={onPrev}
-                aria-label="Amenidad anterior"
+                aria-label={t('project.prevAmenity')}
                 className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-xl leading-none text-neutral-700 shadow hover:text-neutral-900"
               >
                 &lsaquo;
@@ -102,7 +104,7 @@ function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, o
               <button
                 type="button"
                 onClick={onNext}
-                aria-label="Siguiente amenidad"
+                aria-label={t('project.nextAmenity')}
                 className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-xl leading-none text-neutral-700 shadow hover:text-neutral-900"
               >
                 &rsaquo;
@@ -116,10 +118,10 @@ function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, o
           >
             <div className="flex items-center gap-2">
               <AmenityIcon name={amenity.icon} className="h-5 w-5 shrink-0 text-[var(--brand-primary)]" />
-              <p className="font-serif text-lg text-neutral-900">{amenity.label}</p>
+              <p className="font-serif text-lg text-neutral-900">{text(amenity.label)}</p>
             </div>
-            {amenity.description && <p className="mt-2 text-sm leading-relaxed text-neutral-600">{amenity.description}</p>}
-            <p className="mt-4 text-xs text-neutral-400">Imágenes conceptuales ilustrativas</p>
+            {amenity.description && <p className="mt-2 text-sm leading-relaxed text-neutral-600">{text(amenity.description)}</p>}
+            <p className="mt-4 text-xs text-neutral-400">{t('common.illustrativeImages')}</p>
           </div>
         </div>
       </div>
@@ -135,6 +137,7 @@ function AmenityLightbox({ amenity, visible, hasPrev, hasNext, onPrev, onNext, o
  */
 export function ProjectView() {
   const { name, tagline, project } = auraConfig;
+  const { t, text } = useI18n();
   const { description, amenities, location, pointsOfInterest } = project;
   const { developmentId } = useOutletContext<AuraOutletContext>();
 
@@ -160,14 +163,14 @@ export function ProjectView() {
     <div className="h-dvh w-screen overflow-y-auto bg-neutral-50 pt-20 pb-8">
       <div className="animate-panel-enter mx-auto w-full max-w-2xl px-4">
         <p className="text-sm font-medium uppercase tracking-wide text-neutral-500">{name}</p>
-        <h1 className="font-serif text-2xl text-neutral-900">{tagline}</h1>
-        <p className="mt-3 text-sm leading-relaxed text-neutral-700">{description}</p>
+        <h1 className="font-serif text-2xl text-neutral-900">{text(tagline)}</h1>
+        <p className="mt-3 text-sm leading-relaxed text-neutral-700">{text(description)}</p>
 
         {amenities.length > 0 && (
           <div className="mt-6">
             <div className="flex items-baseline justify-between gap-2">
-              <p className="text-sm font-medium text-neutral-500">Amenidades</p>
-              <p className="text-xs text-neutral-400">Imágenes conceptuales ilustrativas</p>
+              <p className="text-sm font-medium text-neutral-500">{t('project.amenities')}</p>
+              <p className="text-xs text-neutral-400">{t('common.illustrativeImages')}</p>
             </div>
             {/* `flex flex-wrap justify-center` en vez de `grid`: con un número de amenidades
                 que no es múltiplo exacto de columnas, un grid deja la última fila incompleta
@@ -175,12 +178,12 @@ export function ProjectView() {
                 fila sola. El ancho de cada tarjeta replica a mano el ancho que tendría en un
                 grid de 2/3 columnas con el mismo gap, así se ve idéntico cuando sí completa. */}
             <div className="mt-2 flex flex-wrap justify-center gap-3">
-              {amenities.map((amenity) => {
+              {amenities.map((amenity, amenityIndex) => {
                 const imageIndex = amenitiesWithImage.indexOf(amenity);
                 const openable = imageIndex !== -1;
                 return (
                   <button
-                    key={amenity.label}
+                    key={`${amenity.icon}-${amenityIndex}`}
                     type="button"
                     disabled={!openable}
                     onClick={() => setOpenIndex(imageIndex)}
@@ -196,7 +199,7 @@ export function ProjectView() {
                     )}
                     <div className="flex items-center gap-2 p-3">
                       <AmenityIcon name={amenity.icon} className="h-5 w-5 shrink-0 text-neutral-700" />
-                      <span className="text-sm text-neutral-800">{amenity.label}</span>
+                      <span className="text-sm text-neutral-800">{text(amenity.label)}</span>
                     </div>
                   </button>
                 );
@@ -206,7 +209,7 @@ export function ProjectView() {
         )}
 
         <div className="mt-6">
-          <p className="text-sm font-medium text-neutral-500">Ubicación</p>
+          <p className="text-sm font-medium text-neutral-500">{t('project.location')}</p>
           <div className="relative mt-2 overflow-hidden rounded-xl bg-white shadow-sm">
             {/* El embed de OpenStreetMap deja arrastrar y hacer zoom adentro del iframe —
                 si el usuario se aleja del pin no hay forma de volver salvo recargarlo. `key`
@@ -214,7 +217,7 @@ export function ProjectView() {
                 regreso al recorte centrado en el pin) cada vez que se toca el botón. */}
             <iframe
               key={mapResetToken}
-              title={`Ubicación de ${name}`}
+              title={t('project.mapTitle', { name })}
               src={buildOsmEmbedUrl(location.lat, location.lng)}
               loading="lazy"
               className="h-64 w-full border-0 sm:h-80"
@@ -222,24 +225,24 @@ export function ProjectView() {
             <button
               type="button"
               onClick={() => setMapResetToken((token) => token + 1)}
-              aria-label="Volver a centrar el mapa en la ubicación"
+              aria-label={t('project.recenter')}
               className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-neutral-700 shadow-md hover:text-neutral-900"
             >
               <RecenterIcon className="h-4 w-4" />
             </button>
           </div>
-          <p className="mt-2 text-xs text-neutral-500">{location.address}</p>
+          <p className="mt-2 text-xs text-neutral-500">{text(location.address)}</p>
         </div>
 
         {pointsOfInterest.length > 0 && (
           <div className="mt-6">
-            <p className="text-sm font-medium text-neutral-500">Puntos de interés cercanos</p>
+            <p className="text-sm font-medium text-neutral-500">{t('project.nearby')}</p>
             <ul className="mt-2 divide-y divide-neutral-200 rounded-xl bg-white shadow-sm">
               {pointsOfInterest.map((poi) => (
-                <li key={poi.name} className="flex items-center justify-between px-4 py-2.5 text-sm">
-                  <span className="text-neutral-800">{poi.name}</span>
+                <li key={text(poi.name)} className="flex items-center justify-between px-4 py-2.5 text-sm">
+                  <span className="text-neutral-800">{text(poi.name)}</span>
                   {poi.distanceMinutes !== undefined && (
-                    <span className="text-neutral-500">{poi.distanceMinutes} min caminando</span>
+                    <span className="text-neutral-500">{t('project.walkMinutes', { minutes: poi.distanceMinutes })}</span>
                   )}
                 </li>
               ))}

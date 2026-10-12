@@ -13,6 +13,9 @@ const noRaycast = () => null;
 interface ContextProps {
   footprint: PolygonBounds;
   context: ContextConfig;
+  /** Lado mínimo del piso, en metros. Una vista aérea (masterplan) alcanza a ver el borde del piso si este
+   *  solo mide "huella × factor"; con un mínimo que rebase el plano lejano de la cámara no hay borde. */
+  minGroundSize?: number;
 }
 
 /**
@@ -26,11 +29,11 @@ interface ContextProps {
  * árboles + vecinos) cada vez que algo AJENO a este componente hace que `Selector3D` se
  * vuelva a renderizar, con `footprint`/`context` iguales.
  */
-function ContextComponent({ footprint, context }: ContextProps) {
+function ContextComponent({ footprint, context, minGroundSize = 0 }: ContextProps) {
   const centerX = (footprint.minX + footprint.maxX) / 2;
   const centerZ = (footprint.minZ + footprint.maxZ) / 2;
   const span = Math.max(footprint.maxX - footprint.minX, footprint.maxZ - footprint.minZ);
-  const groundSize = span * context.ground.sizeFactor;
+  const groundSize = Math.max(span * context.ground.sizeFactor, minGroundSize);
 
   const groundTexture = useMemo(
     () => createGroundTexture(context.ground.color, context.ground.noiseColor),

@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import { supabaseAdmin } from '../lib/supabaseAdmin';
 import { Login } from './Login';
+import { RouteFallback } from '../views/RouteFallback';
 import auraConfigJson from '../config/aura.json';
 import type { DevelopmentConfig } from '../types';
 
@@ -12,7 +13,7 @@ function navLinkClass({ isActive }: { isActive: boolean }): string {
   return `text-sm font-medium ${isActive ? 'text-neutral-900 underline' : 'text-neutral-500 hover:text-neutral-900'}`;
 }
 
-/** Ruta /admin: si no hay sesión muestra Login; si hay sesión, la tabla de unidades o el editor de fachada. */
+/** Ruta /admin: si no hay sesión muestra Login; si hay sesión, la tabla de unidades o el editor de render. */
 export default function AdminPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
@@ -32,7 +33,7 @@ export default function AdminPage() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (checkingSession) return null;
+  if (checkingSession) return <RouteFallback />;
   if (!session) return <Login />;
 
   return (
@@ -44,8 +45,11 @@ export default function AdminPage() {
             <NavLink to="/admin" end className={navLinkClass}>
               Unidades
             </NavLink>
-            <NavLink to="/admin/facade" className={navLinkClass}>
-              Fachada
+            <NavLink to="/admin/render" className={navLinkClass}>
+              Render
+            </NavLink>
+            <NavLink to="/admin/plantas" className={navLinkClass}>
+              Plantas
             </NavLink>
             <NavLink to="/admin/leads" className={navLinkClass}>
               Leads

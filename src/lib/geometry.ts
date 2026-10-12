@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { DoorSymbol, FootprintSide, Point, TowerGeometryConfig, PlateUnit, Unit } from '../types';
+import type { DoorSymbol, FootprintSide, NeighborBuildingsConfig, Point, TowerGeometryConfig, PlateUnit, Unit } from '../types';
 
 /**
  * Construye un THREE.Shape a partir de un polígono en coordenadas de planta [x, z].
@@ -45,6 +45,11 @@ export function polygonBounds(polygons: Point[][]): PolygonBounds {
 export function polygonCentroid(polygon: Point[]): Point {
   const [sumX, sumY] = polygon.reduce<Point>(([accX, accY], [x, y]) => [accX + x, accY + y], [0, 0]);
   return [sumX / polygon.length, sumY / polygon.length];
+}
+
+/** Escala un polígono en fracciones 0–1 a coordenadas de píxel de una imagen de `width`×`height`. */
+export function scalePolygon(polygon: Point[], width: number, height: number): Point[] {
+  return polygon.map(([x, y]) => [x * width, y * height]);
 }
 
 export interface TowerLevel {
@@ -192,7 +197,26 @@ function maxCornerRatios(corners: Vec3[], cameraPos: Vec3, forward: Vec3, halfVF
  * mucho y es el ancho el que obliga a alejarse más — el mismo cálculo cubre los dos casos
  * sin necesitar una rama aparte para "móvil".
  */
-export function computeCameraFraming(footprint: PolygonBounds, totalHeight: number, aspect: number, fovDegrees: number): CameraFraming {
+export interface FramingView {
+  /** Altura de la cámara como fracción de `totalHeight` (default: a media altura, como se ve una torre sola). */
+  cameraHeightFraction?: number;
+  /** Altura del punto al que mira, como fracción de `totalHeight`. */
+  targetHeightFraction?: number;
+  /**
+   * Ángulo de elevación de la cámara sobre el horizonte, en grados. Si se da, manda sobre `cameraHeightFraction`:
+   * la altura sale de la distancia (más lejos = más alto) y el ángulo con que se ve el conjunto es el mismo en
+   * una pantalla ancha que en un celular vertical, donde hay que alejarse mucho más para que quepa a lo ancho.
+   */
+  elevationDeg?: number;
+}
+
+export function computeCameraFraming(
+  footprint: PolygonBounds,
+  totalHeight: number,
+  aspect: number,
+  fovDegrees: number,
+  view: FramingView = {},
+): CameraFraming {
   const centerX = (footprint.minX + footprint.maxX) / 2;
   const centerZ = (footprint.minZ + footprint.maxZ) / 2;
 
@@ -205,8 +229,11 @@ export function computeCameraFraming(footprint: PolygonBounds, totalHeight: numb
     }
   }
 
-  const cameraY = totalHeight * CAMERA_HEIGHT_FRACTION;
-  const targetY = totalHeight * TARGET_HEIGHT_FRACTION;
+  const targetY = totalHeight * (view.targetHeightFraction ?? TARGET_HEIGHT_FRACTION);
+  const fixedCameraY = totalHeight * (view.cameraHeightFraction ?? CAMERA_HEIGHT_FRACTION);
+  // `radius` es la distancia horizontal al centro: con un ángulo fijo, la altura depende de ella.
+  const cameraYAt = (radius: number) =>
+    view.elevationDeg === undefined ? fixedCameraY : targetY + radius * Math.tan((view.elevationDeg * Math.PI) / 180);
   const target: Vec3 = { x: centerX, y: targetY, z: centerZ };
   const azimuthRad = (CAMERA_AZIMUTH_DEG * Math.PI) / 180;
 
@@ -214,7 +241,7 @@ export function computeCameraFraming(footprint: PolygonBounds, totalHeight: numb
   const halfHFov = Math.atan(Math.tan(halfVFov) * aspect);
 
   function ratiosAtRadius(radius: number) {
-    const cameraPos: Vec3 = { x: centerX + radius * Math.cos(azimuthRad), y: cameraY, z: centerZ + radius * Math.sin(azimuthRad) };
+    const cameraPos: Vec3 = { x: centerX + radius * Math.cos(azimuthRad), y: cameraYAt(radius), z: centerZ + radius * Math.sin(azimuthRad) };
     const forward = vecNormalize(vecSub(target, cameraPos));
     return maxCornerRatios(corners, cameraPos, forward, halfVFov, halfHFov);
   }
@@ -232,6 +259,7 @@ export function computeCameraFraming(footprint: PolygonBounds, totalHeight: numb
   }
 
   const radius = high;
+  const cameraY = cameraYAt(radius);
   const intro: [number, number, number] = [centerX + radius * Math.cos(azimuthRad), cameraY, centerZ + radius * Math.sin(azimuthRad)];
   const distance = Math.hypot(radius, cameraY - targetY);
 
@@ -358,6 +386,81 @@ export function thickSegmentPolygon(from: Point, to: Point, thickness: number): 
   ];
 }
 
+/**
+ * Trazo de una línea quebrada como polígonos (uno por tramo). Cada tramo se alarga medio
+ * grosor por los dos extremos para que las esquinas queden rellenas sin huecos; así un
+ * contorno entero se dibuja como geometría plana (las líneas de WebGL miden 1 px, sin grosor).
+ */
+export function strokePolygons(points: Point[], closed: boolean, thickness: number): Point[][] {
+  const segmentCount = closed ? points.length : points.length - 1;
+  const half = thickness / 2;
+  return Array.from({ length: Math.max(0, segmentCount) }, (_, index) => {
+    const [x1, z1] = points[index];
+    const [x2, z2] = points[(index + 1) % points.length];
+    const length = Math.hypot(x2 - x1, z2 - z1) || 1;
+    const ux = ((x2 - x1) / length) * half;
+    const uz = ((z2 - z1) / length) * half;
+    return thickSegmentPolygon([x1 - ux, z1 - uz], [x2 + ux, z2 + uz], thickness);
+  });
+}
+
+/** ¿El punto cae dentro del polígono? Par-impar (ray casting); sirve en cualquier espacio 2D. */
+export function pointInPolygon([px, py]: Point, polygon: Point[]): boolean {
+  let inside = false;
+  for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index, index += 1) {
+    const [x1, y1] = polygon[index];
+    const [x2, y2] = polygon[previous];
+    if (y1 > py !== y2 > py && px < ((x2 - x1) * (py - y1)) / (y2 - y1) + x1) inside = !inside;
+  }
+  return inside;
+}
+
+function distanceToSegment([px, py]: Point, [x1, y1]: Point, [x2, y2]: Point): number {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const lengthSquared = dx * dx + dy * dy;
+  const t = lengthSquared === 0 ? 0 : Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lengthSquared));
+  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+}
+
+/** Resolución de la rejilla con que se busca el punto de rótulo (por lado del bounding box). */
+const LABEL_POINT_GRID = 40;
+
+/**
+ * Punto donde poner el rótulo de un polígono: el más alejado de todos sus bordes (el más
+ * "adentro"), no el promedio de vértices —en un polígono en L, ese promedio puede caer
+ * sobre el borde o fuera de la forma—. Si hay empate (un rectángulo largo tiene toda una
+ * línea central equidistante) gana el más cercano al centro de gravedad de los vértices.
+ */
+export function polygonLabelPoint(polygon: Point[]): Point {
+  const center = polygonCentroid(polygon);
+  const xs = polygon.map(([x]) => x);
+  const ys = polygon.map(([, y]) => y);
+  const minX = Math.min(...xs);
+  const minY = Math.min(...ys);
+  const width = Math.max(...xs) - minX;
+  const height = Math.max(...ys) - minY;
+
+  let best: Point | null = null;
+  let bestDistance = -1;
+  let bestToCenter = Infinity;
+  for (let row = 0; row < LABEL_POINT_GRID; row += 1) {
+    for (let column = 0; column < LABEL_POINT_GRID; column += 1) {
+      const point: Point = [minX + ((column + 0.5) / LABEL_POINT_GRID) * width, minY + ((row + 0.5) / LABEL_POINT_GRID) * height];
+      if (!pointInPolygon(point, polygon)) continue;
+      const distance = Math.min(...polygon.map((vertex, index) => distanceToSegment(point, vertex, polygon[(index + 1) % polygon.length])));
+      const toCenter = Math.hypot(point[0] - center[0], point[1] - center[1]);
+      const tolerance = Math.max(width, height) * 1e-3;
+      if (distance > bestDistance + tolerance || (Math.abs(distance - bestDistance) <= tolerance && toCenter < bestToCenter)) {
+        best = point;
+        bestDistance = Math.max(distance, bestDistance);
+        bestToCenter = toCenter;
+      }
+    }
+  }
+  return best ?? center;
+}
+
 export interface DoorGeometry {
   /** Hoja abierta, de la bisagra al extremo libre. */
   leaf: [Point, Point];
@@ -465,6 +568,25 @@ export function buildNeighborBuildings(footprint: PolygonBounds, params: Neighbo
     });
   }
   return buildings;
+}
+
+/** Los vecinos del entorno según la config del cliente: la usan el dibujo (`NeighborBuildings`) y el análisis de sol, para que nunca difieran. */
+export function neighborBuildingsFor(
+  footprint: PolygonBounds,
+  streetSide: NeighborBuildingsParams['streetSide'],
+  config: NeighborBuildingsConfig,
+): NeighborBuilding[] {
+  return buildNeighborBuildings(footprint, {
+    count: config.count,
+    minLevels: config.minLevels,
+    maxLevels: config.maxLevels,
+    levelHeight: config.levelHeight,
+    minWidth: config.minWidth,
+    maxWidth: config.maxWidth,
+    minClearance: config.minClearance,
+    toneCount: config.tones.length,
+    streetSide,
+  });
 }
 
 /**

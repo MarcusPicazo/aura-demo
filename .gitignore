@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-*
 *.local
 
 # Env vars (nunca en el repo)
@@ -26,3 +27,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Generado por scripts/render-placeholders.ts (la config vigente vive en src/config)
+render-src/*/render.config.json

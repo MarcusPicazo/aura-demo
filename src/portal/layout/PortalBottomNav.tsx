@@ -73,7 +73,7 @@ export function PortalBottomNav({ user }: { user: PortalUser }) {
               type="button"
               onClick={() => {
                 setMoreOpen(false);
-                logout();
+                void logout();
               }}
               className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left font-ui text-body-md text-error transition-colors hover:bg-error-container/40"
             >

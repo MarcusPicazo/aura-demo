@@ -127,7 +127,7 @@ export function InventarioAsesor() {
                       <span className={`h-6 w-1.5 rounded-full ${unit.status === 'available' ? 'bg-secondary' : 'bg-transparent'}`} />
                       <div>
                         <span className="font-ui text-title-md font-bold text-primary">Depto {unit.code}</span>
-                        <span className="block font-ui text-label-sm text-on-surface-variant">{unit.tower}</span>
+                        <span className="block font-ui text-label-sm text-on-surface-variant">Orientación {unit.orientation}</span>
                       </div>
                     </div>
                   </td>

@@ -11,6 +11,7 @@
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { calculatePrice } from '../src/lib/pricing.ts';
+import { createUnitIdentity, resolveBuildings, type ResolvedBuilding } from '../src/lib/buildings.ts';
 import { deriveRegularUnitCode } from '../src/lib/geometry.ts';
 import auraConfigJson from '../src/config/aura.json' with { type: 'json' };
 import type { DevelopmentConfig, UnitStatus } from '../src/types.ts';
@@ -18,6 +19,7 @@ import type { DevelopmentConfig, UnitStatus } from '../src/types.ts';
 const config = auraConfigJson as unknown as DevelopmentConfig;
 
 interface SeedUnit {
+  buildingId: string;
   code: string;
   floor: number;
   type: string;
@@ -37,12 +39,13 @@ function parkingSpotsFor(bedrooms: number): number {
 }
 
 /**
- * De 46 unidades totales: ~60% disponible, ~25% vendido, ~15% apartado (SPEC §3).
- * Los 2 penthouses son un caso aparte (uno vendido, uno disponible, más abajo), así
- * que estos conteos aplican a las 44 unidades regulares (pisos 1..levels-1).
+ * Reparto de estados (SPEC §3): ~60% disponible, ~25% vendido, ~15% apartado. Se calcula como
+ * proporción de las unidades regulares de cada edificio; para las 44 de Torre Aura da justo
+ * 11 vendidas y 6 apartadas, el reparto con que se sembró la demo. Los penthouses con ficha
+ * propia son un caso aparte (uno vendido y uno disponible, más abajo).
  */
-const REGULAR_SOLD_COUNT = 11;
-const REGULAR_RESERVED_COUNT = 6;
+const REGULAR_SOLD_RATIO = 11 / 44;
+const REGULAR_RESERVED_RATIO = 6 / 44;
 
 interface RegularSlot {
   code: string;
@@ -57,6 +60,8 @@ interface RegularSlot {
  * resuelven por piso y luego por orden dentro del piso (A,B,C,D).
  */
 function assignRegularStatuses(slots: RegularSlot[], regularFloors: number): Map<string, UnitStatus> {
+  const soldCount = Math.round(slots.length * REGULAR_SOLD_RATIO);
+  const reservedCount = Math.round(slots.length * REGULAR_RESERVED_RATIO);
   const centerFloor = (1 + regularFloors) / 2;
 
   const ordered = [...slots].sort((a, b) => {
@@ -70,8 +75,8 @@ function assignRegularStatuses(slots: RegularSlot[], regularFloors: number): Map
   const statuses = new Map<string, UnitStatus>();
   ordered.forEach((slot, index) => {
     let status: UnitStatus;
-    if (index < REGULAR_SOLD_COUNT) status = 'sold';
-    else if (index < REGULAR_SOLD_COUNT + REGULAR_RESERVED_COUNT) status = 'reserved';
+    if (index < soldCount) status = 'sold';
+    else if (index < soldCount + reservedCount) status = 'reserved';
     else status = 'available';
     statuses.set(slot.code, status);
   });
@@ -79,30 +84,42 @@ function assignRegularStatuses(slots: RegularSlot[], regularFloors: number): Map
   return statuses;
 }
 
-function generateSeedUnits(config: DevelopmentConfig): SeedUnit[] {
-  const { geometry, unitTypes, penthouseUnitTypes } = config;
-  const regularFloors = geometry.levels - 1;
+function generateBuildingUnits(building: ResolvedBuilding, config: DevelopmentConfig): SeedUnit[] {
+  const { geometry } = building;
+  const { unitTypes, penthouseUnitTypes } = config;
+
+  // El último nivel usa `penthousePlate`. Si todas sus unidades tienen ficha propia en
+  // `penthouseUnitTypes` son penthouses (precio final y estado fijo); si no, son unidades
+  // regulares como las de abajo, solo que con su propio código.
+  const topIsPenthouse = geometry.penthousePlate.length > 0 && geometry.penthousePlate.every((unit) => unit.code in penthouseUnitTypes);
+  const regularFloors = topIsPenthouse ? geometry.levels - 1 : geometry.levels;
 
   const regularSlots: RegularSlot[] = [];
   const regularUnits = new Map<string, Omit<SeedUnit, 'status'>>();
 
-  for (let floor = 1; floor <= regularFloors; floor += 1) {
-    geometry.plate.forEach((unit, orderInFloor) => {
-      const spec = unitTypes[unit.type];
-      const code = deriveRegularUnitCode(floor, orderInFloor);
-      regularSlots.push({ code, floor, type: unit.type, orderInFloor });
-      regularUnits.set(code, {
-        code,
-        floor,
-        type: unit.type,
-        bedrooms: spec.bedrooms,
-        bathrooms: spec.bathrooms,
-        m2: spec.m2,
-        orientation: spec.orientation,
-        price: calculatePrice(spec.priceBase, floor),
-        parkingSpots: parkingSpotsFor(spec.bedrooms),
-      });
+  const addRegular = (floor: number, orderInFloor: number, type: string, code: string) => {
+    const spec = unitTypes[type];
+    regularSlots.push({ code, floor, type, orderInFloor });
+    regularUnits.set(code, {
+      buildingId: building.id,
+      code,
+      floor,
+      type,
+      bedrooms: spec.bedrooms,
+      bathrooms: spec.bathrooms,
+      m2: spec.m2,
+      orientation: spec.orientation,
+      price: calculatePrice(spec.priceBase, floor),
+      parkingSpots: parkingSpotsFor(spec.bedrooms),
     });
+  };
+
+  for (let floor = 1; floor <= regularFloors; floor += 1) {
+    if (floor === geometry.levels) {
+      geometry.penthousePlate.forEach((unit, orderInFloor) => addRegular(floor, orderInFloor, unit.type, unit.code));
+    } else {
+      geometry.plate.forEach((unit, orderInFloor) => addRegular(floor, orderInFloor, unit.type, deriveRegularUnitCode(floor, orderInFloor)));
+    }
   }
 
   const regularStatuses = assignRegularStatuses(regularSlots, regularFloors);
@@ -112,27 +129,36 @@ function generateSeedUnits(config: DevelopmentConfig): SeedUnit[] {
     status: regularStatuses.get(slot.code)!,
   }));
 
-  // Penthouses: caso especial de SPEC §3 ("uno vendido y uno disponible"), y su
-  // precio ya es el precio final (no aplica el multiplicador por piso).
-  const penthouseFloor = geometry.levels;
-  const penthouseStatuses: UnitStatus[] = ['sold', 'available'];
-  geometry.penthousePlate.forEach((unit, index) => {
-    const spec = penthouseUnitTypes[unit.code];
-    units.push({
-      code: unit.code,
-      floor: penthouseFloor,
-      type: unit.type,
-      bedrooms: spec.bedrooms,
-      bathrooms: spec.bathrooms,
-      m2: spec.m2,
-      orientation: spec.orientation,
-      price: spec.priceBase,
-      status: penthouseStatuses[index] ?? 'available',
-      parkingSpots: parkingSpotsFor(spec.bedrooms),
+  if (topIsPenthouse) {
+    // Penthouses: caso especial de SPEC §3 ("uno vendido y uno disponible"), y su
+    // precio ya es el precio final (no aplica el multiplicador por piso).
+    const penthouseStatuses: UnitStatus[] = ['sold', 'available'];
+    geometry.penthousePlate.forEach((unit, index) => {
+      const spec = penthouseUnitTypes[unit.code];
+      units.push({
+        buildingId: building.id,
+        code: unit.code,
+        floor: geometry.levels,
+        type: unit.type,
+        bedrooms: spec.bedrooms,
+        bathrooms: spec.bathrooms,
+        m2: spec.m2,
+        orientation: spec.orientation,
+        price: spec.priceBase,
+        status: penthouseStatuses[index] ?? 'available',
+        parkingSpots: parkingSpotsFor(spec.bedrooms),
+      });
     });
-  });
+  }
 
   return units;
+}
+
+/** Las unidades de todos los edificios a la venta del conjunto (la casa club y las amenidades no llevan). */
+function generateSeedUnits(config: DevelopmentConfig): SeedUnit[] {
+  return resolveBuildings(config)
+    .filter((building) => building.sellable)
+    .flatMap((building) => generateBuildingUnits(building, config));
 }
 
 function sqlString(value: string): string {
@@ -140,7 +166,7 @@ function sqlString(value: string): string {
 }
 
 function unitRowSql(unit: SeedUnit): string {
-  return `  (${sqlString(unit.code)}, ${unit.floor}, ${sqlString(unit.type)}, ${unit.bedrooms}, ${unit.bathrooms}, ${unit.m2}, ${unit.price}, ${sqlString(unit.orientation)}, ${sqlString(unit.status)}, ${unit.parkingSpots})`;
+  return `  (${sqlString(unit.buildingId)}, ${sqlString(unit.code)}, ${unit.floor}, ${sqlString(unit.type)}, ${unit.bedrooms}, ${unit.bathrooms}, ${unit.m2}, ${unit.price}, ${sqlString(unit.orientation)}, ${sqlString(unit.status)}, ${unit.parkingSpots})`;
 }
 
 interface SeedTeamMember {
@@ -195,6 +221,22 @@ on conflict (development_id, email) do update set
 -- a 'invitado'.`;
 }
 
+/**
+ * Las unidades que se sembraron antes de que existiera `building_id` quedaron en el edificio
+ * por omisión ('principal'): se pasan al edificio de origen del conjunto ANTES del upsert, para
+ * que éste las actualice en lugar de duplicarlas. Sin efecto en un desarrollo de una sola torre.
+ */
+function legacyUnitsSql(config: DevelopmentConfig): string {
+  const identity = createUnitIdentity(resolveBuildings(config));
+  if (identity.defaultBuildingId === 'principal') return '';
+  return `-- Unidades sembradas antes de existir building_id (quedaron en 'principal') → edificio de origen.
+update units set building_id = ${sqlString(identity.defaultBuildingId)}
+where development_id = (select id from developments where slug = ${sqlString(config.slug)})
+  and building_id = 'principal';
+
+`;
+}
+
 function buildSeedSql(config: DevelopmentConfig, units: SeedUnit[]): string {
   return `-- Generado por scripts/seed.ts — pega todo esto en el SQL Editor de Supabase.
 -- Idempotente: se puede volver a correr sin duplicar filas (upsert por slug / código).
@@ -207,13 +249,13 @@ insert into project_settings (development_id)
 select id from developments where slug = ${sqlString(config.slug)}
 on conflict (development_id) do nothing;
 
-insert into units (development_id, code, floor, type, bedrooms, bathrooms, m2, price, orientation, status, parking_spots)
-select d.id, v.code, v.floor, v.type, v.bedrooms, v.bathrooms, v.m2, v.price, v.orientation, v.status, v.parking_spots
+${legacyUnitsSql(config)}insert into units (development_id, building_id, code, floor, type, bedrooms, bathrooms, m2, price, orientation, status, parking_spots)
+select d.id, v.building_id, v.code, v.floor, v.type, v.bedrooms, v.bathrooms, v.m2, v.price, v.orientation, v.status, v.parking_spots
 from (values
 ${units.map(unitRowSql).join(',\n')}
-) as v(code, floor, type, bedrooms, bathrooms, m2, price, orientation, status, parking_spots)
+) as v(building_id, code, floor, type, bedrooms, bathrooms, m2, price, orientation, status, parking_spots)
 cross join (select id from developments where slug = ${sqlString(config.slug)}) as d
-on conflict (development_id, code) do update set
+on conflict (development_id, building_id, code) do update set
   floor = excluded.floor,
   type = excluded.type,
   bedrooms = excluded.bedrooms,

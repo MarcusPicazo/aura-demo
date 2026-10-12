@@ -44,6 +44,9 @@ function useInstanceMatrices(matrices: THREE.Matrix4[]) {
     if (!mesh) return;
     matrices.forEach((matrix, index) => mesh.setMatrixAt(index, matrix));
     mesh.instanceMatrix.needsUpdate = true;
+    // La esfera envolvente se calcula al primer dibujo y no cuenta las instancias: sin recalcularla, la malla se descarta
+    // (frustum culling) en cuanto la cámara deja de mirar hacia el origen, p. ej. desde adentro de una unidad.
+    mesh.computeBoundingSphere();
     invalidate();
   }, [matrices, invalidate]);
   return ref;

@@ -1,4 +1,5 @@
 import { useFiltersStore } from '../store/filtersStore';
+import { useI18n } from '../i18n/useI18n';
 
 /**
  * Por default la torre se ve como el edificio real (materiales de `config.materials`);
@@ -7,6 +8,7 @@ import { useFiltersStore } from '../store/filtersStore';
  * se lee/escribe el toggle manual.
  */
 export function AvailabilityToggle() {
+  const { t } = useI18n();
   const showAvailability = useFiltersStore((state) => state.showAvailability);
   const toggleShowAvailability = useFiltersStore((state) => state.toggleShowAvailability);
 
@@ -19,7 +21,7 @@ export function AvailabilityToggle() {
         showAvailability ? 'bg-[var(--brand-primary)] text-white' : 'bg-[var(--brand-background)]/95 text-neutral-900'
       }`}
     >
-      Ver disponibilidad
+      {t('availability.toggle')}
     </button>
   );
 }

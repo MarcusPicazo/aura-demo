@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { getI18n } from '../i18n/useI18n';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -31,19 +32,19 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   render() {
     if (!this.state.error) return this.props.children;
+    // Un componente de clase no puede usar el hook: lee el idioma que estaba activo.
+    const { t } = getI18n();
 
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-neutral-50 p-6 text-center">
-        <p className="font-serif text-xl text-neutral-900">Algo salió mal</p>
-        <p className="max-w-sm text-sm text-neutral-500">
-          Hubo un problema mostrando la página. Recarga para seguir viendo la torre.
-        </p>
+        <p className="font-serif text-xl text-neutral-900">{t('errorBoundary.title')}</p>
+        <p className="max-w-sm text-sm text-neutral-500">{t('errorBoundary.body')}</p>
         <button
           type="button"
           onClick={() => window.location.reload()}
           className="rounded-full bg-neutral-900 px-6 py-2.5 text-sm font-medium text-white"
         >
-          Recargar
+          {t('errorBoundary.reload')}
         </button>
       </div>
     );

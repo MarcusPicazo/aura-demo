@@ -1,16 +1,26 @@
 import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
-import { AuraLayout } from './views/AuraLayout';
+import { Navigate, Route, Routes, useOutletContext, useParams } from 'react-router-dom';
+import { AuraLayout, type AuraOutletContext } from './views/AuraLayout';
 import { Selector3D } from './views/Selector3D';
+import { WebGLGate } from './views/WebGLGate';
+import { RouteFallback } from './views/RouteFallback';
+import { NotFound } from './views/NotFound';
+import { availableModes, usableRenderOf } from './lib/modes';
+import { RENDER_BASE_PATH, renderPath } from './lib/render';
+import { activeConfig as auraConfig, unitIdentity } from './config/active';
+import { homePath as computeHomePath } from './lib/unitDetails';
 
-// CLAUDE.md: carga diferida del panel de admin y de la vista de fachada — un prospecto
+const modes = availableModes(auraConfig);
+
+// CLAUDE.md: carga diferida del panel de admin y del modo render — un prospecto
 // que solo ve la torre (SPEC §2, momento 1) nunca descarga ninguno de los dos.
-const FacadeView = lazy(() => import('./views/FacadeView').then((m) => ({ default: m.FacadeView })));
+const RenderView = lazy(() => import('./views/render/RenderView').then((m) => ({ default: m.RenderView })));
 const ProjectView = lazy(() => import('./views/ProjectView').then((m) => ({ default: m.ProjectView })));
 const PrivacyNotice = lazy(() => import('./views/PrivacyNotice').then((m) => ({ default: m.PrivacyNotice })));
 const AdminPage = lazy(() => import('./admin/AdminPage'));
 const UnitsTable = lazy(() => import('./admin/UnitsTable').then((m) => ({ default: m.UnitsTable })));
-const FacadeEditor = lazy(() => import('./admin/FacadeEditor').then((m) => ({ default: m.FacadeEditor })));
+const RenderEditor = lazy(() => import('./admin/RenderEditor').then((m) => ({ default: m.RenderEditor })));
+const PlanExporter = lazy(() => import('./admin/PlanExporter').then((m) => ({ default: m.PlanExporter })));
 const LeadsTable = lazy(() => import('./admin/LeadsTable').then((m) => ({ default: m.LeadsTable })));
 const AnalyticsDashboard = lazy(() => import('./admin/AnalyticsDashboard').then((m) => ({ default: m.AnalyticsDashboard })));
 
@@ -33,26 +43,70 @@ const ConfiguracionAdmin = lazy(() =>
 );
 const RoleGate = lazy(() => import('./portal/components/RoleGate').then((m) => ({ default: m.RoleGate })));
 
+/** El selector 3D, solo si el navegador puede dibujarlo (si no: los renders o una explicación). */
+function Selector3DRoute() {
+  return (
+    <WebGLGate>
+      <Selector3D />
+    </WebGLGate>
+  );
+}
+
+/** Dónde cae quien entra a `/aura` o al link viejo `/aura/fachada` según los modos que tenga el desarrollo. */
+const homePath = computeHomePath();
+const legacyFacadePath = modes.render ? RENDER_BASE_PATH : homePath;
+
+/**
+ * `/aura/unidad/:code` cuando ya no es la ruta propia de la unidad: en un conjunto (donde el código solo
+ * puede repetirse) lleva al edificio de esa unidad —así siguen sirviendo los enlaces y QR viejos—, y sin
+ * modelo 3D la abre en el modo render.
+ */
+function UnitRedirect() {
+  const { code } = useParams<{ code: string }>();
+  const { units } = useOutletContext<AuraOutletContext>();
+  const render = usableRenderOf(auraConfig);
+
+  if (modes.tower3d && unitIdentity.multi) {
+    // Hasta que cargue el inventario no se sabe de qué edificio es; si no existe (o es ambigua), al masterplan.
+    if (units.length === 0) return null;
+    const unit = unitIdentity.find(units, code);
+    return <Navigate to={unit ? unitIdentity.path(unit) : '/aura'} replace />;
+  }
+  if (!render) return <Navigate to={homePath} replace />;
+  return <Navigate to={renderPath({ viewId: render.defaultViewId, unitParam: code })} replace />;
+}
+
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/aura" replace />} />
 
       <Route path="/aura" element={<AuraLayout />}>
-        <Route index element={<Selector3D />} />
-        <Route path="unidad/:code" element={<Selector3D />} />
-        <Route
-          path="fachada"
-          element={
-            <Suspense fallback={null}>
-              <FacadeView />
-            </Suspense>
-          }
-        />
+        <Route index element={modes.tower3d ? <Selector3DRoute /> : <Navigate to={homePath} replace />} />
+        <Route path="unidad/:code" element={modes.tower3d && !unitIdentity.multi ? <Selector3DRoute /> : <UnitRedirect />} />
+        {/* Conjunto: cada edificio es una ruta (el masterplan es `/aura`). */}
+        {modes.tower3d && unitIdentity.multi && (
+          <>
+            <Route path="edificio/:buildingId" element={<Selector3DRoute />} />
+            <Route path="edificio/:buildingId/unidad/:code" element={<Selector3DRoute />} />
+          </>
+        )}
+        {modes.render && (
+          <Route
+            path="render/:viewId?"
+            element={
+              <Suspense fallback={<RouteFallback inline />}>
+                <RenderView />
+              </Suspense>
+            }
+          />
+        )}
+        <Route path="fachada" element={<Navigate to={legacyFacadePath} replace />} />
+        <Route path="*" element={<NotFound />} />
         <Route
           path="proyecto"
           element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteFallback inline />}>
               <ProjectView />
             </Suspense>
           }
@@ -62,7 +116,7 @@ function App() {
       <Route
         path="/aviso-de-privacidad"
         element={
-          <Suspense fallback={null}>
+          <Suspense fallback={<RouteFallback />}>
             <PrivacyNotice />
           </Suspense>
         }
@@ -71,7 +125,7 @@ function App() {
       <Route
         path="/admin"
         element={
-          <Suspense fallback={null}>
+          <Suspense fallback={<RouteFallback />}>
             <AdminPage />
           </Suspense>
         }
@@ -79,23 +133,32 @@ function App() {
         <Route
           index
           element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteFallback inline />}>
               <UnitsTable />
             </Suspense>
           }
         />
         <Route
-          path="facade"
+          path="render"
           element={
-            <Suspense fallback={null}>
-              <FacadeEditor />
+            <Suspense fallback={<RouteFallback inline />}>
+              <RenderEditor />
             </Suspense>
           }
         />
         <Route
+          path="plantas"
+          element={
+            <Suspense fallback={<RouteFallback inline />}>
+              <PlanExporter />
+            </Suspense>
+          }
+        />
+        <Route path="facade" element={<Navigate to="/admin/render" replace />} />
+        <Route
           path="leads"
           element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteFallback inline />}>
               <LeadsTable />
             </Suspense>
           }
@@ -103,7 +166,7 @@ function App() {
         <Route
           path="analitica"
           element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteFallback inline />}>
               <AnalyticsDashboard />
             </Suspense>
           }
@@ -113,7 +176,7 @@ function App() {
       <Route
         path="/portal/login"
         element={
-          <Suspense fallback={null}>
+          <Suspense fallback={<RouteFallback />}>
             <PortalLogin />
           </Suspense>
         }
@@ -121,7 +184,7 @@ function App() {
       <Route
         path="/portal"
         element={
-          <Suspense fallback={null}>
+          <Suspense fallback={<RouteFallback />}>
             <PortalLayout />
           </Suspense>
         }
@@ -130,7 +193,7 @@ function App() {
         <Route
           path="resumen"
           element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteFallback inline />}>
               <Resumen />
             </Suspense>
           }
@@ -138,7 +201,7 @@ function App() {
         <Route
           path="inventario"
           element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteFallback inline />}>
               <Inventario />
             </Suspense>
           }
@@ -146,7 +209,7 @@ function App() {
         <Route
           path="inventario/:code"
           element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteFallback inline />}>
               <UnitDetail />
             </Suspense>
           }
@@ -154,7 +217,7 @@ function App() {
         <Route
           path="operaciones"
           element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteFallback inline />}>
               <RoleGate allow={['admin']}>
                 <OperacionesAdmin />
               </RoleGate>
@@ -164,7 +227,7 @@ function App() {
         <Route
           path="mis-apartados"
           element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteFallback inline />}>
               <RoleGate allow={['asesor']}>
                 <MisApartadosAsesor />
               </RoleGate>
@@ -174,7 +237,7 @@ function App() {
         <Route
           path="prospectos"
           element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteFallback inline />}>
               <Prospectos />
             </Suspense>
           }
@@ -182,7 +245,7 @@ function App() {
         <Route
           path="equipo"
           element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteFallback inline />}>
               <RoleGate allow={['admin']}>
                 <EquipoAdmin />
               </RoleGate>
@@ -192,7 +255,7 @@ function App() {
         <Route
           path="historial"
           element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteFallback inline />}>
               <RoleGate allow={['admin']}>
                 <HistorialAdmin />
               </RoleGate>
@@ -202,7 +265,7 @@ function App() {
         <Route
           path="configuracion"
           element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteFallback inline />}>
               <RoleGate allow={['admin']}>
                 <ConfiguracionAdmin />
               </RoleGate>
@@ -210,6 +273,7 @@ function App() {
           }
         />
       </Route>
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

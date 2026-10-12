@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Edges, Outlines } from '@react-three/drei';
 import { useThree, type ThreeEvent } from '@react-three/fiber';
@@ -9,7 +9,8 @@ import { Balconies } from './Balconies';
 import { Lobby } from './Lobby';
 import { Roof } from './Roof';
 import { createConcreteTexture } from './textures';
-import type { DevelopmentConfig, MaterialsConfig, PenthousePlateUnit, PlateUnit, Unit, UnitStatus } from '../types';
+import { disposeObject3D } from './dispose';
+import type { MaterialsConfig, PenthousePlateUnit, PlateUnit, TowerDevelopmentConfig, TowerGeometryConfig, Unit, UnitStatus } from '../types';
 
 const STATUSES: UnitStatus[] = ['available', 'reserved', 'sold'];
 
@@ -204,6 +205,9 @@ function useInstanceMatrices(matrices: THREE.Matrix4[]) {
     if (!mesh) return;
     matrices.forEach((matrix, index) => mesh.setMatrixAt(index, matrix));
     mesh.instanceMatrix.needsUpdate = true;
+    // La esfera envolvente se calcula al primer dibujo y no cuenta las instancias: sin recalcularla, la malla se descarta
+    // (frustum culling) en cuanto la cámara deja de mirar hacia el origen, p. ej. desde adentro de una unidad.
+    mesh.computeBoundingSphere();
     invalidate();
   }, [matrices, invalidate]);
   return ref;
@@ -235,7 +239,11 @@ interface HoverState {
 }
 
 interface TowerProps {
-  config: DevelopmentConfig;
+  /** Secciones compartidas por todo el conjunto: materiales, carpintería, balcones, azotea, marca. */
+  config: TowerDevelopmentConfig;
+  /** Geometría de ESTE edificio (en un conjunto, cada uno trae la suya). */
+  geometry: TowerGeometryConfig;
+  /** Unidades de este edificio solamente: dentro de un edificio los códigos son únicos. */
   units: Unit[];
   filters: UnitFilters;
   selectedUnitCode: string | null;
@@ -244,6 +252,15 @@ interface TowerProps {
   focusedFloor?: number | null;
   /** Tinta las unidades por estado (verde/ámbar/gris); si es false se ve el edificio real. */
   availabilityMode: boolean;
+  /** Falso en un edificio sin unidades a la venta (casa club, amenidades): se ve, pero no se puede tocar. */
+  interactive?: boolean;
+  /**
+   * Color (hex) con que se tiñe cada unidad, por código; tiene prioridad sobre el tinte de disponibilidad.
+   * Sirve para cualquier mapa sobre el edificio (p. ej. sol de tarde): el motor no sabe qué significa el color.
+   */
+  unitTints?: ReadonlyMap<string, string>;
+  /** Código de la unidad donde está la cámara (vista desde adentro): no proyecta sombra ni se contornea, para no estorbar la vista ni dejar su interior a oscuras. */
+  insideUnitCode?: string | null;
 }
 
 /**
@@ -262,14 +279,28 @@ interface TowerProps {
  */
 function TowerComponent({
   config,
+  geometry,
   units,
   filters,
   selectedUnitCode,
   onSelectUnit,
   focusedFloor = null,
   availabilityMode,
+  interactive = true,
+  unitTints,
+  insideUnitCode = null,
 }: TowerProps) {
-  const { geometry } = config;
+  // Todo lo que arma este componente a mano (geometrías, materiales, texturas) se libera al
+  // desmontarlo: el detalle de un edificio se monta solo mientras es el activo. Tiene que ser un
+  // efecto de LAYOUT: al desmontar, R3F desprende los hijos del grupo antes de que corran los
+  // efectos normales, y para entonces ya no habría nada que recorrer.
+  const rootRef = useRef<THREE.Group>(null);
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    return () => {
+      if (root) disposeObject3D(root);
+    };
+  }, []);
 
   const layout = useMemo(() => buildTowerLayout(geometry), [geometry]);
   const unitsByCode = useMemo(() => new Map(units.map((unit) => [unit.code, unit])), [units]);
@@ -279,6 +310,19 @@ function TowerComponent({
   const { neutral: neutralMaterials, byStatus: statusMaterials } = useMemo(
     () => buildUnitMaterialSets(config.materials),
     [config.materials],
+  );
+  // Una familia de vidrio por cada color distinto de `unitTints` (son pocos): mismo look que el tinte de estado.
+  const tintKey = unitTints ? [...new Set(unitTints.values())].sort().join(',') : '';
+  const tintMaterials = useMemo(() => {
+    if (!tintKey) return null;
+    const { glassReflectivity, statusOpacity, statusEmissiveIntensity } = config.materials;
+    return new Map(tintKey.split(',').map((color) => [color, buildStatusGlassVariants(color, glassReflectivity, statusOpacity, statusEmissiveIntensity)] as const));
+  }, [tintKey, config.materials]);
+  useEffect(
+    () => () => {
+      tintMaterials?.forEach((variants) => Object.values(variants).forEach((material) => material.dispose()));
+    },
+    [tintMaterials],
   );
   const structureMaterials = useMemo(() => buildStructureMaterials(config.materials.concrete), [config.materials.concrete]);
   // Repeat en metros de mundo (≈1.2 m por tile, como un tablero de cimbra), no un valor fijo:
@@ -346,7 +390,7 @@ function TowerComponent({
   const footprintCenterZ = (layout.footprint.minZ + layout.footprint.maxZ) / 2;
 
   return (
-    <group>
+    <group ref={rootRef}>
       {/* Planta baja: lobby de doble altura (vidrio + columnas + marquesina en voladizo). */}
       <Lobby
         footprint={layout.footprint}
@@ -391,10 +435,12 @@ function TowerComponent({
                   ? 'floor'
                   : 'none';
 
-          const materialSet = availabilityMode ? statusMaterials[status] : neutralMaterials;
+          const tint = unitTints?.get(code);
+          const materialSet = (tint ? tintMaterials?.get(tint) : undefined) ?? (availabilityMode ? statusMaterials[status] : neutralMaterials);
+          const isInside = insideUnitCode === code;
           // Contorno del color de estado (no solo el tinte del vidrio) para que la
           // disponibilidad se lea incluso donde el vidrio quede casi de canto.
-          const edgeColor = availabilityMode ? config.materials.statusTint[status] : config.materials.profile;
+          const edgeColor = tint ?? (availabilityMode ? config.materials.statusTint[status] : config.materials.profile);
 
           return (
             <mesh
@@ -408,29 +454,42 @@ function TowerComponent({
               // vez de la silueta del edificio. Un torre de vidrio real sí proyecta una
               // sombra marcada (el vidrio absorbe/refleja suficiente luz); dejarla sin
               // sombra se veía flotando, no "vidrio realista".
-              castShadow
+              castShadow={!isInside}
               receiveShadow
-              onPointerOver={(event: ThreeEvent<PointerEvent>) => {
-                event.stopPropagation();
-                setHovered({ floor: level.index, code });
-                document.body.style.cursor = 'pointer';
-              }}
-              onPointerOut={(event: ThreeEvent<PointerEvent>) => {
-                event.stopPropagation();
-                setHovered((current) => (current?.code === code ? null : current));
-                document.body.style.cursor = 'auto';
-              }}
-              onClick={(event: ThreeEvent<MouseEvent>) => {
-                event.stopPropagation();
-                onSelectUnit(isSelected ? null : code);
-              }}
+              onPointerOver={
+                interactive
+                  ? (event: ThreeEvent<PointerEvent>) => {
+                      event.stopPropagation();
+                      setHovered({ floor: level.index, code });
+                      document.body.style.cursor = 'pointer';
+                    }
+                  : undefined
+              }
+              onPointerOut={
+                interactive
+                  ? (event: ThreeEvent<PointerEvent>) => {
+                      event.stopPropagation();
+                      setHovered((current) => (current?.code === code ? null : current));
+                      document.body.style.cursor = 'auto';
+                    }
+                  : undefined
+              }
+              onClick={
+                interactive
+                  ? (event: ThreeEvent<MouseEvent>) => {
+                      event.stopPropagation();
+                      onSelectUnit(isSelected ? null : code);
+                    }
+                  : undefined
+              }
             >
-              <Edges color={edgeColor} />
+              {/* Desde adentro, las aristas de la propia unidad cruzarían la vista como un alambre. */}
+              {!isInside && <Edges color={edgeColor} />}
               {/* Contorno de selección: independiente del material/modo, siempre visible.
                   Sin `screenspace`: en ese modo `thickness` son metros de mundo, no
                   píxeles, y con unidades de ~3m de piso un valor chico ya revienta el
                   contorno. El modo default sí da grosor constante en píxeles de pantalla. */}
-              {isSelected && <Outlines thickness={3} color={config.brand.accent} transparent opacity={0.95} />}
+              {isSelected && !isInside && <Outlines thickness={3} color={config.brand.accent} transparent opacity={0.95} />}
             </mesh>
           );
         });

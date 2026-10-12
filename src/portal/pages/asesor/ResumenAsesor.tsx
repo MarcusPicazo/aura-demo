@@ -199,7 +199,7 @@ export function ResumenAsesor() {
                         <div>
                           <span className="text-label-sm font-ui font-semibold uppercase text-secondary">Folio {hold.folio}</span>
                           <h4 className="mt-0.5 font-serif text-headline-sm text-primary">
-                            Depto {hold.unitCode} · {unit?.tower}
+                            Depto {hold.unitCode} · Nivel {unit?.floor}
                           </h4>
                         </div>
                         <div

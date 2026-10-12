@@ -31,9 +31,9 @@ export function NewProspectoModal({ fixedAdvisorId, onClose }: NewProspectoModal
   const [stage, setStage] = useState<ProspectoStage>('nuevo');
   const [note, setNote] = useState('');
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    const prospecto = addProspecto({
+    const prospecto = await addProspecto({
       name,
       phone,
       email: email || undefined,
@@ -41,8 +41,8 @@ export function NewProspectoModal({ fixedAdvisorId, onClose }: NewProspectoModal
       advisorId,
       interestedUnitCodes: unitCode ? [unitCode] : [],
     });
-    if (stage !== 'nuevo') updateProspectoStage(prospecto.id, stage);
-    if (note.trim()) logProspectoNote(prospecto.id, 'Nota de alta', note.trim());
+    if (stage !== 'nuevo') await updateProspectoStage(prospecto.id, stage);
+    if (note.trim()) await logProspectoNote(prospecto.id, 'Nota de alta', note.trim());
     onClose();
   }
 

@@ -1,0 +1,396 @@
+{
+  "common": {
+    "close": "Cerrar",
+    "dragToClose": "Deslizar o tocar para cerrar",
+    "illustrativeImages": "Imágenes conceptuales ilustrativas",
+    "loadingUnits": "Cargando unidades…",
+    "loading": "Cargando…"
+  },
+  "status": {
+    "available": "Disponible",
+    "reserved": "Apartado",
+    "sold": "Vendido"
+  },
+  "legend": {
+    "count": "{available} de {total} disponibles",
+    "loadError": "No se pudieron cargar"
+  },
+  "availability": {
+    "toggle": "Ver disponibilidad"
+  },
+  "tabs": {
+    "tower3d": "Torre 3D",
+    "render": "Render",
+    "project": "Proyecto",
+    "label": "Vistas del proyecto"
+  },
+  "mode": {
+    "viewIn3d": "Ver en 3D",
+    "viewInRender": "Ver en render"
+  },
+  "breadcrumbs": {
+    "aria": "Ubicación en el conjunto"
+  },
+  "buildingLabels": {
+    "noUnits": "Sin unidades registradas",
+    "loading": "Cargando…"
+  },
+  "dock": {
+    "favorites": "Mis favoritos ({count})",
+    "compare": "Comparar unidades ({count})"
+  },
+  "interiors": {
+    "title": "Renders interiores",
+    "alt": "Render interior {n}",
+    "view": "Ver imagen {n}"
+  },
+  "renderNav": {
+    "views": "Vistas del render",
+    "selectFloor": "Seleccionar piso",
+    "floor": "Piso {floor}"
+  },
+  "filters": {
+    "title": "Filtros",
+    "bedrooms": "Recámaras",
+    "all": "Todas",
+    "price": "Precio",
+    "priceMin": "Precio mínimo",
+    "priceMax": "Precio máximo",
+    "onlyAvailable": "Solo disponibles",
+    "clear": "Limpiar filtros"
+  },
+  "errorBoundary": {
+    "title": "Algo salió mal",
+    "body": "Hubo un problema mostrando la página. Recarga para seguir viendo la torre.",
+    "reload": "Recargar"
+  },
+  "buildingInfo": {
+    "noUnits": "Este edificio no tiene unidades a la venta."
+  },
+  "kind": {
+    "tower": "Torre",
+    "clubhouse": "Casa club",
+    "amenity": "Amenidad"
+  },
+  "unit": {
+    "label": "Unidad {code}",
+    "type": "Tipo {type}",
+    "talkToAdvisor": "Hablar con un asesor",
+    "share": "Compartir",
+    "linkCopied": "¡Link copiado!",
+    "save": "Guardar",
+    "saved": "Guardada",
+    "compare": "Comparar",
+    "comparing": "Comparando",
+    "quote": "Cotización",
+    "soldNoQuote": "Esta unidad ya está vendida",
+    "compareFull": "Puedes comparar hasta {max} unidades.",
+    "viewComparison": "Ver comparación ({count})",
+    "viewFrom": "Ver desde esta unidad",
+    "bedrooms": "Recámaras",
+    "bathrooms": "Baños",
+    "area": "m²",
+    "floor": "Piso",
+    "orientation": "Orientación",
+    "interested": "Me interesa",
+    "contactPrompt": "¿Prefieres que te contactemos nosotros?",
+    "name": "Nombre",
+    "phone": "Teléfono",
+    "consent": "Acepto el tratamiento de mis datos personales conforme al",
+    "privacyLink": "aviso de privacidad",
+    "submit": "Dejar mis datos",
+    "sending": "Enviando…",
+    "sendError": "No se pudo enviar. Intenta de nuevo.",
+    "thanks": "¡Gracias! Te contactaremos pronto."
+  },
+  "payment": {
+    "title": "Esquema de pagos",
+    "downPayment": "Enganche ({percent}%)",
+    "monthly": "{count} mensualidades",
+    "each": "{amount} c/u",
+    "balance": "Saldo contra entrega",
+    "delivery": "Entrega estimada: {date}"
+  },
+  "contact": {
+    "onUnit": "Sobre la unidad {code}",
+    "whatsapp": "Escribir por WhatsApp",
+    "schedule": "Agendar visita",
+    "brochure": "Descargar brochure"
+  },
+  "project": {
+    "amenities": "Amenidades",
+    "location": "Ubicación",
+    "mapTitle": "Ubicación de {name}",
+    "recenter": "Volver a centrar el mapa en la ubicación",
+    "nearby": "Puntos de interés cercanos",
+    "walkMinutes": "{minutes} min caminando",
+    "prevAmenity": "Amenidad anterior",
+    "nextAmenity": "Siguiente amenidad"
+  },
+  "floorPlan": {
+    "alt": "Plano de la unidad"
+  },
+  "privacy": {
+    "back": "← Volver a {name}",
+    "title": "Aviso de privacidad",
+    "subtitle": "Texto base conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP). No sustituye asesoría legal: revísalo con tu abogado antes de usarlo en producción.",
+    "s1": {
+      "title": "1. Responsable del tratamiento",
+      "body": ", con domicilio en {address}, es responsable del tratamiento de tus datos personales conforme a este aviso de privacidad."
+    },
+    "s2": {
+      "title": "2. Datos personales que recabamos",
+      "body": "Recabamos tu nombre y número de teléfono cuando los proporcionas voluntariamente a través del formulario de contacto o del botón \"Me interesa\" de {name}. No recabamos datos personales sensibles."
+    },
+    "s3": {
+      "title": "3. Finalidades del tratamiento",
+      "primary": "Finalidades primarias, necesarias para atender tu solicitud:",
+      "primary1": "Contactarte para dar seguimiento a tu interés en una unidad de {name}.",
+      "primary2": "Compartirte información, cotizaciones y disponibilidad de las unidades del desarrollo.",
+      "secondary": "Finalidades secundarias, que puedes rechazar sin que eso afecte la atención de tu solicitud:",
+      "secondary1": "Enviarte promociones y novedades del desarrollo."
+    },
+    "s4": {
+      "title": "4. Transferencia de datos",
+      "body": "No transferimos tus datos personales a terceros, salvo que una autoridad competente lo requiera conforme a la ley."
+    },
+    "s5": {
+      "title": "5. Derechos ARCO",
+      "body": "Tienes derecho a Acceder, Rectificar y Cancelar tus datos personales, así como a Oponerte a su tratamiento (derechos ARCO), y a revocar tu consentimiento en cualquier momento. Para ejercerlos, escríbenos a"
+    },
+    "s6": {
+      "title": "6. Cambios a este aviso de privacidad",
+      "body": "Cualquier cambio a este aviso de privacidad se publicará en esta misma página."
+    }
+  },
+  "currency": {
+    "note": "Precios en dólares estadounidenses (USD) referenciales, con un tipo de cambio de {rate} pesos por dólar al {date}. El precio oficial es en pesos mexicanos (MXN).",
+    "noteShort": "Referencial · {rate} MXN por USD"
+  },
+  "whatsapp": {
+    "interest": "Hola, me interesa el departamento {code} (Tipo {type}, {m2} m², {price}) de {development}.",
+    "unitRef": "el departamento {code} (Tipo {type}, {m2} m², {price})",
+    "advisorUnit": "Hola, quiero más información sobre {unit} de {development}.",
+    "advisorGeneral": "Hola, quiero más información sobre {development}.",
+    "visitUnit": "Hola, quiero agendar una visita para ver {unit} de {development}.",
+    "visitGeneral": "Hola, quiero agendar una visita a {development}.",
+    "priceReferential": "{amount} (referencial; precio oficial {mxn})",
+    "quote": "Hola, te comparto la cotización del departamento {code} (Tipo {type}, {m2} m², {price}) de {development}.",
+    "quoteAttach": "Adjunto el PDF que acabo de descargar."
+  },
+  "compass": {
+    "n": "norte",
+    "nne": "nor-noreste",
+    "ne": "noreste",
+    "ene": "este-noreste",
+    "e": "este",
+    "ese": "este-sureste",
+    "se": "sureste",
+    "sse": "sur-sureste",
+    "s": "sur",
+    "ssw": "sur-suroeste",
+    "sw": "suroeste",
+    "wsw": "oeste-suroeste",
+    "w": "oeste",
+    "wnw": "oeste-noroeste",
+    "nw": "noroeste",
+    "nnw": "nor-noroeste"
+  },
+  "orientation": {
+    "norte": "Norte",
+    "sur": "Sur",
+    "oriente": "Oriente",
+    "poniente": "Poniente",
+    "nororiente": "Nororiente",
+    "norponiente": "Norponiente",
+    "suroriente": "Suroriente",
+    "surponiente": "Surponiente",
+    "dobleorientacion": "Doble orientación"
+  },
+  "sun": {
+    "button": "Asoleamiento",
+    "hour": "Hora",
+    "date": "Fecha",
+    "position": "Sol a {elevation}° de altura, hacia el {direction}.",
+    "belowHorizon": "El sol está bajo el horizonte.",
+    "daylight": "Amanece {sunrise} · atardece {sunset}.",
+    "afternoonMap": "Resaltar unidades con sol de tarde",
+    "legendAfternoon": "Reciben sol de tarde ({hours} h o más desde las {from})",
+    "legendNone": "No lo reciben",
+    "off": "Apagar asoleamiento y volver a la luz de siempre"
+  },
+  "sunHours": {
+    "aria": "Horas de sol directo",
+    "title": "Sol directo estimado",
+    "none": "Sin sol directo",
+    "onDate": "el {date}",
+    "strip": "Franja del día con sol directo, de {from} a {to}",
+    "morning": "Mañana",
+    "afternoon": "Tarde (desde las {from})",
+    "afternoonSun": "Sol de tarde",
+    "yes": "Sí",
+    "noLess": "No (menos de {hours} h)",
+    "hours": "{hours} h",
+    "disclaimer": "Estimación sobre el modelo 3D del conjunto y su entorno; no considera árboles, nubes ni voladizos. Cambia la fecha con el control de asoleamiento."
+  },
+  "unitView": {
+    "back": "Volver a la vista exterior",
+    "where": "Piso {floor} · Unidad {code}",
+    "looking": "Mirando al {direction} · {degrees}°",
+    "hint": "Arrastra para mirar alrededor"
+  },
+  "errors": {
+    "loadUnits": "No se pudieron cargar las unidades: {detail}",
+    "retry": "Reintentar",
+    "notFoundTitle": "No encontramos esta página",
+    "notFoundBody": "La dirección no existe o cambió. Vuelve al inicio para seguir explorando el proyecto.",
+    "notFoundHome": "Volver al inicio",
+    "noWebglTitle": "Este dispositivo no puede mostrar el modelo 3D",
+    "noWebglBody": "Tu navegador no tiene gráficos 3D (WebGL) disponibles. Prueba con otro navegador o actualiza el actual."
+  },
+  "crumbs": {
+    "masterplan": "Masterplan",
+    "floorUnit": "Piso {floor} · Unidad {code}"
+  },
+  "masterplan": {
+    "enter": "Entrar a {name}"
+  },
+  "pdf": {
+    "filePrefix": "cotizacion",
+    "quote": "COTIZACIÓN",
+    "apartment": "Departamento {code}",
+    "typeLine": "Tipo {type}",
+    "floorLine": "Piso {floor}",
+    "listPrice": "Precio de lista ({currency}) · {status}",
+    "officialPrice": "Precio oficial: {amount}",
+    "features": "Características",
+    "area": "Superficie",
+    "bedrooms": "Recámaras",
+    "bathrooms": "Baños",
+    "floor": "Piso",
+    "orientation": "Orientación",
+    "pricePerM2": "Precio por m²",
+    "planTitle": "Plano de la unidad",
+    "planNote": "Plano ilustrativo; las medidas pueden variar.",
+    "payments": "Esquema de pagos",
+    "priceRow": "Precio de lista",
+    "downPayment": "Enganche ({percent}%)",
+    "monthly": "{count} mensualidades durante la obra",
+    "each": "{amount} c/u",
+    "balance": "Saldo contra entrega ({percent}%)",
+    "delivery": "Entrega estimada",
+    "advisor": "Tu asesor",
+    "whatsappPhone": "WhatsApp y teléfono: +{phone}",
+    "salesOffice": "Sala de ventas: {address}",
+    "disclaimer": "Cotización informativa generada el {date}. Los precios, el esquema de pagos y la disponibilidad están sujetos a cambio sin previo aviso, y esta cotización no constituye una oferta ni el apartado de la unidad. Imágenes y planos ilustrativos.",
+    "title": "Cotización — Departamento {code} — {development}",
+    "subject": "Cotización del departamento {code}"
+  },
+  "quoteSheet": {
+    "title": "Cotización en PDF",
+    "summary": "Tipo {type} · {m2} m² · {bedrooms} rec. · Piso {floor}",
+    "scheme": "Esquema con enganche de {percent}%, con el plano y los datos de {advisor}.",
+    "preparing": "Preparando tu cotización…",
+    "error": "No se pudo generar la cotización. Intenta de nuevo.",
+    "download": "Descargar PDF ({size})",
+    "whatsapp": "Enviar por WhatsApp",
+    "shared": "¡Listo! Elegiste cómo enviarla.",
+    "fallback": "Descargamos el PDF y abrimos el chat de tu asesor: adjúntalo al mensaje para enviarlo.",
+    "openChat": "Abrir chat con {name}",
+    "privacy": "La cotización se genera en tu dispositivo; no se guarda ni se envía a ningún servidor. Precios y disponibilidad sujetos a cambio."
+  },
+  "compare": {
+    "title": "Comparar unidades",
+    "empty": "Marca unidades con «Comparar» en su ficha para verlas lado a lado.",
+    "addAnother": "Agrega otra unidad (hasta {max}) desde su ficha para compararlas.",
+    "remove": "Quitar la unidad {code} de la comparación",
+    "plan": "Plano",
+    "noPlan": "Sin plano",
+    "area": "Superficie",
+    "bedrooms": "Recámaras",
+    "bathrooms": "Baños",
+    "floor": "Piso",
+    "orientation": "Orientación",
+    "price": "Precio",
+    "pricePerM2": "Precio por m²",
+    "monthly": "Mensualidad estimada",
+    "viewUnit": "Ver ficha",
+    "footnote": "Resaltado: el mejor valor de cada fila. Mensualidad estimada: {months} pagos durante la obra con un enganche de {percent}%; el esquema final lo confirma el asesor.",
+    "clear": "Vaciar comparación"
+  },
+  "favorites": {
+    "title": "Mis favoritos",
+    "sharedTitle": "Lista compartida",
+    "sharedIntro_one": "Te compartieron {count} unidad de {name}.",
+    "sharedIntro_other": "Te compartieron {count} unidades de {name}.",
+    "saveShared": "Guardar en mis favoritos",
+    "viewMine": "Ver los míos ({count})",
+    "savedNotice": "Guardadas en tus favoritos.",
+    "empty": "Aún no guardas ninguna unidad. Toca el corazón en la ficha de una unidad para guardarla aquí.",
+    "gone": "{unit} — ya no está en el inventario",
+    "removeShort": "Quitar",
+    "summary": "Tipo {type} · {m2} m² · {bedrooms} rec. · {bathrooms} baños · Piso {floor}",
+    "unsaveAria": "Quitar la unidad {code} de favoritos",
+    "saveAria": "Guardar la unidad {code} en favoritos",
+    "compareAria": "Comparar la unidad {code}",
+    "uncompareAria": "Quitar la unidad {code} de la comparación",
+    "viewUnit": "Ver ficha",
+    "share": "Compartir mi lista",
+    "viewComparison": "Ver comparación ({count})",
+    "clear": "Vaciar favoritos",
+    "copyFailed": "No se pudo copiar el link.",
+    "shareTitle": "Mis favoritos en {name}",
+    "shareText_one": "{title}: {count} unidad.",
+    "shareText_other": "{title}: {count} unidades."
+  },
+  "locale": {
+    "button": "Idioma y moneda",
+    "language": "Idioma",
+    "currency": "Moneda"
+  },
+  "render": {
+    "imageError": "No se pudo cargar la imagen"
+  },
+  "tour": {
+    "start": "Presentación",
+    "startAria": "Iniciar la presentación automática",
+    "stopHint": "Toca la pantalla para detener",
+    "levels": "{levels} niveles",
+    "windowTitle": "Así se ve desde tu ventana",
+    "facing": "Mirando al {direction}",
+    "sunTitle": "La luz a lo largo del día",
+    "sunHours": "Unas {hours} h de sol directo en esta unidad",
+    "sunGeneric": "Del amanecer al atardecer",
+    "outroTitle": "Encuentra la tuya",
+    "touch": "Toca la pantalla para explorar"
+  },
+  "kiosk": {
+    "enter": "Modo showroom (pantalla completa)",
+    "hint": "Botones grandes y recorrido automático tras {seconds} s sin uso. Para salir: mantén presionado el logotipo o presiona Esc.",
+    "exit": "Salir del showroom",
+    "tapToStart": "Toca para entrar en pantalla completa"
+  },
+  "offline": {
+    "notice": "Sin conexión · datos de hace {age}",
+    "reconnecting": "Datos de hace {age} · reconectando…",
+    "ageMoment": "un momento",
+    "ageMinutes": "{count} min",
+    "ageHours": "{count} h",
+    "ageDays": "{count} d",
+    "saving": "Guardando para usar sin conexión… {percent}%",
+    "ready": "Listo para usar sin conexión",
+    "updateReady": "Hay una versión nueva",
+    "update": "Actualizar",
+    "install": "Instalar app"
+  },
+  "loading": {
+    "inventory": "Cargando el inventario…",
+    "building": "Preparando el edificio…",
+    "scene": "Armando la escena…",
+    "camera": "Casi listo…",
+    "percent": "{percent}%"
+  },
+  "selector": {
+    "canvasLabel": "Modelo 3D interactivo de {name}: gira, acerca y toca un piso o una unidad para ver su ficha."
+  }
+}

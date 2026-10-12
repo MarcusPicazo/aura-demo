@@ -1,11 +1,14 @@
+import { esText } from '../i18n/localized';
 import { useEffect, useState } from 'react';
 import { fetchDevelopmentUnits } from '../lib/supabase';
 import { updateUnit } from '../lib/supabaseAdmin';
 import { STATUS_LABELS } from '../lib/status';
-import auraConfigJson from '../config/aura.json';
-import type { DevelopmentConfig, Unit, UnitStatus } from '../types';
+import { assignBuildings } from '../lib/buildings';
+import { activeConfig as auraConfig, buildings, unitIdentity } from '../config/active';
+import type { Unit, UnitStatus } from '../types';
 
-const auraConfig = auraConfigJson as unknown as DevelopmentConfig;
+const buildingNames = new Map(buildings.map((building) => [building.id, esText(building.name)]));
+const buildingOrder = new Map(buildings.map((building, index) => [building.id, index]));
 const STATUS_OPTIONS: UnitStatus[] = ['available', 'reserved', 'sold'];
 
 interface PriceCellProps {
@@ -60,7 +63,7 @@ export function UnitsTable() {
 
   useEffect(() => {
     fetchDevelopmentUnits(auraConfig.slug)
-      .then((result) => setUnits(result.units))
+      .then((result) => setUnits(assignBuildings(result.units, buildings, unitIdentity.defaultBuildingId)))
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'No se pudieron cargar las unidades.'))
       .finally(() => setLoading(false));
   }, []);
@@ -88,13 +91,18 @@ export function UnitsTable() {
   if (loading) return <p className="p-6 text-sm text-neutral-500">Cargando unidades…</p>;
   if (error) return <p className="p-6 text-sm text-red-600">{error}</p>;
 
-  const sortedUnits = [...units].sort((a, b) => Number(a.code) - Number(b.code));
+  // Por edificio (en el orden del config) y, dentro de cada uno, por código.
+  const sortedUnits = [...units].sort(
+    (a, b) =>
+      (buildingOrder.get(a.buildingId) ?? 0) - (buildingOrder.get(b.buildingId) ?? 0) || Number(a.code) - Number(b.code),
+  );
 
   return (
     <div className="overflow-x-auto p-6">
       <table className="min-w-full divide-y divide-neutral-200 text-sm">
         <thead>
           <tr className="text-left text-xs uppercase tracking-wide text-neutral-500">
+            {unitIdentity.multi && <th className="py-2 pr-4">Edificio</th>}
             <th className="py-2 pr-4">Código</th>
             <th className="py-2 pr-4">Piso</th>
             <th className="py-2 pr-4">Tipo</th>
@@ -105,6 +113,7 @@ export function UnitsTable() {
         <tbody className="divide-y divide-neutral-100">
           {sortedUnits.map((unit) => (
             <tr key={unit.id}>
+              {unitIdentity.multi && <td className="py-2 pr-4 text-neutral-600">{buildingNames.get(unit.buildingId) ?? unit.buildingId}</td>}
               <td className="py-2 pr-4 font-medium text-neutral-900">{unit.code}</td>
               <td className="py-2 pr-4 text-neutral-600">{unit.floor}</td>
               <td className="py-2 pr-4 text-neutral-600">{unit.type}</td>

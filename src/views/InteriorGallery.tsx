@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useI18n } from '../i18n/useI18n';
 
 interface InteriorGalleryProps {
   images: string[];
@@ -10,6 +11,7 @@ interface InteriorGalleryProps {
  * (`onError`), se oculta sola en vez de dejar un hueco roto.
  */
 export function InteriorGallery({ images }: InteriorGalleryProps) {
+  const { t } = useI18n();
   const [failedIndexes, setFailedIndexes] = useState<Set<number>>(new Set());
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -35,8 +37,8 @@ export function InteriorGallery({ images }: InteriorGalleryProps) {
   return (
     <div className="mt-4">
       <div className="mb-2 flex items-baseline justify-between gap-2">
-        <p className="text-sm font-medium text-neutral-700">Renders interiores</p>
-        <p className="text-xs text-neutral-400">Imágenes conceptuales ilustrativas</p>
+        <p className="text-sm font-medium text-neutral-700">{t('interiors.title')}</p>
+        <p className="text-xs text-neutral-500">{t('common.illustrativeImages')}</p>
       </div>
       <div ref={scrollRef} onScroll={handleScroll} className="flex snap-x snap-mandatory gap-2 overflow-x-auto rounded-lg">
         {images.map((src, index) =>
@@ -44,7 +46,7 @@ export function InteriorGallery({ images }: InteriorGalleryProps) {
             <img
               key={src}
               src={src}
-              alt={`Render interior ${index + 1}`}
+              alt={t('interiors.alt', { n: index + 1 })}
               onError={() => markFailed(index)}
               className="h-48 w-full shrink-0 snap-center rounded-lg object-cover"
             />
@@ -53,17 +55,23 @@ export function InteriorGallery({ images }: InteriorGalleryProps) {
       </div>
 
       {visibleCount > 1 && (
-        <div className="mt-2 flex justify-center gap-1.5">
+        <div className="mt-1 flex justify-center">
           {Array.from({ length: visibleCount }, (_, index) => (
             <button
               key={index}
               type="button"
-              aria-label={`Ver imagen ${index + 1}`}
+              aria-label={t('interiors.view', { n: index + 1 })}
+              aria-current={index === activeIndex ? 'true' : undefined}
               onClick={() => scrollToVisibleIndex(index)}
-              className={`h-1.5 w-1.5 rounded-full transition-colors duration-200 motion-reduce:transition-none ${
-                index === activeIndex ? 'bg-neutral-900' : 'bg-neutral-300'
-              }`}
-            />
+              className="flex h-6 w-6 items-center justify-center"
+            >
+              <span
+                aria-hidden="true"
+                className={`h-1.5 w-1.5 rounded-full transition-colors duration-200 motion-reduce:transition-none ${
+                  index === activeIndex ? 'bg-neutral-900' : 'bg-neutral-300'
+                }`}
+              />
+            </button>
           ))}
         </div>
       )}

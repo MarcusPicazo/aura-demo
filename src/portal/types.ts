@@ -23,7 +23,6 @@ export interface PortalUnit {
   id: string;
   code: string;
   floor: number;
-  tower: string;
   typeLabel: string;
   bedrooms: number;
   bathrooms: number;

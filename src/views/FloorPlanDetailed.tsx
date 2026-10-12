@@ -1,5 +1,6 @@
 import { doorSwingPath, pointsToSvgPath, polygonArea, polygonBounds, thickSegmentPolygon } from '../lib/geometry';
 import { FurnitureSymbol } from '../lib/furnitureLibrary';
+import { useI18n, type I18n } from '../i18n/useI18n';
 import type { FloorPlanConfig, Point } from '../types';
 
 const PADDING = 0.6;
@@ -8,9 +9,12 @@ const WINDOW_FILL = '#a9c6d8';
 const ROOM_LABEL_COLOR = '#6b6862';
 
 interface FloorPlanDetailedProps {
-  /** Contorno de la unidad tal como vive en `geometry.plate`/`penthousePlate` (coordenadas de la torre). */
-  outline: Point[];
+  /** Contorno de la unidad tal como vive en `geometry.plate`/`penthousePlate` (coordenadas de la
+   *  torre). Sin modelo 3D no hay contorno: un plano en imagen se muestra igual, uno dibujado no. */
+  outline: Point[] | undefined;
   plan: FloorPlanConfig | undefined;
+  /** Idioma con que se rotulan los espacios; por omisión el de la interfaz. Se pasa explícito al rasterizar el plano para el PDF (fuera de React no hay estado vivo). */
+  i18n?: I18n;
 }
 
 /**
@@ -19,12 +23,16 @@ interface FloorPlanDetailedProps {
  * ventanas, espacios con su m² calculado, y mobiliario). No conoce nada de "aura": todo
  * (outline, plan) llega por props desde la vista que sí conoce la config del cliente activo.
  */
-export function FloorPlanDetailed({ outline, plan }: FloorPlanDetailedProps) {
+export function FloorPlanDetailed({ outline, plan, i18n }: FloorPlanDetailedProps) {
+  const live = useI18n();
+  const { t, text } = i18n ?? live;
   if (!plan) return null;
 
   if (plan.kind === 'image') {
-    return <img src={plan.src} alt="Plano de la unidad" className="w-full rounded-lg bg-neutral-50" />;
+    return <img src={plan.src} alt={t('floorPlan.alt')} className="w-full rounded-lg bg-neutral-50" />;
   }
+
+  if (!outline) return null;
 
   // El contorno viene en coordenadas absolutas de la torre (geometry.plate); los datos del
   // plano (muros, puertas, cuartos, mobiliario) se escriben en config ya en coordenadas
@@ -46,7 +54,8 @@ export function FloorPlanDetailed({ outline, plan }: FloorPlanDetailedProps) {
 
   return (
     <svg viewBox={`0 0 ${width.toFixed(2)} ${height.toFixed(2)}`} className="w-full rounded-lg bg-neutral-50">
-      <path d={pointsToSvgPath(shiftOutlineAll(outline))} className="fill-white stroke-neutral-300" strokeWidth={0.03} />
+      {/* Colores como atributos (no clases): el mismo SVG se rasteriza para la cotización en PDF, donde no hay CSS. */}
+      <path d={pointsToSvgPath(shiftOutlineAll(outline))} fill="#ffffff" stroke="#d4d4d4" strokeWidth={0.03} />
 
       {walls.map((segment, index) => (
         <polygon
@@ -83,9 +92,9 @@ export function FloorPlanDetailed({ outline, plan }: FloorPlanDetailedProps) {
           [0, 0],
         );
         return (
-          <g key={room.label}>
+          <g key={text(room.label)}>
             <text x={labelX} y={labelZ - 0.12} textAnchor="middle" fontSize={0.26} fill={ROOM_LABEL_COLOR}>
-              {room.label}
+              {text(room.label)}
             </text>
             <text x={labelX} y={labelZ + 0.16} textAnchor="middle" fontSize={0.22} fill={ROOM_LABEL_COLOR}>
               {polygonArea(room.polygon).toFixed(1)} m²

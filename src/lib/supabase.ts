@@ -1,6 +1,8 @@
 import { PostgrestClient } from '@supabase/postgrest-js';
 import { RealtimeClient } from '@supabase/realtime-js';
 import { supabaseAnonKey, supabaseUrl } from './env';
+import { DEFAULT_BUILDING_ID } from './buildings';
+import { readJson, writeJson } from './storage';
 import type { LeadOrigin, Unit, UnitStatus } from '../types';
 
 /**
@@ -32,7 +34,7 @@ realtime.connect();
 
 interface DevelopmentUnitsRow {
   id: string;
-  units: Unit[];
+  units: UnitsRealtimeRow[];
 }
 
 export interface DevelopmentUnitsResult {
@@ -40,22 +42,50 @@ export interface DevelopmentUnitsResult {
   units: Unit[];
 }
 
+const UNIT_COLUMNS = 'id, code, floor, type, bedrooms, bathrooms, m2, price, orientation, status';
+
+/**
+ * Cuando la base no tiene `building_id`, la primera consulta siempre falla y hay que repetirla: un viaje de red de más en cada
+ * carga, y la carga del inventario es lo último que se espera para mostrar la torre. Se recuerda en el dispositivo un rato corto
+ * (al correr la migración se vuelve a probar sola) para ir directo a la consulta que sí funciona.
+ */
+const BUILDING_ID_MISSING_KEY = 'supabase:no-building-id';
+const BUILDING_ID_MISSING_TTL_MS = 30 * 60 * 1000;
+
+function buildingIdKnownMissing(): boolean {
+  const savedAt = readJson('local', BUILDING_ID_MISSING_KEY);
+  return typeof savedAt === 'number' && Date.now() - savedAt < BUILDING_ID_MISSING_TTL_MS;
+}
+
+function rememberBuildingIdMissing(): void {
+  writeJson('local', BUILDING_ID_MISSING_KEY, Date.now());
+}
+
+function queryDevelopmentUnits(slug: string, columns: string) {
+  return rest.from('developments').select(`id, units(${columns})`).eq('slug', slug).single<DevelopmentUnitsRow>();
+}
+
 /**
  * Trae el desarrollo publicado (por slug) y sus unidades en un solo round trip.
  * RLS exige `developments.published = true`; si el desarrollo no existe o no está
  * publicado, Supabase simplemente no devuelve la fila (no es un error de RLS).
+ *
+ * Pide también `building_id` (conjuntos). Si la migración que lo agrega aún no se corrió en esa
+ * base, Postgres responde que la columna no existe: se reintenta sin ella y todas las unidades
+ * caen en el edificio por omisión, así la app no se rompe entre el despliegue y la migración.
  */
 export async function fetchDevelopmentUnits(slug: string): Promise<DevelopmentUnitsResult> {
-  const { data, error } = await rest
-    .from('developments')
-    .select('id, units(id, code, floor, type, bedrooms, bathrooms, m2, price, orientation, status)')
-    .eq('slug', slug)
-    .single<DevelopmentUnitsRow>();
+  const skipBuildingId = buildingIdKnownMissing();
+  let { data, error } = await queryDevelopmentUnits(slug, skipBuildingId ? UNIT_COLUMNS : `${UNIT_COLUMNS}, building_id`);
+  if (!skipBuildingId && error && error.message.includes('building_id')) {
+    rememberBuildingIdMissing();
+    ({ data, error } = await queryDevelopmentUnits(slug, UNIT_COLUMNS));
+  }
 
   if (error) throw error;
   if (!data) throw new Error(`No se encontró el desarrollo "${slug}" (¿existe y está publicado?).`);
 
-  return { developmentId: data.id, units: data.units };
+  return { developmentId: data.id, units: data.units.map(toUnit) };
 }
 
 interface CreateLeadInput {
@@ -85,6 +115,8 @@ export async function createLead(input: CreateLeadInput): Promise<void> {
 
 interface UnitsRealtimeRow {
   id: string;
+  /** Ausente si la migración de `building_id` aún no se corrió. */
+  building_id?: string | null;
   code: string;
   floor: number;
   type: string;
@@ -100,6 +132,7 @@ interface UnitsRealtimeRow {
 function toUnit(row: UnitsRealtimeRow): Unit {
   return {
     id: row.id,
+    buildingId: row.building_id ?? DEFAULT_BUILDING_ID,
     code: row.code,
     floor: row.floor,
     type: row.type,

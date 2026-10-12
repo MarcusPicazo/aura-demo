@@ -2,6 +2,7 @@ import type { SVGProps } from 'react';
 import { useDragToDismiss } from '../lib/useDragToDismiss';
 import { useEscapeKey } from '../lib/useEscapeKey';
 import { buildAdvisorMessage, buildScheduleVisitMessage, buildWhatsappLink } from '../lib/whatsapp';
+import { useI18n } from '../i18n/useI18n';
 import type { AdvisorConfig, Unit } from '../types';
 
 interface ContactCardProps {
@@ -88,9 +89,11 @@ function initials(name: string): string {
 export function ContactCard({ advisor, developmentName, selectedUnit, visible, onClose }: ContactCardProps) {
   useEscapeKey(onClose, visible);
   const { dragging, dragY, handlePointerDown, handlePointerMove, handlePointerUp } = useDragToDismiss(onClose, visible);
+  const i18n = useI18n();
+  const { t, text } = i18n;
 
-  const whatsappHref = buildWhatsappLink(advisor.phone, buildAdvisorMessage(developmentName, selectedUnit));
-  const scheduleHref = buildWhatsappLink(advisor.phone, buildScheduleVisitMessage(developmentName, selectedUnit));
+  const whatsappHref = buildWhatsappLink(advisor.phone, buildAdvisorMessage(i18n, developmentName, selectedUnit));
+  const scheduleHref = buildWhatsappLink(advisor.phone, buildScheduleVisitMessage(i18n, developmentName, selectedUnit));
   const mapHref = `https://www.google.com/maps/search/?api=1&query=${advisor.salesOffice.lat}%2C${advisor.salesOffice.lng}`;
 
   return (
@@ -118,13 +121,13 @@ export function ContactCard({ advisor, developmentName, selectedUnit, visible, o
         className="flex shrink-0 touch-none cursor-grab justify-center pb-1 pt-2.5 active:cursor-grabbing sm:hidden"
       >
         <span className="h-1.5 w-10 rounded-full bg-neutral-300" aria-hidden="true" />
-        <span className="sr-only">Deslizar o tocar para cerrar</span>
+        <span className="sr-only">{t('common.dragToClose')}</span>
       </div>
 
       <button
         type="button"
         onClick={onClose}
-        aria-label="Cerrar"
+        aria-label={t('common.close')}
         className="absolute right-4 top-4 text-2xl leading-none text-neutral-400 hover:text-neutral-700"
       >
         &times;
@@ -146,13 +149,13 @@ export function ContactCard({ advisor, developmentName, selectedUnit, visible, o
             )}
             <div>
               <p className="font-serif text-lg text-neutral-900">{advisor.name}</p>
-              <p className="text-sm text-neutral-500">{advisor.role}</p>
+              <p className="text-sm text-neutral-500">{text(advisor.role)}</p>
             </div>
           </div>
 
           {selectedUnit && (
             <p className="mt-3 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
-              Sobre la unidad <span className="font-medium text-neutral-900">{selectedUnit.code}</span>
+              {t('contact.onUnit', { code: selectedUnit.code })}
             </p>
           )}
 
@@ -167,7 +170,7 @@ export function ContactCard({ advisor, developmentName, selectedUnit, visible, o
             </a>
             <p className="flex items-center gap-2 text-neutral-700">
               <ClockIcon className="h-4 w-4 shrink-0 text-[var(--brand-primary)]" />
-              {advisor.hours}
+              {text(advisor.hours)}
             </p>
             <a
               href={mapHref}
@@ -176,7 +179,7 @@ export function ContactCard({ advisor, developmentName, selectedUnit, visible, o
               className="flex items-start gap-2 text-neutral-700 hover:text-neutral-900"
             >
               <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand-primary)]" />
-              <span>{advisor.salesOffice.address}</span>
+              <span>{text(advisor.salesOffice.address)}</span>
             </a>
           </div>
 
@@ -184,9 +187,9 @@ export function ContactCard({ advisor, developmentName, selectedUnit, visible, o
             href={whatsappHref}
             target="_blank"
             rel="noreferrer"
-            className="mt-5 block w-full rounded-full bg-[#25D366] py-3 text-center font-medium text-white"
+            className="mt-5 block w-full rounded-full bg-[#25D366] py-3 text-center font-medium text-[#0B2E18]"
           >
-            Escribir por WhatsApp
+            {t('contact.whatsapp')}
           </a>
 
           <div className="mt-2 grid grid-cols-2 gap-2">
@@ -196,14 +199,14 @@ export function ContactCard({ advisor, developmentName, selectedUnit, visible, o
               rel="noreferrer"
               className="rounded-full border border-[var(--brand-primary)] py-2 text-center text-sm font-medium text-[var(--brand-primary)]"
             >
-              Agendar visita
+              {t('contact.schedule')}
             </a>
             <a
               href={advisor.brochureUrl}
               download
               className="rounded-full border border-neutral-300 py-2 text-center text-sm font-medium text-neutral-700"
             >
-              Descargar brochure
+              {t('contact.brochure')}
             </a>
           </div>
         </div>

@@ -11,6 +11,10 @@ interface CameraRigProps {
   target: [number, number, number];
   duration?: number;
   onComplete?: () => void;
+  /** Avance real de la animación (0–1), para la barra de la pantalla de carga; se avisa solo cuando cambia lo suficiente. */
+  onProgress?: (progress: number) => void;
+  /** Falso mantiene la cámara en el punto de partida (la animación espera, por ejemplo a que cargue lo que va a mostrar). */
+  start?: boolean;
 }
 
 /**
@@ -18,14 +22,20 @@ interface CameraRigProps {
  * (interpola en coordenadas esféricas alrededor de `target`, no en línea recta)
  * hasta llegar exactamente a `intro`. Genérico: solo depende de intro/target por props.
  */
-function CameraRigComponent({ intro, target, duration = 2.4, onComplete }: CameraRigProps) {
+function CameraRigComponent({ intro, target, duration = 2.4, onComplete, onProgress, start = true }: CameraRigProps) {
   const { camera, invalidate } = useThree();
   const elapsed = useRef(0);
   const done = useRef(false);
   const onCompleteRef = useRef(onComplete);
+  const onProgressRef = useRef(onProgress);
+  const lastProgress = useRef(0);
+  // Reutilizada en cada cuadro: crear un objeto por cuadro dispara el recolector de basura en pleno movimiento.
+  const current = useMemo(() => new THREE.Spherical(), []);
+  const prefersReducedMotion = useMemo(() => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
   useEffect(() => {
     onCompleteRef.current = onComplete;
-  }, [onComplete]);
+    onProgressRef.current = onProgress;
+  }, [onComplete, onProgress]);
 
   const rig = useMemo(() => {
     const targetVec = new THREE.Vector3(target[0], target[1], target[2]);
@@ -50,13 +60,18 @@ function CameraRigComponent({ intro, target, duration = 2.4, onComplete }: Camer
   }, [rig, camera, invalidate]);
 
   useFrame((_, delta) => {
-    if (done.current) return;
+    if (done.current || !start) return;
 
     elapsed.current += delta;
-    const t = Math.min(elapsed.current / duration, 1);
+    // Quien pidió menos movimiento en su sistema ve la torre ya en su encuadre, sin la órbita de entrada.
+    const t = prefersReducedMotion ? 1 : Math.min(elapsed.current / duration, 1);
     const eased = easeOutCubic(t);
+    if (t - lastProgress.current >= 0.03 || t >= 1) {
+      lastProgress.current = t;
+      onProgressRef.current?.(t);
+    }
 
-    const current = new THREE.Spherical(
+    current.set(
       THREE.MathUtils.lerp(rig.startSpherical.radius, rig.endSpherical.radius, eased),
       THREE.MathUtils.lerp(rig.startSpherical.phi, rig.endSpherical.phi, eased),
       THREE.MathUtils.lerp(rig.startSpherical.theta, rig.endSpherical.theta, eased),

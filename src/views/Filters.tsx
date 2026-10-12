@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useFiltersStore } from '../store/filtersStore';
 import { hasActiveFilters } from '../lib/filters';
-import { formatPrice } from '../lib/pricing';
+import { convertToMxn } from '../lib/currency';
+import { useI18n } from '../i18n/useI18n';
 import { useDragToDismiss } from '../lib/useDragToDismiss';
 import { useEscapeKey } from '../lib/useEscapeKey';
 import { usePresence } from '../lib/usePresence';
@@ -24,6 +25,7 @@ interface FiltersProps {
  */
 export function Filters({ units }: FiltersProps) {
   const [expanded, setExpanded] = useState(false);
+  const { t, money, currency, usdRate } = useI18n();
 
   const bedrooms = useFiltersStore((state) => state.bedrooms);
   const priceMin = useFiltersStore((state) => state.priceMin);
@@ -41,8 +43,13 @@ export function Filters({ units }: FiltersProps) {
 
   const filtersActive = hasActiveFilters({ bedrooms, priceMin, priceMax, onlyAvailable });
 
+  // Los filtros guardan pesos (el precio oficial); los campos se escriben en la moneda que se está viendo.
   function parsePriceInput(value: string): number | null {
-    return value === '' ? null : Number(value);
+    return value === '' ? null : Math.round(convertToMxn(Number(value), currency, usdRate));
+  }
+  function priceInputValue(priceMxn: number | null): number | string {
+    if (priceMxn === null) return '';
+    return currency === 'USD' ? Math.round(priceMxn / usdRate) : priceMxn;
   }
 
   function close() {
@@ -62,7 +69,10 @@ export function Filters({ units }: FiltersProps) {
         onClick={() => setExpanded((value) => !value)}
         className="flex items-center gap-3 rounded-xl bg-[var(--brand-background)]/95 px-3 py-2 text-sm font-medium text-neutral-900 shadow-lg backdrop-blur"
       >
-        <span>Filtros{filtersActive ? ' •' : ''}</span>
+        <span>
+          {t('filters.title')}
+          {filtersActive ? ' •' : ''}
+        </span>
         <span className="text-neutral-400">{expanded ? '−' : '+'}</span>
       </button>
 
@@ -87,7 +97,7 @@ export function Filters({ units }: FiltersProps) {
             className="flex shrink-0 touch-none cursor-grab justify-center pb-1 pt-2.5 active:cursor-grabbing sm:hidden"
           >
             <span className="h-1.5 w-10 rounded-full bg-neutral-300" aria-hidden="true" />
-            <span className="sr-only">Deslizar o tocar para cerrar</span>
+            <span className="sr-only">{t('common.dragToClose')}</span>
           </div>
 
           <div
@@ -96,7 +106,7 @@ export function Filters({ units }: FiltersProps) {
             }`}
           >
             <div>
-              <p className="mb-1 text-xs uppercase tracking-wide text-neutral-500">Recámaras</p>
+              <p className="mb-1 text-xs uppercase tracking-wide text-neutral-500">{t('filters.bedrooms')}</p>
               <div className="flex flex-wrap gap-1">
                 <button
                   type="button"
@@ -107,7 +117,7 @@ export function Filters({ units }: FiltersProps) {
                       : 'border-neutral-300 text-neutral-700'
                   }`}
                 >
-                  Todas
+                  {t('filters.all')}
                 </button>
                 {bedroomOptions.map((count) => (
                   <button
@@ -127,21 +137,23 @@ export function Filters({ units }: FiltersProps) {
             </div>
 
             <div>
-              <p className="mb-1 text-xs uppercase tracking-wide text-neutral-500">Precio</p>
+              <p className="mb-1 text-xs uppercase tracking-wide text-neutral-500">{t('filters.price')}</p>
               <div className="flex gap-2">
                 <input
                   type="number"
                   inputMode="numeric"
-                  placeholder={formatPrice(dataMin)}
-                  value={priceMin ?? ''}
+                  placeholder={money(dataMin)}
+                  aria-label={t('filters.priceMin')}
+                  value={priceInputValue(priceMin)}
                   onChange={(event) => setPriceRange(parsePriceInput(event.target.value), priceMax)}
                   className="w-full min-w-0 rounded-lg border border-neutral-300 px-2 py-1 text-xs"
                 />
                 <input
                   type="number"
                   inputMode="numeric"
-                  placeholder={formatPrice(dataMax)}
-                  value={priceMax ?? ''}
+                  placeholder={money(dataMax)}
+                  aria-label={t('filters.priceMax')}
+                  value={priceInputValue(priceMax)}
                   onChange={(event) => setPriceRange(priceMin, parsePriceInput(event.target.value))}
                   className="w-full min-w-0 rounded-lg border border-neutral-300 px-2 py-1 text-xs"
                 />
@@ -155,12 +167,12 @@ export function Filters({ units }: FiltersProps) {
                 onChange={(event) => setOnlyAvailable(event.target.checked)}
                 className="h-4 w-4 rounded border-neutral-300 accent-[var(--brand-primary)]"
               />
-              Solo disponibles
+              {t('filters.onlyAvailable')}
             </label>
 
             {filtersActive && (
               <button type="button" onClick={reset} className="text-xs text-neutral-500 underline">
-                Limpiar filtros
+                {t('filters.clear')}
               </button>
             )}
           </div>
